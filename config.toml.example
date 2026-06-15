@@ -1,0 +1,57 @@
+# ─── Kubuno Maps — Configuration ─────────────────────────────────────────────
+# Copiez ce fichier en config.toml et adaptez les valeurs.
+# Les variables d'environnement préfixées KM__ surchargent ce fichier.
+
+[server]
+host = "127.0.0.1"
+port = 3115
+
+[core]
+url             = "http://127.0.0.1:8080"
+internal_secret = "change_me"
+
+[storage]
+backend    = "local"
+local_path = "/var/lib/kubuno/modules/maps/data"
+temp_path  = "/var/lib/kubuno/modules/maps/temp"
+# Développement :
+# local_path = "./data/files"
+# temp_path  = "./data/temp"
+
+# ─── Services cartographiques ─────────────────────────────────────────────────
+[tile_server]
+url       = "http://localhost:3000"
+style_url = "http://localhost:3000/style.json"
+
+[nominatim]
+# API publique OSM (usage raisonnable, voir https://operations.osmfoundation.org/policies/nominatim/)
+url             = "https://nominatim.openstreetmap.org"
+# Instance locale (sans limitation de débit) :
+# url           = "http://localhost:8888"
+accept_language = "fr,en"
+rate_limit_rps  = 1
+
+[osrm]
+# Par défaut, le routage utilise les instances OSRM publiques FOSSGIS
+# (gratuites, sans clé, en streaming) — voiture / vélo / pieds fonctionnent
+# d'emblée. Pour un usage intensif, hébergez votre propre OSRM et renseignez
+# `url` (instance mono-profil, profil dans le path) ou les `url_*` ci-dessous.
+url      = "http://localhost:5000"
+profiles = ["driving", "cycling", "foot"]
+# url_driving = "https://routing.openstreetmap.de/routed-car"
+# url_cycling = "https://routing.openstreetmap.de/routed-bike"
+# url_foot    = "https://routing.openstreetmap.de/routed-foot"
+
+[overpass]
+url          = "https://overpass-api.de/api/interpreter"
+timeout_secs = 10
+
+[maps]
+default_lat     = 48.8566
+default_lng     = 2.3522
+default_zoom    = 12
+max_gpx_size_mb = 10
+
+[logging]
+level  = "info"
+format = "pretty"

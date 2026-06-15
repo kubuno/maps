@@ -1,0 +1,42 @@
+[module]
+id           = "maps"
+display_name = "Maps"
+version      = "0.1.0"
+description  = "Cartographie self-hosted — OpenStreetMap, itinéraires, lieux favoris, traces GPX"
+author       = "Kubuno Contributors"
+license      = "AGPL-3.0"
+homepage_url = "https://github.com/kubuno/kubuno"
+runtime      = "rust"
+dependencies = []
+settings_path = "/maps/settings"
+
+[process]
+entrypoint = "kubuno-maps"
+args       = []
+
+[server]
+host = "127.0.0.1"
+port = 3115
+
+[routes]
+patterns = [
+    { method = "*", path = "/*" },
+]
+
+[[sidebar_items]]
+id       = "maps"
+label    = "Maps"
+icon     = "Map"
+path     = "/maps"
+position = 55
+section  = "main"
+
+[events]
+subscribed = [
+    "UserDeleted",
+    "ContactUpdated",
+]
+publishes = [
+    "PlaceSaved",
+    "RouteShared",
+]
