@@ -897,7 +897,7 @@ export default function MapsPage() {
           La nav (Lieux/Recherche/GPX/Itinéraire) vit désormais dans la sidebar du
           core (MapsSidebarBody) ; ce panneau ne montre plus que le CONTENU de
           l'onglet actif. Plus de rail → il flotte au bord gauche de la carte. */}
-      <div className="absolute left-3 top-3 w-[370px] max-h-[calc(100%-24px)] z-[1100] flex flex-col min-h-0">
+      <div className="absolute left-3 top-3 w-[370px] max-w-[calc(100vw-24px)] max-h-[calc(100%-24px)] z-[1100] flex flex-col min-h-0 no-print">
         {selectedPlace ? (
           <MapsPlacePanel place={selectedPlace} onClose={clearSelectedPlace} onRouteTo={routeToPlace} onSave={saveFromSearch} />
         ) : (
@@ -913,12 +913,12 @@ export default function MapsPage() {
       </div>
 
       {/* ── HeaderActions flottant (plein écran) : rectangle arrondi sur la carte ── */}
-      <div className="absolute top-3 right-3 z-[1110] bg-surface-0 rounded-2xl shadow-md border border-border px-1 flex items-center">
+      <div className="absolute top-3 right-3 z-[1110] bg-surface-0 rounded-2xl shadow-md border border-border px-1 flex items-center no-print">
         <HeaderActions compact />
       </div>
 
-      {/* ── Chips de catégories (haut) ── */}
-      <div className="absolute top-4 left-[400px] right-[252px] z-[1090] flex gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+      {/* ── Chips de catégories (haut) — masquées sur mobile (place réduite) ── */}
+      <div className="absolute top-4 left-[400px] right-[252px] z-[1090] hidden sm:flex gap-2 overflow-x-auto no-print" style={{ scrollbarWidth: 'none' }}>
         {CATEGORIES.map(c => (
           <button key={c.key} onClick={() => setTab('search')}
             className="flex items-center gap-1.5 h-9 px-3.5 rounded-full bg-surface-0 border border-border shadow-sm text-[13px] font-medium text-text-primary hover:bg-surface-1 whitespace-nowrap flex-shrink-0 transition-colors">
@@ -937,7 +937,7 @@ export default function MapsPage() {
       )}
 
       {/* ── Contrôles bas-droite : localisation + zoom ── */}
-      <div className="absolute bottom-6 right-4 z-[1100] flex flex-col items-end gap-3">
+      <div className="absolute bottom-6 right-4 z-[1100] flex flex-col items-end gap-3 no-print">
         <button onClick={locate} title={t('maps_locate', { defaultValue: 'Ma position' })}
           className="w-10 h-10 rounded-lg bg-surface-0 border border-border shadow-md flex items-center justify-center text-text-secondary hover:bg-surface-1 transition-colors">
           <Locate size={18} />
@@ -952,7 +952,7 @@ export default function MapsPage() {
       </div>
 
       {/* ── Calques (bas-gauche) ── */}
-      <div className="absolute bottom-6 left-3 z-[1100]">
+      <div className="absolute bottom-6 left-3 z-[1100] no-print">
         {layersOpen && (
           <div className="absolute bottom-12 left-0">
             <MapsLayersPanel
