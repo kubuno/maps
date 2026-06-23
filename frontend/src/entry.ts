@@ -12,6 +12,7 @@ import {
   RouteRegistry,
   WaffleAppRegistry,
   FaviconRegistry,
+  ModuleSettingsRegistry,
   useSidebarStore,
   useToolbarStore,
   SDK_VERSION,
@@ -30,6 +31,9 @@ export function register() {
     { id: 'maps', label: 'Maps', Icon: MapsLogo, path: '/maps' },
   ])
 
+  // The header gear button opens the per-user Maps settings while in /maps.
+  ModuleSettingsRegistry.register('maps')
+
   useSidebarStore.getState().register({
     moduleId:      'maps',
     routePrefix:   '/maps',
@@ -43,8 +47,19 @@ export function register() {
     noPadding:   true,
   })
 
+  // The settings page has its own breadcrumb header; no module toolbar there.
+  useToolbarStore.getState().register({
+    moduleId:    'maps-settings',
+    routePrefix: '/maps/settings',
+  })
+
   // Routes
-  const MapsPage = lazy(() => import('./MapsPage'))
+  const MapsPage          = lazy(() => import('./MapsPage'))
+  const MapsSettingsPage  = lazy(() => import('./MapsSettingsPage'))
+  const MapsPublicSketch  = lazy(() => import('./MapsPublicSketch'))
 
   RouteRegistry.register('maps', MapsPage)
+  RouteRegistry.register('maps/settings', MapsSettingsPage)
+  // Vue publique (anonyme) d'un croquis partagé — hors shell.
+  RouteRegistry.registerPublic('maps/s/:token', MapsPublicSketch)
 }

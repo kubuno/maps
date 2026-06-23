@@ -8,3 +8,25 @@
 @import "tailwindcss/preflight.css" layer(base);
 @import "tailwindcss/utilities.css" layer(kubuno-module) source("../");
 @import "./theme.css";
+
+/* Fond « espace » derrière le globe : visible autour de la sphère quand le canvas
+ * MapLibre est dézoomé (ailleurs, la carte le recouvre). Très légèrement étoilé. */
+.maps-space {
+  background-color: #060912;
+  background-image:
+    radial-gradient(1.1px 1.1px at 12% 18%, rgba(255,255,255,.75), transparent),
+    radial-gradient(1px 1px   at 28% 62%, rgba(255,255,255,.45), transparent),
+    radial-gradient(1.4px 1.4px at 41% 28%, rgba(255,255,255,.65), transparent),
+    radial-gradient(1px 1px   at 55% 78%, rgba(255,255,255,.4),  transparent),
+    radial-gradient(1.2px 1.2px at 68% 16%, rgba(255,255,255,.6), transparent),
+    radial-gradient(1px 1px   at 73% 52%, rgba(255,255,255,.5),  transparent),
+    radial-gradient(1.3px 1.3px at 86% 34%, rgba(255,255,255,.7), transparent),
+    radial-gradient(1px 1px   at 92% 72%, rgba(255,255,255,.45), transparent),
+    radial-gradient(1px 1px   at 8% 84%,  rgba(255,255,255,.4),  transparent),
+    radial-gradient(1.1px 1.1px at 35% 90%, rgba(255,255,255,.55), transparent),
+    radial-gradient(1px 1px   at 60% 38%, rgba(255,255,255,.35), transparent),
+    radial-gradient(1.2px 1.2px at 80% 88%, rgba(255,255,255,.5), transparent),
+    radial-gradient(ellipse 120% 90% at 50% 42%, #11182b 0%, #0a0e1c 45%, #04060e 78%, #02030a 100%);
+  background-repeat: no-repeat;
+  background-size: cover;
+}

@@ -57,10 +57,9 @@ pub fn parse_gpx(content: &[u8]) -> Result<GpxFile> {
                     }
                     "name"     => {
                         if in_trkpt || in_wpt { in_pt_name = true; }
-                        else if in_trk        { in_name = false; }
-                        else                  { in_name = true; }
+                        else                  { in_name = !in_trk; }
                     }
-                    "desc"     => { if !in_trkpt && !in_wpt { in_desc = true; } }
+                    "desc" if !in_trkpt && !in_wpt => { in_desc = true; }
                     "ele"      => { in_ele = true; }
                     "time"     => { in_time = true; }
                     _ => {}
@@ -230,6 +229,90 @@ pub fn compute_stats(file: &GpxFile) -> GpxStats {
         distance_meters,
         elevation_gain,
         elevation_loss,
+        point_count,
+        bbox: [min_lat, min_lng, max_lat, max_lng],
+    }
+}
+
+/// Construit le profil d'une trace : série (lat,lng,élévation,distance cumulée)
+/// rééchantillonnée à `max_points`, plus des statistiques détaillées (D+, D−,
+/// min/max élévation, durée, vitesse moyenne).
+pub fn track_data(file: &GpxFile, max_points: usize) -> crate::models::gpx::TrackData {
+    use crate::models::gpx::{TrackData, TrackPoint};
+
+    // Concatène tous les points des segments de trace, dans l'ordre.
+    let mut pts: Vec<&GpxPoint> = Vec::new();
+    for track in &file.tracks {
+        for seg in &track.segments {
+            pts.extend(seg.iter());
+        }
+    }
+
+    let mut series: Vec<TrackPoint> = Vec::with_capacity(pts.len());
+    let mut distance = 0.0f64;
+    let mut gain = 0.0f64;
+    let mut loss = 0.0f64;
+    let mut min_ele: Option<f64> = None;
+    let mut max_ele: Option<f64> = None;
+    let mut min_lat = 90.0f64;
+    let mut max_lat = -90.0f64;
+    let mut min_lng = 180.0f64;
+    let mut max_lng = -180.0f64;
+
+    for (i, pt) in pts.iter().enumerate() {
+        if i > 0 {
+            let prev = pts[i - 1];
+            distance += haversine(prev.lat, prev.lng, pt.lat, pt.lng);
+            if let (Some(pe), Some(ce)) = (prev.elevation, pt.elevation) {
+                let d = ce - pe;
+                if d > 0.0 { gain += d; } else { loss += -d; }
+            }
+        }
+        if let Some(e) = pt.elevation {
+            min_ele = Some(min_ele.map_or(e, |m| m.min(e)));
+            max_ele = Some(max_ele.map_or(e, |m| m.max(e)));
+        }
+        min_lat = min_lat.min(pt.lat); max_lat = max_lat.max(pt.lat);
+        min_lng = min_lng.min(pt.lng); max_lng = max_lng.max(pt.lng);
+
+        series.push(TrackPoint { lat: pt.lat, lng: pt.lng, ele: pt.elevation, dist: distance, time: pt.time });
+    }
+
+    // Durée + vitesse moyenne si la trace est horodatée.
+    let duration_secs = match (series.first().and_then(|p| p.time), series.last().and_then(|p| p.time)) {
+        (Some(a), Some(b)) => Some((b - a).num_seconds()),
+        _ => None,
+    };
+    let avg_speed_ms = match duration_secs {
+        Some(d) if d > 0 => Some(distance / d as f64),
+        _ => None,
+    };
+
+    let point_count = series.len() as u32;
+
+    // Rééchantillonnage : garde au plus `max_points` points (toujours le dernier).
+    if max_points > 0 && series.len() > max_points {
+        let step = series.len().div_ceil(max_points);
+        let last = series.last().cloned();
+        series = series.into_iter().step_by(step).collect();
+        if let Some(l) = last {
+            if series.last().map(|p| p.dist) != Some(l.dist) { series.push(l); }
+        }
+    }
+
+    if point_count == 0 {
+        min_lat = 0.0; max_lat = 0.0; min_lng = 0.0; max_lng = 0.0;
+    }
+
+    TrackData {
+        points: series,
+        distance_meters: distance,
+        elevation_gain: gain,
+        elevation_loss: loss,
+        min_elevation: min_ele,
+        max_elevation: max_ele,
+        duration_secs,
+        avg_speed_ms,
         point_count,
         bbox: [min_lat, min_lng, max_lat, max_lng],
     }

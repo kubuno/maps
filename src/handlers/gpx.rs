@@ -147,6 +147,21 @@ pub async fn download(
     ).into_response())
 }
 
+/// Profil de la trace (série élévation/distance + stats détaillées) pour le
+/// graphique d'élévation et l'export GeoJSON côté client.
+pub async fn track(
+    State(state): State<AppState>,
+    Extension(user): Extension<MapsUser>,
+    Path(id): Path<Uuid>,
+) -> Result<Json<Value>> {
+    let row = fetch_trace_row(&state.db, id, user.id).await?;
+    let storage_path: String = row.try_get("storage_path").map_err(MapsError::Database)?;
+    let bytes = state.storage.get(&storage_path).await?;
+    let file = crate::services::gpx_service::parse_gpx(bytes.as_ref())?;
+    let data = crate::services::gpx_service::track_data(&file, 600);
+    Ok(Json(json!({ "track": data })))
+}
+
 pub async fn delete(
     State(state): State<AppState>,
     Extension(user): Extension<MapsUser>,

@@ -51,3 +51,30 @@ pub struct GpxStats {
     pub point_count:     u32,
     pub bbox:            [f64; 4],
 }
+
+// ── Profil de trace (élévation + stats détaillées) ──────────────────────────────
+
+#[derive(Debug, Clone, Serialize)]
+pub struct TrackPoint {
+    pub lat:  f64,
+    pub lng:  f64,
+    pub ele:  Option<f64>,
+    /// Distance cumulée depuis le départ (mètres).
+    pub dist: f64,
+    pub time: Option<DateTime<Utc>>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct TrackData {
+    pub points:          Vec<TrackPoint>,
+    pub distance_meters: f64,
+    pub elevation_gain:  f64,
+    pub elevation_loss:  f64,
+    pub min_elevation:   Option<f64>,
+    pub max_elevation:   Option<f64>,
+    pub duration_secs:   Option<i64>,
+    /// Vitesse moyenne (m/s) si la trace est horodatée.
+    pub avg_speed_ms:    Option<f64>,
+    pub point_count:     u32,
+    pub bbox:            [f64; 4],
+}

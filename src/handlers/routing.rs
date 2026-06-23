@@ -30,7 +30,14 @@ pub async fn calculate(
     }
 
     let osrm = OsrmService::new(state.http.clone(), state.settings.osrm.url_for(profile).to_string());
-    let resp = osrm.route(&dto.coords(), profile, dto.alternatives.unwrap_or(false)).await?;
+    let resp = osrm
+        .route(
+            &dto.coords(),
+            profile,
+            dto.alternatives.unwrap_or(false),
+            dto.steps.unwrap_or(false),
+        )
+        .await?;
 
     if resp.code != "Ok" {
         return Err(MapsError::RoutingFailed(resp.code));

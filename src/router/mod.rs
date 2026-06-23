@@ -7,7 +7,7 @@ use axum::{
 use tower_http::{cors::CorsLayer, trace::TraceLayer};
 
 use crate::{
-    handlers::{geocode, gpx, health, places, routing, search, tiles},
+    handlers::{geocode, gpx, health, overpass, places, routing, search, sketches, tiles},
     middleware::{require_auth, require_ipc_secret},
     state::AppState,
 };
@@ -22,13 +22,16 @@ pub fn build(state: AppState) -> Router {
         // Geocoding
         .route("/geocode/search",  get(geocode::search))
         .route("/geocode/reverse", get(geocode::reverse))
+        // POI / exploration (Overpass)
+        .route("/overpass/categories", get(overpass::categories))
+        .route("/overpass/nearby",     get(overpass::nearby))
         // Routing
         .route("/routes",          get(routing::list_routes).post(routing::calculate))
         .route("/routes/save",     post(routing::save_route))
         .route("/routes/:id",      delete(routing::delete_route))
         // Saved places
         .route("/places",          get(places::list).post(places::create))
-        .route("/places/:id",      get(places::get).delete(places::delete))
+        .route("/places/:id",      get(places::get).patch(places::update).delete(places::delete))
         // Collections
         .route("/collections",     get(places::list_collections).post(places::create_collection))
         .route("/collections/:id", get(places::get_collection).delete(places::delete_collection))
@@ -41,17 +44,23 @@ pub fn build(state: AppState) -> Router {
                                            .layer(DefaultBodyLimit::max(max_gpx)))
         .route("/gpx/:id",           get(gpx::get).delete(gpx::delete))
         .route("/gpx/:id/download",  get(gpx::download))
+        .route("/gpx/:id/track",     get(gpx::track))
         // Search history
         .route("/search/history",    get(search::history).delete(search::clear_history))
+        // Sketches (calques dessinés : mesure / dessin / annotations)
+        .route("/sketches",          get(sketches::list).post(sketches::create))
+        .route("/sketches/:id",      get(sketches::get).put(sketches::update).delete(sketches::delete))
+        .route("/sketches/:id/share", post(sketches::share))
         // Tiles
         .route("/tiles/style",                    get(tiles::get_style))
         .route("/tiles/:source/:z/:x/:y",         get(tiles::proxy_tile))
         .layer(middleware::from_fn_with_state(state.clone(), require_auth))
         .with_state(state.clone());
 
-    // Health (no auth)
+    // Health + lecture publique d'un croquis partagé (no auth)
     let system = Router::new()
         .route("/health", get(health::health))
+        .route("/sketches/public/:token", get(sketches::get_public))
         .with_state(state.clone());
 
     // IPC events endpoint

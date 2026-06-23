@@ -2,7 +2,8 @@ use uuid::Uuid;
 
 use crate::errors::{MapsError, Result};
 use crate::models::place::{
-    CreateCollectionDto, CreatePlaceDto, CreateReviewDto, PlaceCollection, SavedPlace, UserReview,
+    CreateCollectionDto, CreatePlaceDto, CreateReviewDto, PlaceCollection, SavedPlace,
+    UpdatePlaceDto, UserReview,
 };
 
 const PLACE_COLS: &str = r#"
@@ -132,6 +133,42 @@ pub async fn create_place(db: &sqlx::PgPool, owner_id: Uuid, dto: &CreatePlaceDt
     row_to_place(&row).map_err(MapsError::Database)
 }
 
+pub async fn update_place(
+    db:       &sqlx::PgPool,
+    id:       Uuid,
+    owner_id: Uuid,
+    dto:      &UpdatePlaceDto,
+) -> Result<SavedPlace> {
+    // collection_id : Some(_) → on l'écrit (valeur ou NULL) ; None → inchangé.
+    let set_collection = dto.collection_id.is_some();
+    let collection_val = dto.collection_id.flatten();
+
+    let row = sqlx::query(&format!(r#"
+        UPDATE maps.saved_places
+           SET name          = COALESCE($3, name),
+               user_note     = COALESCE($4, user_note),
+               user_tags     = COALESCE($5, user_tags),
+               icon          = COALESCE($6, icon),
+               collection_id = CASE WHEN $7 THEN $8 ELSE collection_id END,
+               updated_at    = NOW()
+         WHERE id = $1 AND owner_id = $2
+         RETURNING {PLACE_COLS}
+    "#))
+        .bind(id)
+        .bind(owner_id)
+        .bind(&dto.name)
+        .bind(&dto.user_note)
+        .bind(&dto.user_tags)
+        .bind(&dto.icon)
+        .bind(set_collection)
+        .bind(collection_val)
+        .fetch_optional(db)
+        .await?
+        .ok_or_else(|| MapsError::NotFound(format!("Place {id}")))?;
+
+    row_to_place(&row).map_err(MapsError::Database)
+}
+
 pub async fn delete_place(db: &sqlx::PgPool, id: Uuid, owner_id: Uuid) -> Result<()> {
     let r = sqlx::query("DELETE FROM maps.saved_places WHERE id = $1 AND owner_id = $2")
         .bind(id)
@@ -155,9 +192,12 @@ pub async fn delete_places_by_owner(db: &sqlx::PgPool, owner_id: Uuid) -> Result
 // ── Collections ───────────────────────────────────────────────────────────────
 
 pub async fn list_collections(db: &sqlx::PgPool, owner_id: Uuid) -> Result<Vec<PlaceCollection>> {
+    // place_count calculé en direct (la colonne stockée n'est pas maintenue).
     let rows = sqlx::query(
-        "SELECT id, owner_id, name, description, icon, color, is_public, place_count, created_at, updated_at
-         FROM maps.collections WHERE owner_id = $1 ORDER BY name"
+        "SELECT c.id, c.owner_id, c.name, c.description, c.icon, c.color, c.is_public,
+                (SELECT COUNT(*) FROM maps.saved_places sp WHERE sp.collection_id = c.id)::int AS place_count,
+                c.created_at, c.updated_at
+         FROM maps.collections c WHERE c.owner_id = $1 ORDER BY c.name"
     )
     .bind(owner_id)
     .fetch_all(db)
@@ -168,8 +208,10 @@ pub async fn list_collections(db: &sqlx::PgPool, owner_id: Uuid) -> Result<Vec<P
 
 pub async fn get_collection(db: &sqlx::PgPool, id: Uuid, owner_id: Uuid) -> Result<PlaceCollection> {
     let row = sqlx::query(
-        "SELECT id, owner_id, name, description, icon, color, is_public, place_count, created_at, updated_at
-         FROM maps.collections WHERE id = $1 AND owner_id = $2"
+        "SELECT c.id, c.owner_id, c.name, c.description, c.icon, c.color, c.is_public,
+                (SELECT COUNT(*) FROM maps.saved_places sp WHERE sp.collection_id = c.id)::int AS place_count,
+                c.created_at, c.updated_at
+         FROM maps.collections c WHERE c.id = $1 AND c.owner_id = $2"
     )
     .bind(id)
     .bind(owner_id)

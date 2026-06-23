@@ -4,7 +4,7 @@ import { create } from 'zustand'
 // (MapsSidebarBody) et le panneau flottant de MapsPage : cliquer un élément de la
 // sidebar change l'onglet, et le panneau (recherche / lieux / GPX / itinéraire)
 // se met à jour. Auparavant cet état était local à MapsPage (rail flottant).
-export type MapsTab = 'search' | 'places' | 'gpx' | 'route'
+export type MapsTab = 'search' | 'places' | 'gpx' | 'route' | 'sketch'
 
 interface MapsUiState {
   tab:    MapsTab

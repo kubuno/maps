@@ -69,6 +69,25 @@ pub struct CreatePlaceDto {
 }
 
 #[derive(Debug, Deserialize)]
+pub struct UpdatePlaceDto {
+    // `Some(None)` = mettre la collection à NULL ; `None` = champ non fourni.
+    #[serde(default, deserialize_with = "double_option")]
+    pub collection_id: Option<Option<Uuid>>,
+    pub name:      Option<String>,
+    pub user_note: Option<String>,
+    pub user_tags: Option<Vec<String>>,
+    pub icon:      Option<String>,
+}
+
+// Distingue `"collection_id": null` (Some(None)) d'un champ absent (None).
+fn double_option<'de, D>(de: D) -> std::result::Result<Option<Option<Uuid>>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    Ok(Some(Option::deserialize(de)?))
+}
+
+#[derive(Debug, Deserialize)]
 pub struct CreateReviewDto {
     pub osm_type:   String,
     pub osm_id:     i64,

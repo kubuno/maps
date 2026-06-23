@@ -33,6 +33,7 @@ impl OsrmService {
         waypoints:    &[[f64; 2]],
         profile:      &str,
         alternatives: bool,
+        steps:        bool,
     ) -> Result<OsrmResponse> {
         if waypoints.len() < 2 {
             return Err(MapsError::Validation("Au moins 2 points requis".into()));
@@ -52,7 +53,7 @@ impl OsrmService {
                 ("alternatives", if alternatives { "true" } else { "false" }),
                 ("geometries", "geojson"),
                 ("overview", "full"),
-                ("steps", "false"),
+                ("steps", if steps { "true" } else { "false" }),
             ])
             .send()
             .await

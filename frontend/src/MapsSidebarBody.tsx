@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Bookmark, Clock, Activity, Route, Smartphone, type LucideIcon } from 'lucide-react'
+import { Bookmark, Clock, Activity, Route, Ruler, Smartphone, type LucideIcon } from 'lucide-react'
 import { SidebarNavItem } from '@kubuno/sdk'
 import { Slot } from '@kubuno/sdk'
 import { useMapsUiStore, type MapsTab } from './mapsUiStore'
@@ -17,6 +17,7 @@ const NAV: { tab: MapsTab; tk: string; fallback: string; Icon: LucideIcon }[] = 
   { tab: 'search', tk: 'maps_tab_search', fallback: 'Recherche',  Icon: Clock },
   { tab: 'gpx',    tk: 'maps_tab_gpx',    fallback: 'GPX',        Icon: Activity },
   { tab: 'route',  tk: 'maps_tab_route',  fallback: 'Itinéraire', Icon: Route },
+  { tab: 'sketch', tk: 'maps_tab_sketch', fallback: 'Croquis',    Icon: Ruler },
 ]
 
 // Bouton vertical (icône + libellé dessous) pour le mode replié — reprend le style

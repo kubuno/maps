@@ -28,6 +28,9 @@ pub struct CalculateRouteDto {
     pub waypoints:    Vec<WaypointDto>,
     pub mode:         Option<String>,
     pub alternatives: Option<bool>,
+    /// Demande les étapes virage-par-virage (legs[].steps[].maneuver). Coûteux,
+    /// donc opt-in : seul le panneau d'itinéraire avancé le réclame.
+    pub steps:        Option<bool>,
 }
 
 impl CalculateRouteDto {

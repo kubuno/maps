@@ -9,7 +9,7 @@ use uuid::Uuid;
 use crate::{
     errors::{MapsError, Result},
     middleware::MapsUser,
-    models::place::{CreateCollectionDto, CreatePlaceDto, CreateReviewDto},
+    models::place::{CreateCollectionDto, CreatePlaceDto, CreateReviewDto, UpdatePlaceDto},
     services::place_service,
     state::AppState,
 };
@@ -51,6 +51,16 @@ pub async fn get(
 ) -> Result<Json<Value>> {
     let place: crate::models::place::SavedPlace =
         place_service::get_place(&state.db, id, user.id).await?;
+    Ok(Json(json!({ "place": place })))
+}
+
+pub async fn update(
+    State(state): State<AppState>,
+    Extension(user): Extension<MapsUser>,
+    Path(id): Path<Uuid>,
+    Json(dto): Json<UpdatePlaceDto>,
+) -> Result<Json<Value>> {
+    let place = place_service::update_place(&state.db, id, user.id, &dto).await?;
     Ok(Json(json!({ "place": place })))
 }
 
