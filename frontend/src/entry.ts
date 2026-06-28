@@ -13,6 +13,7 @@ import {
   WaffleAppRegistry,
   FaviconRegistry,
   ModuleSettingsRegistry,
+  ModuleServiceRegistry,
   useSidebarStore,
   useToolbarStore,
   SDK_VERSION,
@@ -21,11 +22,19 @@ import './index.css'
 import './i18n'
 import MapsLogo from './MapsLogo'
 import MapsSidebarBody from './MapsSidebarBody'
+import { geoipLookup } from './geoipService'
 
 export const sdkVersion = SDK_VERSION
 
 export function register() {
   FaviconRegistry.register('maps', '/maps-logo.svg')
+
+  // Services maps offre aux autres modules (présents uniquement quand maps est
+  // installé+actif → les consommateurs dégradent proprement si absent).
+  ModuleServiceRegistry.publish('maps', {
+    geoip: (ip: string) => geoipLookup(ip),
+    geoipCountry: (ip: string) => geoipLookup(ip).then(r => r.country),
+  })
 
   WaffleAppRegistry.register('maps', 'Maps', [
     { id: 'maps', label: 'Maps', Icon: MapsLogo, path: '/maps' },
