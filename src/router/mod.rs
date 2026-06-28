@@ -7,7 +7,7 @@ use axum::{
 use tower_http::{cors::CorsLayer, trace::TraceLayer};
 
 use crate::{
-    handlers::{geocode, gpx, health, overpass, places, routing, search, sketches, tiles},
+    handlers::{geocode, geoip, gpx, health, overpass, places, routing, search, sketches, tiles},
     middleware::{require_auth, require_ipc_secret},
     state::AppState,
 };
@@ -22,6 +22,8 @@ pub fn build(state: AppState) -> Router {
         // Geocoding
         .route("/geocode/search",  get(geocode::search))
         .route("/geocode/reverse", get(geocode::reverse))
+        // GeoIP (maps owns this service; other modules consume it over the API)
+        .route("/geoip",           get(geoip::lookup))
         // POI / exploration (Overpass)
         .route("/overpass/categories", get(overpass::categories))
         .route("/overpass/nearby",     get(overpass::nearby))
@@ -66,6 +68,8 @@ pub fn build(state: AppState) -> Router {
     // IPC events endpoint
     let ipc = Router::new()
         .route("/ipc/events", post(ipc_events))
+        // GeoIP for module backends / background tasks (no user; IPC-secret only).
+        .route("/internal/geoip", get(geoip::lookup))
         .layer(middleware::from_fn_with_state(state.clone(), require_ipc_secret))
         .with_state(state.clone());
 

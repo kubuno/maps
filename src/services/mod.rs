@@ -3,3 +3,4 @@ pub mod osrm_service;
 pub mod gpx_service;
 pub mod place_service;
 pub mod overpass_service;
+pub mod geoip_service;

@@ -10,4 +10,6 @@ pub struct AppState {
     pub settings: Arc<Settings>,
     pub storage:  Arc<dyn StorageBackend>,
     pub http:     Client,
+    /// Optional offline GeoIP resolver (None unless an admin supplied a database).
+    pub geoip:    Arc<Option<crate::services::geoip_service::GeoResolver>>,
 }

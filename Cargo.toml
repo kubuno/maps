@@ -28,6 +28,8 @@ tracing            = { workspace = true }
 tracing-subscriber = { workspace = true }
 kubuno-seccomp     = { workspace = true }
 thiserror          = { workspace = true }
+# Offline IP->country/location lookup (admin supplies a GeoLite2/DB-IP .mmdb).
+maxminddb          = "0.24"
 anyhow             = { workspace = true }
 uuid               = { workspace = true }
 chrono             = { workspace = true }

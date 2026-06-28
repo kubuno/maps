@@ -1,4 +1,5 @@
 pub mod geocode;
+pub mod geoip;
 pub mod gpx;
 pub mod health;
 pub mod overpass;

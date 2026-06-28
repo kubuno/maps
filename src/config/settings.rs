@@ -15,7 +15,17 @@ pub struct Settings {
     pub osrm:        OsrmSettings,
     pub overpass:    OverpassSettings,
     pub maps:        MapsSettings,
+    #[serde(default)]
+    pub geoip:       GeoipSettings,
     pub logging:     LoggingSettings,
+}
+
+#[derive(Debug, Clone, Deserialize, Default)]
+pub struct GeoipSettings {
+    /// Path to a MaxMind-format `.mmdb` (GeoLite2 / DB-IP). Optional; without it
+    /// the /geoip service reports "unavailable".
+    #[serde(default)]
+    pub db_path: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]

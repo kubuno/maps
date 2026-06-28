@@ -128,11 +128,17 @@ async fn main() -> Result<()> {
         .build()
         .context("Création du client HTTP")?;
 
+    // Optional offline GeoIP (admin-supplied .mmdb) — maps owns this service.
+    let geoip = Arc::new(
+        settings.geoip.db_path.as_deref().and_then(kubuno_maps::services::geoip_service::GeoResolver::open),
+    );
+
     let state = AppState {
         db:       pool,
         settings: Arc::new(settings.clone()),
         storage,
         http:     http.clone(),
+        geoip,
     };
 
     // Enregistrement auprès du core
