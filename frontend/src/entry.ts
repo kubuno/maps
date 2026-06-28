@@ -23,6 +23,7 @@ import './i18n'
 import MapsLogo from './MapsLogo'
 import MapsSidebarBody from './MapsSidebarBody'
 import { geoipLookup } from './geoipService'
+import MiniMap from './MiniMap'
 
 export const sdkVersion = SDK_VERSION
 
@@ -34,6 +35,9 @@ export function register() {
   ModuleServiceRegistry.publish('maps', {
     geoip: (ip: string) => geoipLookup(ip),
     geoipCountry: (ip: string) => geoipLookup(ip).then(r => r.country),
+    // Reusable map component, rendered by maps: a consumer gets it via
+    // ModuleServiceRegistry.get('maps','MiniMap') and renders <MiniMap markers/>.
+    MiniMap,
   })
 
   WaffleAppRegistry.register('maps', 'Maps', [

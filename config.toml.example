@@ -55,3 +55,11 @@ max_gpx_size_mb = 10
 [logging]
 level  = "info"
 format = "pretty"
+
+# ── GeoIP (optionnel) ─────────────────────────────────────────────────────────
+# Service de géolocalisation d'IP offert par maps aux autres modules (via l'API
+# /geoip et /internal/geoip, et le service ModuleServiceRegistry 'maps'.geoip).
+# Fournir une base MaxMind-format .mmdb : GeoLite2, ou la base gratuite DB-IP
+# (« dbip-city-lite » donne pays + coordonnées ; « dbip-country-lite » = pays).
+# [geoip]
+# db_path = "/var/lib/kubuno/modules/maps/dbip-city.mmdb"
