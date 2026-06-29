@@ -1327,7 +1327,7 @@ dependencies = [
 
 [[package]]
 name = "kubuno-maps"
-version = "0.1.0-alpha"
+version = "0.1.2"
 dependencies = [
  "anyhow",
  "async-trait",
