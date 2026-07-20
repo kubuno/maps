@@ -2,10 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   X, MapPin, Clock, Phone, Globe, Mail, Navigation, Star, Accessibility, BookOpen, Utensils,
-  Wifi, Users, Ticket, MessageSquarePlus, Trash2, Bookmark, Compass, Share2, Check,
+  Wifi, Users, Ticket, MessageSquarePlus, Trash2, Bookmark, Compass, Share2, Check, Copy,
 } from 'lucide-react'
 import { api, useAuthStore } from '@kubuno/sdk'
 import { placeDetails, fetchPlacePhoto, fetchPlaceGallery, type SearchResult, type PlacePhoto, type GalleryImage } from './geocoding'
+import { copyKubunoData, placeEnvelope } from './kubunoData'
 import { MapsImageLightbox } from './MapsImageLightbox'
 
 interface Review { id: string; owner_id: string; rating: number; comment: string | null; created_at: string }
@@ -56,6 +57,7 @@ export function MapsPlacePanel({
 
   const [tab, setTab] = useState<'info' | 'reviews'>('info')
   const [shared, setShared] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   // Photo + résumé + galerie (Wikipédia/Commons/image).
   const [media, setMedia] = useState<PlacePhoto | null>(null)
@@ -100,6 +102,12 @@ export function MapsPlacePanel({
     const url = `${location.origin}/maps?ll=${lat.toFixed(6)},${lng.toFixed(6)}&q=${encodeURIComponent(d.title)}`
     navigator.clipboard?.writeText(url).catch(() => {})
     setShared(true); setTimeout(() => setShared(false), 1800)
+  }
+
+  // Cross-module copy: a JSON envelope pasteable as a rich card in chat, documents…
+  const copyPlace = () => {
+    copyKubunoData(placeEnvelope(place)).catch(() => {})
+    setCopied(true); setTimeout(() => setCopied(false), 1800)
   }
 
   const submitReview = async () => {
@@ -175,6 +183,7 @@ export function MapsPlacePanel({
           <Action icon={<Bookmark size={16} />}   label={t('maps_save', { defaultValue: 'Enregistrer' })}   onClick={() => onSave(place)} />
           {onNearby && <Action icon={<Compass size={16} />} label={t('maps_nearby', { defaultValue: 'À proximité' })} onClick={() => onNearby(lat, lng, d.title)} />}
           <Action icon={shared ? <Check size={16} /> : <Share2 size={16} />} label={shared ? t('maps_copied', { defaultValue: 'Copié !' }) : t('maps_share', { defaultValue: 'Partager' })} onClick={share} active={shared} />
+          <Action icon={copied ? <Check size={16} /> : <Copy size={16} />} label={copied ? t('maps_copied', { defaultValue: 'Copié !' }) : t('common_copy', { defaultValue: 'Copier' })} onClick={copyPlace} active={copied} />
         </div>
 
         {/* Résumé (dépliable : on ne tronque pas définitivement) */}

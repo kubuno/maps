@@ -24,6 +24,8 @@ import MapsLogo from './MapsLogo'
 import MapsSidebarBody from './MapsSidebarBody'
 import { geoipLookup } from './geoipService'
 import MiniMap from './MiniMap'
+import MapsDataCard from './MapsDataCard'
+import { registerDataCardRenderer } from './kubunoData'
 
 export const sdkVersion = SDK_VERSION
 
@@ -38,6 +40,13 @@ export function register() {
     // Reusable map component, rendered by maps: a consumer gets it via
     // ModuleServiceRegistry.get('maps','MiniMap') and renders <MiniMap markers/>.
     MiniMap,
+  })
+
+  // Rich card for maps JSON envelopes copied to the clipboard (`maps.place`…):
+  // consumer modules (chat…) resolve it through the shared extension point.
+  registerDataCardRenderer('maps', {
+    types: ['maps.place', 'maps.route', 'maps.view'],
+    Component: MapsDataCard,
   })
 
   WaffleAppRegistry.register('maps', 'Maps', [

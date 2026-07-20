@@ -38,6 +38,7 @@ import {
   type RouteResult, type RouteGeometry,
 } from './routing'
 import { useSketch } from './useSketch'
+import { copyKubunoData, openLabelPicker, pointEnvelope, routeEnvelope, viewEnvelope } from './kubunoData'
 import { MapsSketchPanel } from './MapsSketchPanel'
 import {
   MapsPlacesPanel,
@@ -680,7 +681,7 @@ export default function MapsPage() {
     onOffRoute: (lat, lng) => setWaypoints(wp => { const n = [...wp]; n[0] = { lat, lng }; return n }),
   })
 
-  const [ctxMenu,   setCtxMenu]   = useState<{ x: number; y: number; lat: number; lng: number } | null>(null)
+  const [ctxMenu,   setCtxMenu]   = useState<{ x: number; y: number; lat: number; lng: number; name?: string } | null>(null)
   const [saveModal, setSaveModal] = useState<{ lat: number; lng: number; name: string } | null>(null)
   const [uploading, setUploading] = useState(false)
   const [selectedPlace, setSelectedPlace] = useState<SearchResult | null>(null)
@@ -912,7 +913,7 @@ export default function MapsPage() {
       // Clic droit sur un lieu enregistré → menu contextuel riche.
       el.addEventListener('contextmenu', (e) => {
         e.preventDefault(); e.stopPropagation()
-        setCtxMenu({ x: e.clientX, y: e.clientY, lat: p.lat, lng: p.lng })
+        setCtxMenu({ x: e.clientX, y: e.clientY, lat: p.lat, lng: p.lng, name: p.name })
       })
       const m = new maplibregl.Marker({ element: el, anchor: 'bottom' })
         .setLngLat([p.lng, p.lat])
@@ -1042,7 +1043,7 @@ export default function MapsPage() {
       // Clic droit sur un POI → menu contextuel riche centré sur ce lieu.
       el.addEventListener('contextmenu', (e) => {
         e.preventDefault(); e.stopPropagation()
-        setCtxMenu({ x: e.clientX, y: e.clientY, lat: p.lat, lng: p.lng })
+        setCtxMenu({ x: e.clientX, y: e.clientY, lat: p.lat, lng: p.lng, name: p.name ?? undefined })
       })
       const m = new maplibregl.Marker({ element: el, anchor: 'center' })
         .setLngLat([p.lng, p.lat])
@@ -2028,6 +2029,26 @@ export default function MapsPage() {
             },
             { type: 'separator' },
             { type: 'action', icon: <Copy size={13} />, label: t('maps_copy_coords', { defaultValue: 'Copier les coordonnées' }), onClick: () => copyCoords(ctxMenu.lat, ctxMenu.lng) },
+            // Cross-module copy: JSON envelopes pasteable into chat, documents…
+            { type: 'action', icon: <MapPin size={13} />, label: t('maps_copy_place', { defaultValue: 'Copier le lieu' }),
+              onClick: () => { copyKubunoData(pointEnvelope(ctxMenu.lat, ctxMenu.lng, ctxMenu.name)); setCtxMenu(null) } },
+            // Cross-module labels (core-managed, browsable at /labels).
+            { type: 'action', icon: <Star size={13} />, label: t('maps_kubuno_labels', { defaultValue: 'Étiquettes Kubuno…' }),
+              onClick: () => { openLabelPicker(pointEnvelope(ctxMenu.lat, ctxMenu.lng, ctxMenu.name)); setCtxMenu(null) } },
+            ...(routeResults[selectedRoute] ? [{
+              type: 'action' as const, icon: <Route size={13} />, label: t('maps_copy_route', { defaultValue: "Copier l'itinéraire" }),
+              onClick: () => {
+                const wps = waypoints.filter((w): w is Waypoint => w != null)
+                copyKubunoData(routeEnvelope(routeResults[selectedRoute], wps, routeMode))
+                setCtxMenu(null)
+              },
+            }] : []),
+            { type: 'action', icon: <Layers size={13} />, label: t('maps_copy_view', { defaultValue: 'Copier la vue actuelle' }),
+              onClick: () => {
+                const m = mapRef.current
+                if (m) { const c = m.getCenter(); copyKubunoData(viewEnvelope(c.lat, c.lng, m.getZoom())) }
+                setCtxMenu(null)
+              } },
             { type: 'action', icon: <Compass size={13} />, label: t('maps_center_here', { defaultValue: 'Centrer ici' }), onClick: () => { flyTo(ctxMenu.lat, ctxMenu.lng); setCtxMenu(null) } },
           ]}
         />
