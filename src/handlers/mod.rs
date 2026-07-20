@@ -1,3 +1,4 @@
+pub mod cosmos;
 pub mod geocode;
 pub mod geoip;
 pub mod gpx;

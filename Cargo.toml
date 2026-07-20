@@ -46,6 +46,10 @@ kubuno-storage     = { workspace = true }
 # Parsing GPX (XML)
 quick-xml = { version = "0.36" }
 
+# On-demand resizing of the 3D solar-system ("cosmos") planet textures — pure
+# Rust (no native subprocess), so it stays within the seccomp no-execve policy.
+image = { version = "0.25", default-features = false, features = ["jpeg", "png"] }
+
 # ─── Workspace mono-crate (deps tierces recopiées du monorepo kubuno/core ;
 #     crates partagées consommées via dépendances git taguées) ───
 [workspace]

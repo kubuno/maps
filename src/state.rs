@@ -12,4 +12,6 @@ pub struct AppState {
     pub http:     Client,
     /// Optional offline GeoIP resolver (None unless an admin supplied a database).
     pub geoip:    Arc<Option<crate::services::geoip_service::GeoResolver>>,
+    /// Optional 3D solar-system texture/catalog assets (None if not located).
+    pub cosmos:   Arc<Option<crate::services::cosmos_service::CosmosAssets>>,
 }

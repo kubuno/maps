@@ -7,7 +7,7 @@ use axum::{
 use tower_http::{cors::CorsLayer, trace::TraceLayer};
 
 use crate::{
-    handlers::{geocode, geoip, gpx, health, overpass, places, routing, search, sketches, tiles},
+    handlers::{cosmos, geocode, geoip, gpx, health, overpass, places, routing, search, sketches, tiles},
     middleware::{require_auth, require_ipc_secret},
     state::AppState,
 };
@@ -56,6 +56,11 @@ pub fn build(state: AppState) -> Router {
         // Tiles
         .route("/tiles/style",                    get(tiles::get_style))
         .route("/tiles/:source/:z/:x/:y",         get(tiles::proxy_tile))
+        // Cosmos (3D solar-system): texture manifest, multi-resolution textures,
+        // and the star/constellation catalogs.
+        .route("/cosmos/manifest",                get(cosmos::manifest))
+        .route("/cosmos/texture",                 get(cosmos::texture))
+        .route("/cosmos/data/:file",              get(cosmos::data))
         .layer(middleware::from_fn_with_state(state.clone(), require_auth))
         .with_state(state.clone());
 

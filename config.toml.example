@@ -63,3 +63,13 @@ format = "pretty"
 # (« dbip-city-lite » donne pays + coordonnées ; « dbip-country-lite » = pays).
 # [geoip]
 # db_path = "/var/lib/kubuno/modules/maps/dbip-city.mmdb"
+
+# ── Cosmos (système solaire 3D) ───────────────────────────────────────────────
+# Assets de la vue 3D : textures équirectangulaires des planètes (servies à
+# plusieurs résolutions, redimensionnées à la demande) + catalogues étoiles.
+# Détectés automatiquement dans le module installé ; ne renseigner que pour un
+# emplacement personnalisé. Le cache est un dossier inscriptible (résolutions
+# générées).
+# [cosmos]
+# assets_dir = "/usr/lib/kubuno/modules/maps/cosmos"
+# cache_dir  = "/var/lib/kubuno/modules/maps/cosmos-cache"

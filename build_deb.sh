@@ -58,6 +58,19 @@ ln -sf "/usr/lib/kubuno/modules/${MODULE}/kubuno-${MODULE}" \
 
 cp -r frontend/dist/. "${PKG_DIR}/usr/lib/kubuno/modules/${MODULE}/frontend/"
 
+# 3D solar-system ("cosmos") assets: equirectangular planet textures (served at
+# multiple resolutions by the backend) + star/constellation catalogs. Textures
+# are large binaries kept out of git (see .gitignore) and provisioned locally,
+# so package whichever of the two asset directories is actually present.
+if [[ -d cosmos ]]; then
+  mkdir -p "${PKG_DIR}/usr/lib/kubuno/modules/${MODULE}/cosmos"
+  for d in textures data; do
+    if [[ -d "cosmos/${d}" ]]; then
+      cp -r "cosmos/${d}" "${PKG_DIR}/usr/lib/kubuno/modules/${MODULE}/cosmos/"
+    fi
+  done
+fi
+
 [[ -d migrations ]] && cp migrations/*.sql \
   "${PKG_DIR}/usr/share/kubuno/modules/${MODULE}/migrations/" 2>/dev/null || true
 

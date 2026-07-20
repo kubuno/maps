@@ -17,6 +17,8 @@ pub struct Settings {
     pub maps:        MapsSettings,
     #[serde(default)]
     pub geoip:       GeoipSettings,
+    #[serde(default)]
+    pub cosmos:      CosmosSettings,
     pub logging:     LoggingSettings,
 }
 
@@ -26,6 +28,22 @@ pub struct GeoipSettings {
     /// the /geoip service reports "unavailable".
     #[serde(default)]
     pub db_path: Option<String>,
+}
+
+/// 3D solar-system ("cosmos") assets: equirectangular planet textures and the
+/// star/constellation catalogs. The backend serves textures at requested
+/// resolutions (resizing on demand into a disk cache), a port of the original
+/// PHP `texture.php`. Both paths are optional: when the asset directory can't
+/// be located the cosmos view simply falls back to lower-resolution maps.
+#[derive(Debug, Clone, Deserialize, Default)]
+pub struct CosmosSettings {
+    /// Directory holding `textures/` and `data/`. When unset, a few standard
+    /// locations are probed (installed module dir, then the working directory).
+    #[serde(default)]
+    pub assets_dir: Option<String>,
+    /// Writable directory for the generated multi-resolution texture cache.
+    #[serde(default)]
+    pub cache_dir: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]

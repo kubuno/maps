@@ -133,12 +133,16 @@ async fn main() -> Result<()> {
         settings.geoip.db_path.as_deref().and_then(kubuno_maps::services::geoip_service::GeoResolver::open),
     );
 
+    // 3D solar-system textures/catalogs (equirectangular planet maps + stars).
+    let cosmos = Arc::new(kubuno_maps::services::cosmos_service::CosmosAssets::load(&settings.cosmos));
+
     let state = AppState {
         db:       pool,
         settings: Arc::new(settings.clone()),
         storage,
         http:     http.clone(),
         geoip,
+        cosmos,
     };
 
     // Enregistrement auprès du core

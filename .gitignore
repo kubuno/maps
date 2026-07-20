@@ -50,3 +50,8 @@ nohup.out
 # nécessaire pour compiler sans base de données en CI), migrations/, themes/, man/
 
 node_modules
+
+# Cosmos (3D solar system) — planet texture packs are large third-party
+# binaries (~85 MB), provisioned locally / at packaging time (see README).
+# Only the small JSON star/constellation catalogs (cosmos/data/) are versioned.
+/cosmos/textures/
