@@ -1814,7 +1814,7 @@ export default function MapsPage() {
             const active = activeCat === c.key
             return (
               <button key={c.key} onClick={() => searchCategory(c)}
-                className={`flex items-center gap-1.5 h-9 px-3.5 rounded-full border shadow-sm text-[13px] font-medium whitespace-nowrap flex-shrink-0 transition-colors
+                className={`flex items-center gap-1.5 h-9 px-3.5 rounded-full border shadow-sm text-xs font-medium whitespace-nowrap flex-shrink-0 transition-colors
                   ${active ? 'bg-primary border-primary text-white hover:bg-primary-hover'
                            : 'bg-surface-0 border-border text-text-primary hover:bg-surface-1'}`}>
                 <span aria-hidden>{c.emoji}</span>
@@ -1893,7 +1893,7 @@ export default function MapsPage() {
           </div>
         )}
         <button title={t('maps_layers')} onClick={() => setLayersOpen(o => !o)}
-          className={`flex items-center gap-2 h-10 px-3 rounded-lg border shadow-md text-[13px] font-medium transition-colors
+          className={`flex items-center gap-2 h-10 px-3 rounded-lg border shadow-md text-xs font-medium transition-colors
             ${layersOpen ? 'bg-primary-light border-primary text-primary' : 'bg-surface-0 border-border text-text-secondary hover:bg-surface-1'}`}>
           <Layers size={16} /> {t('maps_layers')}
         </button>

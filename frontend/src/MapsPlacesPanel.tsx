@@ -51,7 +51,7 @@ function PlaceRow({
           {place.user_tags?.length > 0 && (
             <div className="flex flex-wrap gap-1 mt-0.5">
               {place.user_tags.map(tg => (
-                <span key={tg} className="text-[9px] px-1.5 py-px rounded-full bg-surface-2 text-text-secondary">{tg}</span>
+                <span key={tg} className="text-[10px] px-1.5 py-px rounded-full bg-surface-2 text-text-secondary">{tg}</span>
               ))}
             </div>
           )}

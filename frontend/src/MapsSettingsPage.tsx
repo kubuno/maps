@@ -2,12 +2,14 @@ import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { MapPin, ArrowLeft, ExternalLink, Check } from 'lucide-react'
-import { Toggle, Button, Radio } from '@ui'
+import { Toggle, Button, Radio, useSaveShortcut} from '@ui'
 import { useModulePrefs } from './userPrefs'
 
 // ── Per-user preferences (backend, cross-device via core users.preferences) ─────
 
-interface MapsPrefs {
+// `type`, not `interface`: only a type alias gets the implicit index signature
+// that `useModulePrefs<T extends Record<string, unknown>>` requires.
+type MapsPrefs = {
   mapStyle:    string   // 'plan' | 'satellite' | 'terrain'
   units:       string   // 'km' | 'miles'
   transport:   string   // 'car' | 'bike' | 'foot'
@@ -60,6 +62,9 @@ function PreferencesTab() {
 
   const set = <K extends keyof MapsPrefs>(key: K, value: MapsPrefs[K]) =>
     setPrefs(p => ({ ...p, [key]: value }))
+
+  // Ctrl+S saves immediately (disabled while a save is in flight).
+  useSaveShortcut(() => { void save() }, !busy)
 
   const save = async () => {
     setBusy(true)

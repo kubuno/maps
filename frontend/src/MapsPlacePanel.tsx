@@ -144,7 +144,7 @@ export function MapsPlacePanel({
         <div className="relative bg-surface-2 flex-shrink-0" style={{ height: 'clamp(180px, 32vh, 340px)' }}>
           <img src={media.photo} alt={d.title} loading="lazy" onError={() => setImgFailed(true)} className="w-full h-full object-cover" />
           <button onClick={onClose} className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/40 text-white flex items-center justify-center hover:bg-black/60"><X size={16} /></button>
-          {media.credit && <span className="absolute bottom-1 right-2 text-[9px] text-white/80 bg-black/30 rounded px-1">{media.credit}</span>}
+          {media.credit && <span className="absolute bottom-1 right-2 text-[10px] text-white/80 bg-black/30 rounded px-1">{media.credit}</span>}
         </div>
       )}
 
