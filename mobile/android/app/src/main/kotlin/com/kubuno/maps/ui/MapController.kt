@@ -7,9 +7,13 @@ import androidx.appcompat.content.res.AppCompatResources
 import com.kubuno.maps.R
 import org.maplibre.android.camera.CameraUpdateFactory
 import org.maplibre.android.geometry.LatLng
+import org.maplibre.android.geometry.LatLngBounds
 import org.maplibre.android.maps.MapLibreMap
 import org.maplibre.android.maps.MapView
 import org.maplibre.android.maps.Style
+import org.maplibre.android.plugins.annotation.Line
+import org.maplibre.android.plugins.annotation.LineManager
+import org.maplibre.android.plugins.annotation.LineOptions
 import org.maplibre.android.plugins.annotation.Symbol
 import org.maplibre.android.plugins.annotation.SymbolManager
 import org.maplibre.android.plugins.annotation.SymbolOptions
@@ -25,16 +29,62 @@ class MapController(
     style: Style,
     mapView: MapView,
 ) {
+    // Declared before the SymbolManager so route lines render UNDER the pins.
+    private val lineManager = LineManager(mapView, map, style)
     private val symbolManager = SymbolManager(mapView, map, style).apply {
         iconAllowOverlap = true
         iconIgnorePlacement = true
     }
 
     private var selectedSymbol: Symbol? = null
+    private val routeLines = mutableListOf<Line>()
 
     init {
         // Register the pin bitmap under a style image id the symbols reference.
         style.addImage(PIN_IMAGE, drawableToBitmap(context, R.drawable.ic_map_pin))
+    }
+
+    /** The device's last known position, or null if location is off/unfixed. */
+    fun lastLocation(): GeoPoint? {
+        val lc = map.locationComponent
+        if (!lc.isLocationComponentActivated) return null
+        val loc = lc.lastKnownLocation ?: return null
+        return GeoPoint(loc.latitude, loc.longitude)
+    }
+
+    /**
+     * Draw the route alternatives; [selectedIndex] is stroked in the accent and
+     * on top, the rest in grey underneath (the web's route styling).
+     */
+    fun drawRoutes(routes: List<List<GeoPoint>>, selectedIndex: Int) {
+        clearRoutes()
+        // Alternatives first, then the selected one, so the selected is on top.
+        val order = routes.indices.sortedBy { it == selectedIndex }
+        for (i in order) {
+            val pts = routes[i].map { LatLng(it.lat, it.lng) }
+            if (pts.size < 2) continue
+            val selected = i == selectedIndex
+            routeLines += lineManager.create(
+                LineOptions()
+                    .withLatLngs(pts)
+                    .withLineColor(if (selected) ROUTE_SELECTED else ROUTE_ALT)
+                    .withLineWidth(if (selected) 6f else 5f),
+            )
+        }
+    }
+
+    fun clearRoutes() {
+        routeLines.forEach { lineManager.delete(it) }
+        routeLines.clear()
+    }
+
+    /** Frame the camera around a set of points (e.g. the selected route). */
+    fun fitBounds(points: List<GeoPoint>, paddingPx: Int) {
+        if (points.size < 2) return
+        val builder = LatLngBounds.Builder()
+        points.forEach { builder.include(LatLng(it.lat, it.lng)) }
+        val bounds = runCatching { builder.build() }.getOrNull() ?: return
+        map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, paddingPx))
     }
 
     /** Show (or move) the single selected-place pin. */
@@ -65,6 +115,9 @@ class MapController(
 
     private companion object {
         const val PIN_IMAGE = "kubuno-place-pin"
+        // Route colours mirror the web: selected accent blue, alternatives grey.
+        const val ROUTE_SELECTED = "#1A73E8"
+        const val ROUTE_ALT = "#9AA0A6"
     }
 }
 

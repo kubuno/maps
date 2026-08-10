@@ -1,7 +1,6 @@
 package com.kubuno.maps.ui
 
 import android.content.Intent
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -67,6 +66,7 @@ fun MapsApp(viewModel: MapsViewModel = hiltViewModel()) {
     val history by viewModel.history.collectAsStateWithLifecycle()
     val searching by viewModel.searching.collectAsStateWithLifecycle()
     val selected by viewModel.selected.collectAsStateWithLifecycle()
+    val directions by viewModel.directions.collectAsStateWithLifecycle()
 
     var locationGranted by remember { mutableStateOf(hasLocationPermission(context)) }
     var recenterTick by remember { mutableIntStateOf(0) }
@@ -102,6 +102,25 @@ fun MapsApp(viewModel: MapsViewModel = hiltViewModel()) {
         }
     }
 
+    // Directions drive the route lines and the camera fit.
+    LaunchedEffect(directions.active, directions.routes, directions.selected, controller) {
+        val ctrl = controller ?: return@LaunchedEffect
+        if (!directions.active || directions.routes.isEmpty()) {
+            ctrl.clearRoutes()
+            return@LaunchedEffect
+        }
+        ctrl.clearSelected()
+        ctrl.drawRoutes(directions.routes.map { it.points }, directions.selected)
+        directions.routes.getOrNull(directions.selected)?.let { ctrl.fitBounds(it.points, 140) }
+    }
+
+    // If directions opened without a location fix, feed it in once available.
+    LaunchedEffect(directions.needsLocation, locationGranted, controller) {
+        if (directions.needsLocation) {
+            controller?.lastLocation()?.let { viewModel.provideOrigin(it) }
+        }
+    }
+
     Box(Modifier.fillMaxSize()) {
         MapLibreMap(
             modifier = Modifier.fillMaxSize(),
@@ -116,18 +135,20 @@ fun MapsApp(viewModel: MapsViewModel = hiltViewModel()) {
             onMapTap = { viewModel.clearSelection() },
         )
 
-        SearchPill(
-            account = account,
-            onClick = { viewModel.openSearch() },
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .statusBarsPadding()
-                .padding(horizontal = 12.dp, vertical = 10.dp),
-        )
+        if (!directions.active) {
+            SearchPill(
+                account = account,
+                onClick = { viewModel.openSearch() },
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .statusBarsPadding()
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
+            )
+        }
 
-        // Recentre FAB — hidden while the place card occupies the bottom.
+        // Recentre FAB — hidden while a card or directions occupy the screen.
         AnimatedVisibility(
-            visible = selected == null,
+            visible = selected == null && !directions.active,
             enter = fadeIn(),
             exit = fadeOut(),
             modifier = Modifier
@@ -168,13 +189,29 @@ fun MapsApp(viewModel: MapsViewModel = hiltViewModel()) {
                 PlaceCard(
                     place = place,
                     onClose = { viewModel.clearSelection() },
-                    onDirections = {
-                        Toast.makeText(context, "Itinéraires — bientôt", Toast.LENGTH_SHORT).show()
-                    },
+                    onDirections = { viewModel.startDirections(place, controller?.lastLocation()) },
                     onSave = { viewModel.savePlace() },
                     onShare = { sharePlace(context, place) },
                 )
             }
+        }
+
+        // Directions: the origin/destination header on top, routes sheet at the bottom.
+        if (directions.active) {
+            DirectionsTopCard(
+                state = directions,
+                onClose = { viewModel.closeDirections() },
+                onSwap = { viewModel.swapEndpoints() },
+                onMode = { viewModel.setMode(it) },
+                modifier = Modifier.align(Alignment.TopCenter).statusBarsPadding(),
+            )
+            DirectionsSheet(
+                state = directions,
+                onSelectRoute = { viewModel.selectRoute(it) },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .navigationBarsPadding(),
+            )
         }
 
         // Full-screen search on top of everything when active.

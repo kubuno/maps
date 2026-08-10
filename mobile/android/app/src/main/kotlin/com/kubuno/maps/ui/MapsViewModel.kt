@@ -7,7 +7,10 @@ import com.kubuno.android.account.SharedAccounts
 import com.kubuno.maps.net.CreatePlaceBody
 import com.kubuno.maps.net.MapsApi
 import com.kubuno.maps.net.MapsClients
+import com.kubuno.maps.net.CalculateRouteBody
+import com.kubuno.maps.net.LatLngBody
 import com.kubuno.maps.net.NominatimResult
+import com.kubuno.maps.net.OsrmRouteDto
 import com.kubuno.maps.net.SearchHistoryEntry
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -18,6 +21,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.doubleOrNull
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import javax.inject.Inject
 
 /** Base map styles, keyless OpenStreetMap-derived, mirroring the web module. */
@@ -60,6 +69,38 @@ data class SelectedPlace(
     val focus: Boolean = true,
 )
 
+/** A geographic point, kept free of any MapLibre type so the VM stays testable. */
+data class GeoPoint(val lat: Double, val lng: Double)
+
+/** One turn-by-turn instruction. */
+data class RouteStep(val instruction: String, val distanceMeters: Double)
+
+/** A computed itinerary: its shape, totals and steps. */
+data class RouteOption(
+    val distanceMeters: Double,
+    val durationSeconds: Double,
+    val points: List<GeoPoint>,
+    val steps: List<RouteStep>,
+)
+
+/** The three OSRM profiles the module exposes, matching the web's mode buttons. */
+enum class TravelMode(val api: String) { DRIVING("driving"), CYCLING("cycling"), FOOT("foot") }
+
+/** State of the directions flow: endpoints, mode, and the computed routes. */
+data class DirectionsState(
+    val active: Boolean = false,
+    val originLabel: String = "Ma position",
+    val origin: GeoPoint? = null,
+    val destLabel: String = "",
+    val dest: GeoPoint? = null,
+    val mode: TravelMode = TravelMode.DRIVING,
+    val routes: List<RouteOption> = emptyList(),
+    val selected: Int = 0,
+    val loading: Boolean = false,
+    /** True when routing was asked for but no origin location is available yet. */
+    val needsLocation: Boolean = false,
+)
+
 @HiltViewModel
 class MapsViewModel @Inject constructor(
     sharedAccounts: SharedAccounts,
@@ -92,7 +133,12 @@ class MapsViewModel @Inject constructor(
     private val _selected = MutableStateFlow<SelectedPlace?>(null)
     val selected: StateFlow<SelectedPlace?> = _selected.asStateFlow()
 
+    // ── Directions ──────────────────────────────────────────────────────────
+    private val _directions = MutableStateFlow(DirectionsState())
+    val directions: StateFlow<DirectionsState> = _directions.asStateFlow()
+
     private var searchJob: Job? = null
+    private var routeJob: Job? = null
 
     private val api: MapsApi?
         get() = _state.value.account?.let { clients.api(it) }
@@ -241,4 +287,152 @@ class MapsViewModel @Inject constructor(
             if (ok) _selected.value = place.copy(saved = true)
         }
     }
+
+    // ── Directions actions ────────────────────────────────────────────────────
+
+    /** Open directions to the given place, starting from the device location. */
+    fun startDirections(place: SelectedPlace, myLocation: GeoPoint?) {
+        _selected.value = null
+        _searchActive.value = false
+        _directions.value = DirectionsState(
+            active = true,
+            origin = myLocation,
+            originLabel = "Ma position",
+            dest = GeoPoint(place.lat, place.lng),
+            destLabel = place.name,
+            needsLocation = myLocation == null,
+        )
+        computeRoute()
+    }
+
+    fun setMode(mode: TravelMode) {
+        if (_directions.value.mode == mode) return
+        _directions.value = _directions.value.copy(mode = mode)
+        computeRoute()
+    }
+
+    fun selectRoute(index: Int) {
+        _directions.value = _directions.value.copy(selected = index)
+    }
+
+    /** Swap origin and destination and recompute. */
+    fun swapEndpoints() {
+        val d = _directions.value
+        _directions.value = d.copy(
+            origin = d.dest,
+            originLabel = d.destLabel,
+            dest = d.origin,
+            destLabel = d.originLabel,
+        )
+        computeRoute()
+    }
+
+    /** Supply the device location once it becomes available (origin was empty). */
+    fun provideOrigin(myLocation: GeoPoint) {
+        val d = _directions.value
+        if (!d.active || d.origin != null) return
+        _directions.value = d.copy(origin = myLocation, needsLocation = false)
+        computeRoute()
+    }
+
+    fun closeDirections() {
+        routeJob?.cancel()
+        _directions.value = DirectionsState()
+    }
+
+    private fun computeRoute() {
+        val d = _directions.value
+        val origin = d.origin
+        val dest = d.dest
+        if (origin == null || dest == null) {
+            _directions.value = d.copy(loading = false, routes = emptyList(), needsLocation = origin == null)
+            return
+        }
+        val api = api ?: return
+        routeJob?.cancel()
+        routeJob = viewModelScope.launch {
+            _directions.value = _directions.value.copy(loading = true, needsLocation = false)
+            val raw = withContext(Dispatchers.IO) {
+                runCatching {
+                    api.calculateRoute(
+                        CalculateRouteBody(
+                            waypoints = listOf(
+                                LatLngBody(origin.lat, origin.lng),
+                                LatLngBody(dest.lat, dest.lng),
+                            ),
+                            mode = d.mode.api,
+                            alternatives = true,
+                            steps = true,
+                        ),
+                    ).routes
+                }.onFailure { android.util.Log.w("MapsRoute", "route failed", it) }.getOrNull()
+            }
+            val parsed = raw?.map { it.toRouteOption() } ?: emptyList()
+            _directions.value = _directions.value.copy(loading = false, routes = parsed, selected = 0)
+        }
+    }
+}
+
+// ── OSRM parsing (GeoJSON geometry + steps) ──────────────────────────────────
+
+private fun OsrmRouteDto.toRouteOption(): RouteOption = RouteOption(
+    distanceMeters = distance,
+    durationSeconds = duration,
+    points = parseLineString(geometry),
+    steps = parseSteps(legs),
+)
+
+/** GeoJSON LineString → points. OSRM coordinates are [lng, lat]. */
+private fun parseLineString(geometry: JsonObject): List<GeoPoint> {
+    val coords = (geometry["coordinates"] as? JsonArray) ?: return emptyList()
+    return coords.mapNotNull { c ->
+        val arr = c as? JsonArray ?: return@mapNotNull null
+        val lng = arr.getOrNull(0)?.jsonPrimitive?.doubleOrNull ?: return@mapNotNull null
+        val lat = arr.getOrNull(1)?.jsonPrimitive?.doubleOrNull ?: return@mapNotNull null
+        GeoPoint(lat, lng)
+    }
+}
+
+private fun parseSteps(legs: JsonArray): List<RouteStep> {
+    val out = mutableListOf<RouteStep>()
+    for (leg in legs) {
+        val steps = (leg.jsonObject["steps"] as? JsonArray) ?: continue
+        for (step in steps) {
+            val obj = step.jsonObject
+            val maneuver = obj["maneuver"]?.jsonObject
+            val type = maneuver?.get("type")?.jsonPrimitive?.contentString.orEmpty()
+            val modifier = maneuver?.get("modifier")?.jsonPrimitive?.contentString
+            val name = obj["name"]?.jsonPrimitive?.contentString.orEmpty()
+            val dist = obj["distance"]?.jsonPrimitive?.doubleOrNull ?: 0.0
+            out.add(RouteStep(maneuverText(type, modifier, name), dist))
+        }
+    }
+    return out
+}
+
+private val kotlinx.serialization.json.JsonPrimitive.contentString: String?
+    get() = if (this is kotlinx.serialization.json.JsonNull) null else content
+
+/** OSRM maneuver type/modifier into a short French instruction. */
+private fun maneuverText(type: String, modifier: String?, name: String): String {
+    val dir = when (modifier) {
+        "left", "slight left", "sharp left" -> "à gauche"
+        "right", "slight right", "sharp right" -> "à droite"
+        "uturn" -> "demi-tour"
+        else -> null
+    }
+    val base = when (type) {
+        "depart" -> "Départ"
+        "arrive" -> "Arrivée"
+        "turn" -> "Tournez" + (dir?.let { " $it" } ?: "")
+        "continue" -> "Continuez" + (dir?.let { " $it" } ?: "")
+        "merge" -> "Insérez-vous" + (dir?.let { " $it" } ?: "")
+        "on ramp", "off ramp" -> "Prenez la bretelle" + (dir?.let { " $it" } ?: "")
+        "fork" -> "Au embranchement, restez" + (dir?.let { " $it" } ?: "")
+        "roundabout", "rotary" -> "Au rond-point"
+        "end of road" -> "Au bout de la route, tournez" + (dir?.let { " $it" } ?: "")
+        "new name" -> "Continuez"
+        else -> "Continuez" + (dir?.let { " $it" } ?: "")
+    }
+    return if (name.isNotBlank() && type != "arrive") "$base sur $name" else base
 }
