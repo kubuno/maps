@@ -75,13 +75,17 @@ fun MapLibreMap(
     locationEnabled: Boolean,
     recenterTick: Int,
     modifier: Modifier = Modifier,
-    onMapReady: (MapLibreMap, Style) -> Unit = { _, _ -> },
+    onControllerReady: (MapController) -> Unit = {},
+    onLongPress: (Double, Double) -> Unit = { _, _ -> },
+    onMapTap: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val mapView = rememberMapViewWithLifecycle()
     var mapRef by remember { mutableStateOf<MapLibreMap?>(null) }
     var styleRef by remember { mutableStateOf<Style?>(null) }
-    val readyCb by rememberUpdatedState(onMapReady)
+    val controllerCb by rememberUpdatedState(onControllerReady)
+    val longPressCb by rememberUpdatedState(onLongPress)
+    val tapCb by rememberUpdatedState(onMapTap)
 
     AndroidView(modifier = modifier, factory = { mapView }) { view ->
         if (mapRef == null) {
@@ -90,10 +94,18 @@ fun MapLibreMap(
                     .target(LatLng(initialLat, initialLng))
                     .zoom(initialZoom)
                     .build()
+                map.addOnMapLongClickListener { point ->
+                    longPressCb(point.latitude, point.longitude)
+                    true
+                }
+                map.addOnMapClickListener {
+                    tapCb()
+                    false // don't consume — let annotation clicks still fire
+                }
                 map.setStyle(Style.Builder().fromUri(styleUrl)) { style ->
                     mapRef = map
                     styleRef = style
-                    readyCb(map, style)
+                    controllerCb(MapController(context, map, style, view))
                 }
             }
         }

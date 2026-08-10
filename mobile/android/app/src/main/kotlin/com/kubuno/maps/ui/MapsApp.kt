@@ -1,7 +1,15 @@
 package com.kubuno.maps.ui
 
+import android.content.Intent
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -53,18 +61,24 @@ fun MapsApp(viewModel: MapsViewModel = hiltViewModel()) {
     }
     if (account == null) return // still loading the config
 
+    val searchActive by viewModel.searchActive.collectAsStateWithLifecycle()
+    val query by viewModel.query.collectAsStateWithLifecycle()
+    val results by viewModel.results.collectAsStateWithLifecycle()
+    val history by viewModel.history.collectAsStateWithLifecycle()
+    val searching by viewModel.searching.collectAsStateWithLifecycle()
+    val selected by viewModel.selected.collectAsStateWithLifecycle()
+
     var locationGranted by remember { mutableStateOf(hasLocationPermission(context)) }
     var recenterTick by remember { mutableIntStateOf(0) }
+    var controller by remember { mutableStateOf<MapController?>(null) }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions(),
     ) { grants ->
         locationGranted = grants.values.any { it }
-        // A grant that came from tapping the FAB should also recentre.
         if (locationGranted) recenterTick++
     }
 
-    // Ask once on first entry so the dot can appear without a FAB tap.
     LaunchedEffect(Unit) {
         if (!locationGranted) {
             permissionLauncher.launch(
@@ -73,6 +87,18 @@ fun MapsApp(viewModel: MapsViewModel = hiltViewModel()) {
                     android.Manifest.permission.ACCESS_COARSE_LOCATION,
                 ),
             )
+        }
+    }
+
+    // The selection drives the map: drop/move the pin and frame the camera.
+    LaunchedEffect(selected, controller) {
+        val ctrl = controller ?: return@LaunchedEffect
+        val place = selected
+        if (place == null) {
+            ctrl.clearSelected()
+        } else {
+            ctrl.showSelected(place.lat, place.lng)
+            ctrl.flyTo(place.lat, place.lng, if (place.focus) 16.0 else null)
         }
     }
 
@@ -85,46 +111,104 @@ fun MapsApp(viewModel: MapsViewModel = hiltViewModel()) {
             initialZoom = state.zoom,
             locationEnabled = locationGranted,
             recenterTick = recenterTick,
+            onControllerReady = { controller = it },
+            onLongPress = { lat, lng -> viewModel.reverseGeocode(lat, lng) },
+            onMapTap = { viewModel.clearSelection() },
         )
 
         SearchPill(
             account = account,
+            onClick = { viewModel.openSearch() },
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .statusBarsPadding()
                 .padding(horizontal = 12.dp, vertical = 10.dp),
         )
 
-        FloatingActionButton(
-            onClick = {
-                if (locationGranted) {
-                    recenterTick++
-                } else {
-                    permissionLauncher.launch(
-                        arrayOf(
-                            android.Manifest.permission.ACCESS_FINE_LOCATION,
-                            android.Manifest.permission.ACCESS_COARSE_LOCATION,
-                        ),
-                    )
-                }
-            },
-            containerColor = MaterialTheme.colorScheme.surface,
-            contentColor = MaterialTheme.colorScheme.primary,
+        // Recentre FAB — hidden while the place card occupies the bottom.
+        AnimatedVisibility(
+            visible = selected == null,
+            enter = fadeIn(),
+            exit = fadeOut(),
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .navigationBarsPadding()
                 .padding(16.dp),
         ) {
-            Icon(Icons.Filled.MyLocation, contentDescription = stringResource(R.string.maps_my_location))
+            FloatingActionButton(
+                onClick = {
+                    if (locationGranted) {
+                        recenterTick++
+                    } else {
+                        permissionLauncher.launch(
+                            arrayOf(
+                                android.Manifest.permission.ACCESS_FINE_LOCATION,
+                                android.Manifest.permission.ACCESS_COARSE_LOCATION,
+                            ),
+                        )
+                    }
+                },
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.primary,
+            ) {
+                Icon(Icons.Filled.MyLocation, contentDescription = stringResource(R.string.maps_my_location))
+            }
+        }
+
+        // Place card rises from the bottom when something is selected.
+        AnimatedVisibility(
+            visible = selected != null,
+            enter = slideInVertically { it } + fadeIn(),
+            exit = slideOutVertically { it } + fadeOut(),
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding(),
+        ) {
+            selected?.let { place ->
+                PlaceCard(
+                    place = place,
+                    onClose = { viewModel.clearSelection() },
+                    onDirections = {
+                        Toast.makeText(context, "Itinéraires — bientôt", Toast.LENGTH_SHORT).show()
+                    },
+                    onSave = { viewModel.savePlace() },
+                    onShare = { sharePlace(context, place) },
+                )
+            }
+        }
+
+        // Full-screen search on top of everything when active.
+        if (searchActive) {
+            SearchOverlay(
+                query = query,
+                results = results,
+                history = history,
+                searching = searching,
+                onQueryChange = viewModel::onQueryChange,
+                onBack = { viewModel.closeSearch() },
+                onPick = viewModel::selectResult,
+                onPickHistory = viewModel::selectHistory,
+            )
         }
     }
 }
 
-/** The floating Google-style search bar. Wired to real search in M2. */
+/** Shares a place as a standard geo: link plus a human line. */
+private fun sharePlace(context: android.content.Context, place: SelectedPlace) {
+    val geo = "geo:${place.lat},${place.lng}?q=${place.lat},${place.lng}(${place.name})"
+    val text = "${place.name}\n$geo"
+    val intent = Intent(Intent.ACTION_SEND).apply {
+        type = "text/plain"
+        putExtra(Intent.EXTRA_TEXT, text)
+        putExtra(Intent.EXTRA_SUBJECT, place.name)
+    }
+    context.startActivity(Intent.createChooser(intent, "Partager le lieu"))
+}
+
 @Composable
-private fun SearchPill(account: SharedAccount, modifier: Modifier = Modifier) {
+private fun SearchPill(account: SharedAccount, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Surface(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth().clickable(onClick = onClick),
         shape = MaterialTheme.shapes.extraLarge.copy(all = androidx.compose.foundation.shape.CornerSize(28.dp)),
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = 3.dp,
@@ -149,9 +233,7 @@ private fun SearchPill(account: SharedAccount, modifier: Modifier = Modifier) {
                 text = stringResource(R.string.maps_search_hint),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 2.dp),
+                modifier = Modifier.weight(1f).padding(start = 2.dp),
             )
             AccountAvatar(account)
         }
