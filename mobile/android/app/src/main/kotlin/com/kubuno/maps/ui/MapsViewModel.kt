@@ -11,6 +11,8 @@ import com.kubuno.maps.net.CalculateRouteBody
 import com.kubuno.maps.net.LatLngBody
 import com.kubuno.maps.net.NominatimResult
 import com.kubuno.maps.net.OsrmRouteDto
+import com.kubuno.maps.net.Poi
+import com.kubuno.maps.net.SavedPlace
 import com.kubuno.maps.net.SearchHistoryEntry
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -86,6 +88,25 @@ data class RouteOption(
 /** The three OSRM profiles the module exposes, matching the web's mode buttons. */
 enum class TravelMode(val api: String) { DRIVING("driving"), CYCLING("cycling"), FOOT("foot") }
 
+/** A POI explore category (chip). Ids match the module's Overpass catalogue. */
+data class PoiCategory(val id: String, val emoji: String, val label: String)
+
+/** The curated "explore around" chips, mirroring the web's POI_CHIPS subset. */
+val POI_CATEGORIES = listOf(
+    PoiCategory("restaurant", "🍽️", "Restaurants"),
+    PoiCategory("cafe", "☕", "Cafés"),
+    PoiCategory("bar", "🍺", "Bars"),
+    PoiCategory("hotel", "🏨", "Hôtels"),
+    PoiCategory("supermarket", "🛒", "Commerces"),
+    PoiCategory("pharmacy", "💊", "Pharmacies"),
+    PoiCategory("fuel", "⛽", "Carburant"),
+    PoiCategory("parking", "🅿️", "Parkings"),
+    PoiCategory("museum", "🏛️", "Musées"),
+    PoiCategory("hospital", "🏥", "Santé"),
+    PoiCategory("atm", "🏧", "Distributeurs"),
+    PoiCategory("transit", "🚏", "Transports"),
+)
+
 /** State of the directions flow: endpoints, mode, and the computed routes. */
 data class DirectionsState(
     val active: Boolean = false,
@@ -137,8 +158,26 @@ class MapsViewModel @Inject constructor(
     private val _directions = MutableStateFlow(DirectionsState())
     val directions: StateFlow<DirectionsState> = _directions.asStateFlow()
 
+    // ── Saved places + POI explore ────────────────────────────────────────────
+    private val _savedPlaces = MutableStateFlow<List<SavedPlace>>(emptyList())
+    val savedPlaces: StateFlow<List<SavedPlace>> = _savedPlaces.asStateFlow()
+
+    private val _showSaved = MutableStateFlow(false)
+    val showSaved: StateFlow<Boolean> = _showSaved.asStateFlow()
+
+    private val _activeCategory = MutableStateFlow<String?>(null)
+    val activeCategory: StateFlow<String?> = _activeCategory.asStateFlow()
+
+    private val _pois = MutableStateFlow<List<Poi>>(emptyList())
+    val pois: StateFlow<List<Poi>> = _pois.asStateFlow()
+
+    // A one-shot user message (a transient failure the UI shows then clears).
+    private val _message = MutableStateFlow<String?>(null)
+    val message: StateFlow<String?> = _message.asStateFlow()
+
     private var searchJob: Job? = null
     private var routeJob: Job? = null
+    private var poiJob: Job? = null
 
     private val api: MapsApi?
         get() = _state.value.account?.let { clients.api(it) }
@@ -371,7 +410,108 @@ class MapsViewModel @Inject constructor(
             _directions.value = _directions.value.copy(loading = false, routes = parsed, selected = 0)
         }
     }
+
+    // ── Saved places ──────────────────────────────────────────────────────────
+
+    fun openSaved() {
+        _showSaved.value = true
+        loadSavedPlaces()
+    }
+
+    fun closeSaved() {
+        _showSaved.value = false
+    }
+
+    fun loadSavedPlaces() {
+        val api = api ?: return
+        viewModelScope.launch {
+            val list = withContext(Dispatchers.IO) {
+                runCatching { api.listPlaces().places }
+                    .onFailure { android.util.Log.w("MapsPlaces", "list failed", it) }
+                    .getOrNull()
+            }
+            _savedPlaces.value = list ?: emptyList()
+        }
+    }
+
+    /** Open a saved place on the map (already a favourite, so the card marks it). */
+    fun selectSaved(place: SavedPlace) {
+        _showSaved.value = false
+        _selected.value = SelectedPlace(
+            name = place.name,
+            category = place.category,
+            address = place.address,
+            lat = place.lat,
+            lng = place.lng,
+            osmType = place.osmType,
+            osmId = place.osmId,
+            saved = true,
+        )
+    }
+
+    // ── POI explore (Overpass) ────────────────────────────────────────────────
+
+    /** Toggle a category chip; when turned on, fetch POIs around the viewport. */
+    fun toggleCategory(id: String, centerLat: Double, centerLng: Double, radiusMeters: Int) {
+        if (_activeCategory.value == id) {
+            _activeCategory.value = null
+            _pois.value = emptyList()
+            return
+        }
+        _activeCategory.value = id
+        val api = api ?: return
+        poiJob?.cancel()
+        poiJob = viewModelScope.launch {
+            val found = withContext(Dispatchers.IO) {
+                runCatching {
+                    api.overpassNearby(
+                        lat = centerLat,
+                        lng = centerLng,
+                        radius = radiusMeters,
+                        categories = id,
+                    ).results
+                }.onFailure { android.util.Log.w("MapsPoi", "nearby failed", it) }.getOrNull()
+            }
+            // Only apply if this category is still the active one.
+            if (_activeCategory.value != id) return@launch
+            if (found == null) {
+                // Upstream (Overpass) failed — don't leave the chip stuck lit.
+                _activeCategory.value = null
+                _pois.value = emptyList()
+                _message.value = "Points d'intérêt momentanément indisponibles"
+            } else {
+                _pois.value = found
+                if (found.isEmpty()) _message.value = "Aucun lieu de cette catégorie à proximité"
+            }
+        }
+    }
+
+    fun clearMessage() {
+        _message.value = null
+    }
+
+    fun clearCategory() {
+        _activeCategory.value = null
+        _pois.value = emptyList()
+    }
+
+    /** Open a POI marker in the place card. */
+    fun selectPoi(poi: Poi) {
+        _selected.value = SelectedPlace(
+            name = poi.name ?: prettyPoiCategory(poi.category),
+            category = poi.category,
+            address = null,
+            lat = poi.lat,
+            lng = poi.lng,
+            osmType = poi.osmType,
+            osmId = poi.osmId,
+            focus = false,
+        )
+    }
 }
+
+private fun prettyPoiCategory(raw: String?): String =
+    raw?.replace('_', ' ')?.replaceFirstChar { it.uppercase() } ?: "Lieu"
 
 // ── OSRM parsing (GeoJSON geometry + steps) ──────────────────────────────────
 

@@ -38,10 +38,59 @@ class MapController(
 
     private var selectedSymbol: Symbol? = null
     private val routeLines = mutableListOf<Line>()
+    private val poiSymbols = mutableListOf<Symbol>()
+    private val poiById = mutableMapOf<Long, String>()
+
+    /** Invoked with a POI's id string when its marker is tapped. */
+    var onPoiClick: ((String) -> Unit)? = null
 
     init {
-        // Register the pin bitmap under a style image id the symbols reference.
+        // Register the marker bitmaps under style image ids the symbols reference.
         style.addImage(PIN_IMAGE, drawableToBitmap(context, R.drawable.ic_map_pin))
+        style.addImage(POI_IMAGE, drawableToBitmap(context, R.drawable.ic_poi_dot))
+        symbolManager.addClickListener { symbol ->
+            val id = poiById[symbol.id]
+            if (id != null) {
+                onPoiClick?.invoke(id)
+                true
+            } else {
+                false
+            }
+        }
+    }
+
+    /** The current map centre. */
+    fun currentCenter(): GeoPoint {
+        val t = map.cameraPosition.target ?: return GeoPoint(0.0, 0.0)
+        return GeoPoint(t.latitude, t.longitude)
+    }
+
+    /** Half the viewport, in metres, clamped like the web (300 m – 6 km). */
+    fun viewportRadiusMeters(): Int {
+        val center = map.cameraPosition.target ?: return 1500
+        val ne = map.projection.visibleRegion.latLngBounds.northEast
+        return center.distanceTo(ne).toInt().coerceIn(300, 6000)
+    }
+
+    /** Show the POI explore markers; [markers] carry the id passed back on tap. */
+    fun showPois(markers: List<PoiMarker>) {
+        clearPois()
+        for (m in markers) {
+            val sym = symbolManager.create(
+                SymbolOptions()
+                    .withLatLng(LatLng(m.lat, m.lng))
+                    .withIconImage(POI_IMAGE)
+                    .withIconAnchor("center"),
+            )
+            poiSymbols += sym
+            poiById[sym.id] = m.id
+        }
+    }
+
+    fun clearPois() {
+        poiSymbols.forEach { symbolManager.delete(it) }
+        poiSymbols.clear()
+        poiById.clear()
     }
 
     /** The device's last known position, or null if location is off/unfixed. */
@@ -115,11 +164,15 @@ class MapController(
 
     private companion object {
         const val PIN_IMAGE = "kubuno-place-pin"
+        const val POI_IMAGE = "kubuno-poi-dot"
         // Route colours mirror the web: selected accent blue, alternatives grey.
         const val ROUTE_SELECTED = "#1A73E8"
         const val ROUTE_ALT = "#9AA0A6"
     }
 }
+
+/** A POI marker: its position and the id echoed back to [MapController.onPoiClick]. */
+data class PoiMarker(val lat: Double, val lng: Double, val id: String)
 
 /** Rasterise a (vector) drawable so MapLibre can use it as a symbol image. */
 private fun drawableToBitmap(context: Context, resId: Int): Bitmap {

@@ -1,6 +1,7 @@
 package com.kubuno.maps.ui
 
 import android.content.Intent
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -38,6 +39,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -67,6 +69,18 @@ fun MapsApp(viewModel: MapsViewModel = hiltViewModel()) {
     val searching by viewModel.searching.collectAsStateWithLifecycle()
     val selected by viewModel.selected.collectAsStateWithLifecycle()
     val directions by viewModel.directions.collectAsStateWithLifecycle()
+    val activeCategory by viewModel.activeCategory.collectAsStateWithLifecycle()
+    val pois by viewModel.pois.collectAsStateWithLifecycle()
+    val showSaved by viewModel.showSaved.collectAsStateWithLifecycle()
+    val savedPlaces by viewModel.savedPlaces.collectAsStateWithLifecycle()
+    val message by viewModel.message.collectAsStateWithLifecycle()
+
+    LaunchedEffect(message) {
+        message?.let {
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            viewModel.clearMessage()
+        }
+    }
 
     var locationGranted by remember { mutableStateOf(hasLocationPermission(context)) }
     var recenterTick by remember { mutableIntStateOf(0) }
@@ -121,6 +135,16 @@ fun MapsApp(viewModel: MapsViewModel = hiltViewModel()) {
         }
     }
 
+    // POI markers follow the explore results; tapping one opens its card.
+    LaunchedEffect(controller) {
+        controller?.onPoiClick = { id ->
+            viewModel.pois.value.firstOrNull { poiKey(it) == id }?.let { viewModel.selectPoi(it) }
+        }
+    }
+    LaunchedEffect(pois, controller) {
+        controller?.showPois(pois.map { PoiMarker(it.lat, it.lng, poiKey(it)) })
+    }
+
     Box(Modifier.fillMaxSize()) {
         MapLibreMap(
             modifier = Modifier.fillMaxSize(),
@@ -136,14 +160,29 @@ fun MapsApp(viewModel: MapsViewModel = hiltViewModel()) {
         )
 
         if (!directions.active) {
-            SearchPill(
-                account = account,
-                onClick = { viewModel.openSearch() },
-                modifier = Modifier
+            Column(
+                Modifier
                     .align(Alignment.TopCenter)
                     .statusBarsPadding()
-                    .padding(horizontal = 12.dp, vertical = 10.dp),
-            )
+                    .fillMaxWidth(),
+            ) {
+                SearchPill(
+                    account = account,
+                    onMenu = { viewModel.openSaved() },
+                    onClick = { viewModel.openSearch() },
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                )
+                CategoryChips(
+                    active = activeCategory,
+                    onToggle = { category ->
+                        controller?.let { ctrl ->
+                            val c = ctrl.currentCenter()
+                            viewModel.toggleCategory(category.id, c.lat, c.lng, ctrl.viewportRadiusMeters())
+                        }
+                    },
+                    modifier = Modifier.padding(bottom = 4.dp),
+                )
+            }
         }
 
         // Recentre FAB — hidden while a card or directions occupy the screen.
@@ -227,8 +266,20 @@ fun MapsApp(viewModel: MapsViewModel = hiltViewModel()) {
                 onPickHistory = viewModel::selectHistory,
             )
         }
+
+        // The "Enregistrés" sheet, opened from the search bar's menu.
+        if (showSaved) {
+            SavedPlacesSheet(
+                places = savedPlaces,
+                onSelect = { viewModel.selectSaved(it) },
+                onDismiss = { viewModel.closeSaved() },
+            )
+        }
     }
 }
+
+/** Stable id for a POI marker (round-trips through the MapController on tap). */
+private fun poiKey(poi: com.kubuno.maps.net.Poi): String = "${poi.osmType}/${poi.osmId}"
 
 /** Shares a place as a standard geo: link plus a human line. */
 private fun sharePlace(context: android.content.Context, place: SelectedPlace) {
@@ -243,7 +294,12 @@ private fun sharePlace(context: android.content.Context, place: SelectedPlace) {
 }
 
 @Composable
-private fun SearchPill(account: SharedAccount, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun SearchPill(
+    account: SharedAccount,
+    onMenu: () -> Unit,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Surface(
         modifier = modifier.fillMaxWidth().clickable(onClick = onClick),
         shape = MaterialTheme.shapes.extraLarge.copy(all = androidx.compose.foundation.shape.CornerSize(28.dp)),
@@ -258,8 +314,12 @@ private fun SearchPill(account: SharedAccount, onClick: () -> Unit, modifier: Mo
         ) {
             Icon(
                 Icons.Outlined.Menu,
-                contentDescription = null,
+                contentDescription = "Lieux enregistrés",
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .clickable(onClick = onMenu)
+                    .padding(2.dp),
             )
             Icon(
                 Icons.Outlined.Search,
