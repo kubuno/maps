@@ -1,5 +1,6 @@
 package com.kubuno.maps.ui
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +23,7 @@ import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -160,23 +162,35 @@ fun DirectionsSheet(
                 state.routes.isEmpty() -> Message("Aucun itinéraire trouvé.")
 
                 else -> {
+                    val modeColor = MapsColors.forMode(state.mode)
+                    val modeIcon = modeIconFor(state.mode)
+                    // Route alternatives as coloured cards (Citymapper/Transit).
+                    Column(
+                        Modifier.padding(horizontal = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        state.routes.forEachIndexed { index, route ->
+                            RouteCard(
+                                route = route,
+                                selected = index == state.selected,
+                                color = modeColor,
+                                icon = modeIcon,
+                                onClick = { onSelectRoute(index) },
+                            )
+                        }
+                    }
+                    // Prominent GO button.
                     Button(
                         onClick = onStart,
+                        shape = MapsShape.Button,
+                        colors = ButtonDefaults.buttonColors(containerColor = MapsColors.BlueVivid),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 20.dp, vertical = 4.dp),
+                            .heightIn(min = 54.dp)
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
                     ) {
-                        Icon(Icons.Filled.Navigation, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Text("Démarrer", modifier = Modifier.padding(start = 8.dp))
-                    }
-                    // Route alternatives as selectable summary rows.
-                    state.routes.forEachIndexed { index, route ->
-                        RouteSummaryRow(
-                            route = route,
-                            selected = index == state.selected,
-                            onClick = { onSelectRoute(index) },
-                        )
-                        HorizontalDivider()
+                        Icon(Icons.Filled.Navigation, contentDescription = null, modifier = Modifier.size(20.dp))
+                        Text("Démarrer", style = MapsType.TitlePunch, color = Color.White, modifier = Modifier.padding(start = 10.dp))
                     }
                     // Turn-by-turn for the selected route.
                     val steps = state.routes.getOrNull(state.selected)?.steps.orEmpty()
@@ -207,30 +221,45 @@ fun DirectionsSheet(
 }
 
 @Composable
-private fun RouteSummaryRow(route: RouteOption, selected: Boolean, onClick: () -> Unit) {
+private fun RouteCard(
+    route: RouteOption,
+    selected: Boolean,
+    color: Color,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    onClick: () -> Unit,
+) {
     Surface(
-        color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+        shape = MapsShape.Card,
+        color = if (selected) color.copy(alpha = 0.10f) else MaterialTheme.colorScheme.surface,
+        border = if (selected) BorderStroke(2.dp, color) else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         modifier = Modifier.fillMaxWidth().selectable(selected = selected, onClick = onClick),
     ) {
         Row(
-            Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp),
+            Modifier.fillMaxWidth().padding(14.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Text(
-                text = formatDuration(route.durationSeconds),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.SemiBold,
-                color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-            )
-            Text(
-                text = formatDistance(route.distanceMeters),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.weight(1f),
-            )
+            ModeIconCircle(icon, color, size = 44)
+            Column(Modifier.weight(1f)) {
+                Text(
+                    text = formatDuration(route.durationSeconds),
+                    style = MapsType.DisplayEtaSm,
+                    color = if (selected) color else MaterialTheme.colorScheme.onSurface,
+                )
+                Text(
+                    text = formatDistance(route.distanceMeters),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
+}
+
+private fun modeIconFor(mode: TravelMode): androidx.compose.ui.graphics.vector.ImageVector = when (mode) {
+    TravelMode.DRIVING -> Icons.Filled.DirectionsCar
+    TravelMode.CYCLING -> Icons.AutoMirrored.Filled.DirectionsBike
+    TravelMode.FOOT -> Icons.AutoMirrored.Filled.DirectionsWalk
 }
 
 @Composable
