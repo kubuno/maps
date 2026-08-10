@@ -1,0 +1,152 @@
+package com.kubuno.maps.ui
+
+import android.annotation.SuppressLint
+import android.content.Context
+import android.content.pm.PackageManager
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import org.maplibre.android.camera.CameraPosition
+import org.maplibre.android.camera.CameraUpdateFactory
+import org.maplibre.android.geometry.LatLng
+import org.maplibre.android.location.LocationComponentActivationOptions
+import org.maplibre.android.location.LocationComponentOptions
+import org.maplibre.android.location.modes.CameraMode
+import org.maplibre.android.location.modes.RenderMode
+import org.maplibre.android.maps.MapLibreMap
+import org.maplibre.android.maps.MapView
+import org.maplibre.android.maps.Style
+
+/**
+ * A MapLibre [MapView] bound to the composition's lifecycle. Created once and
+ * driven through the seven lifecycle callbacks MapLibre requires; destroyed when
+ * it leaves composition.
+ */
+@Composable
+private fun rememberMapViewWithLifecycle(): MapView {
+    val context = LocalContext.current
+    val mapView = remember { MapView(context).apply { onCreate(null) } }
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    DisposableEffect(lifecycle, mapView) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_START -> mapView.onStart()
+                Lifecycle.Event.ON_RESUME -> mapView.onResume()
+                Lifecycle.Event.ON_PAUSE -> mapView.onPause()
+                Lifecycle.Event.ON_STOP -> mapView.onStop()
+                else -> {}
+            }
+        }
+        lifecycle.addObserver(observer)
+        // onDestroy is driven here rather than on ON_DESTROY so the MapView is
+        // released even if it leaves composition before the activity does.
+        onDispose {
+            lifecycle.removeObserver(observer)
+            mapView.onDestroy()
+        }
+    }
+    return mapView
+}
+
+/**
+ * The map surface. Loads the vector style, frames the initial camera, and — once
+ * permission is granted — shows the "you are here" dot. [recenterTick] moves the
+ * camera to the user's last known position each time it changes (the FAB bumps
+ * it). [onMapReady] hands the live map + style to the caller for later layers.
+ */
+@Composable
+fun MapLibreMap(
+    styleUrl: String,
+    initialLat: Double,
+    initialLng: Double,
+    initialZoom: Double,
+    locationEnabled: Boolean,
+    recenterTick: Int,
+    modifier: Modifier = Modifier,
+    onMapReady: (MapLibreMap, Style) -> Unit = { _, _ -> },
+) {
+    val context = LocalContext.current
+    val mapView = rememberMapViewWithLifecycle()
+    var mapRef by remember { mutableStateOf<MapLibreMap?>(null) }
+    var styleRef by remember { mutableStateOf<Style?>(null) }
+    val readyCb by rememberUpdatedState(onMapReady)
+
+    AndroidView(modifier = modifier, factory = { mapView }) { view ->
+        if (mapRef == null) {
+            view.getMapAsync { map ->
+                map.cameraPosition = CameraPosition.Builder()
+                    .target(LatLng(initialLat, initialLng))
+                    .zoom(initialZoom)
+                    .build()
+                map.setStyle(Style.Builder().fromUri(styleUrl)) { style ->
+                    mapRef = map
+                    styleRef = style
+                    readyCb(map, style)
+                }
+            }
+        }
+    }
+
+    // Turn the location component on once the style is ready and permission held.
+    LaunchedEffect(locationEnabled, styleRef) {
+        val map = mapRef ?: return@LaunchedEffect
+        val style = styleRef ?: return@LaunchedEffect
+        if (locationEnabled && hasLocationPermission(context)) {
+            enableLocation(context, map, style)
+        }
+    }
+
+    // Recentre on the user (FAB). Tick 0 is the initial state — ignore it.
+    LaunchedEffect(recenterTick) {
+        if (recenterTick == 0) return@LaunchedEffect
+        val map = mapRef ?: return@LaunchedEffect
+        val lc = map.locationComponent
+        val loc = if (lc.isLocationComponentActivated) lc.lastKnownLocation else null
+        if (loc != null) {
+            map.animateCamera(
+                CameraUpdateFactory.newLatLngZoom(LatLng(loc.latitude, loc.longitude), 15.0),
+            )
+        }
+    }
+}
+
+@SuppressLint("MissingPermission") // guarded by the hasLocationPermission() caller
+private fun enableLocation(context: Context, map: MapLibreMap, style: Style) {
+    val lc = map.locationComponent
+    if (!lc.isLocationComponentActivated) {
+        lc.activateLocationComponent(
+            LocationComponentActivationOptions.builder(context, style)
+                .locationComponentOptions(
+                    LocationComponentOptions.builder(context)
+                        .pulseEnabled(true)
+                        .build(),
+                )
+                .useDefaultLocationEngine(true)
+                .build(),
+        )
+    }
+    lc.isLocationComponentEnabled = true
+    // The camera is not hijacked to follow — recentring is an explicit FAB action.
+    lc.cameraMode = CameraMode.NONE
+    lc.renderMode = RenderMode.COMPASS
+}
+
+fun hasLocationPermission(context: Context): Boolean =
+    ContextCompat.checkSelfPermission(
+        context, android.Manifest.permission.ACCESS_FINE_LOCATION,
+    ) == PackageManager.PERMISSION_GRANTED ||
+        ContextCompat.checkSelfPermission(
+            context, android.Manifest.permission.ACCESS_COARSE_LOCATION,
+        ) == PackageManager.PERMISSION_GRANTED

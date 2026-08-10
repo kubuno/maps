@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Kubuno Maps</string>
+
+    <string name="maps_no_account">Aucun compte Kubuno configuré</string>
+    <string name="maps_search_hint">Rechercher un lieu</string>
+    <string name="maps_my_location">Ma position</string>
+    <string name="maps_location_permission_rationale">Autorisez la localisation pour vous situer sur la carte.</string>
+</resources>
