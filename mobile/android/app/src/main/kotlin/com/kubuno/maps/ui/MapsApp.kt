@@ -184,6 +184,14 @@ fun MapsApp(viewModel: MapsViewModel = hiltViewModel()) {
         }
     }
 
+    // Load the account's places so the home sheet's "À proximité" has content.
+    LaunchedEffect(Unit) { viewModel.loadSavedPlaces() }
+
+    // The idle "home" state: nothing selected/searching/navigating.
+    val homeState = selected == null && !directions.active && !nav.active &&
+        activeTrack == null && !searchActive && !showLibrary
+    val controlsBottom = 16.dp + if (homeState) HomeSheetPeek else 0.dp
+
     Box(Modifier.fillMaxSize()) {
         MapLibreMap(
             modifier = Modifier.fillMaxSize(),
@@ -233,7 +241,7 @@ fun MapsApp(viewModel: MapsViewModel = hiltViewModel()) {
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .navigationBarsPadding()
-                .padding(16.dp),
+                .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = controlsBottom),
         ) {
             FloatingActionButton(
                 onClick = {
@@ -263,9 +271,26 @@ fun MapsApp(viewModel: MapsViewModel = hiltViewModel()) {
             modifier = Modifier
                 .align(Alignment.BottomStart)
                 .navigationBarsPadding()
-                .padding(16.dp),
+                .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = controlsBottom),
         ) {
             LayersButton(current = baseMap, onSelect = { viewModel.setBaseMap(it) })
+        }
+
+        // Home sheet — favourites + big action + nearby, shown only when idle.
+        AnimatedVisibility(
+            visible = homeState,
+            enter = slideInVertically { it } + fadeIn(),
+            exit = slideOutVertically { it } + fadeOut(),
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding(),
+        ) {
+            HomeSheet(
+                savedPlaces = savedPlaces,
+                onSearch = { viewModel.openSearch() },
+                onFavorite = { viewModel.openSearch() },
+                onSelectPlace = { viewModel.selectSaved(it) },
+            )
         }
 
         // Place card rises from the bottom when something is selected.
