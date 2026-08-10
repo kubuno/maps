@@ -16,10 +16,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.DirectionsBike
 import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material.icons.filled.DirectionsCar
-import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material.icons.filled.Circle
+import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.SwapVert
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -129,6 +131,7 @@ private fun ModeButton(
 fun DirectionsSheet(
     state: DirectionsState,
     onSelectRoute: (Int) -> Unit,
+    onStart: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Surface(
@@ -157,6 +160,15 @@ fun DirectionsSheet(
                 state.routes.isEmpty() -> Message("Aucun itinéraire trouvé.")
 
                 else -> {
+                    Button(
+                        onClick = onStart,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp, vertical = 4.dp),
+                    ) {
+                        Icon(Icons.Filled.Navigation, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Text("Démarrer", modifier = Modifier.padding(start = 8.dp))
+                    }
                     // Route alternatives as selectable summary rows.
                     state.routes.forEachIndexed { index, route ->
                         RouteSummaryRow(

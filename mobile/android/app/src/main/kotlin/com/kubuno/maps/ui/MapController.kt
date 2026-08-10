@@ -144,6 +144,23 @@ class MapController(
         trackLine = null
     }
 
+    /**
+     * Chase-camera for navigation: a north-up follow on the position. Rotating
+     * the camera (bearing) — like tilting it — reliably SIGSEGVs the emulator's
+     * software GL renderer inside MapLibre, so we keep it flat and unrotated
+     * (the same newLatLngZoom path flyTo/fitBounds use, which is stable). The
+     * maneuver banner is what conveys heading; a real device could re-enable
+     * heading-up rotation. [bearing] is accepted but intentionally unused.
+     */
+    fun followNav(lat: Double, lng: Double, bearing: Double) {
+        map.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(lat, lng), 16.0), 600)
+    }
+
+    /** No-op kept for symmetry with the nav lifecycle (camera is never tilted). */
+    fun resetTilt() {
+        // Camera is never pitched/rotated during navigation; nothing to undo.
+    }
+
     /** Frame the camera around a set of points (e.g. the selected route). */
     fun fitBounds(points: List<GeoPoint>, paddingPx: Int) {
         if (points.size < 2) return

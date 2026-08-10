@@ -176,6 +176,19 @@ data class DirectionsState(
 /** A GPX trace opened on the map: its name plus the resampled track + stats. */
 data class ActiveTrack(val name: String, val track: TrackData)
 
+/** Live turn-by-turn state (the position is simulated along the route). */
+data class NavState(
+    val active: Boolean = false,
+    val instruction: String = "",
+    val distanceToNext: Double = 0.0,
+    val remainingDistance: Double = 0.0,
+    val remainingSeconds: Double = 0.0,
+    val arrived: Boolean = false,
+    val lat: Double = 0.0,
+    val lng: Double = 0.0,
+    val bearing: Double = 0.0,
+)
+
 @HiltViewModel
 class MapsViewModel @Inject constructor(
     sharedAccounts: SharedAccounts,
@@ -211,6 +224,11 @@ class MapsViewModel @Inject constructor(
     // ── Directions ──────────────────────────────────────────────────────────
     private val _directions = MutableStateFlow(DirectionsState())
     val directions: StateFlow<DirectionsState> = _directions.asStateFlow()
+
+    // ── Turn-by-turn navigation ───────────────────────────────────────────────
+    private val _nav = MutableStateFlow(NavState())
+    val nav: StateFlow<NavState> = _nav.asStateFlow()
+    private var navJob: Job? = null
 
     // ── Saved places + POI explore ────────────────────────────────────────────
     private val _savedPlaces = MutableStateFlow<List<SavedPlace>>(emptyList())
@@ -545,6 +563,71 @@ class MapsViewModel @Inject constructor(
         }
     }
 
+    // ── Turn-by-turn navigation actions ────────────────────────────────────────
+
+    /**
+     * Start guiding along the selected route. The device GPS is static on an
+     * emulator, so the position is SIMULATED: it advances along the route
+     * geometry, driving the camera, the current maneuver and the remaining
+     * time/distance — the same "simulate" the web offers. A real build would feed
+     * this from the location component instead.
+     */
+    fun startNavigation() {
+        val d = _directions.value
+        val route = d.routes.getOrNull(d.selected) ?: return
+        val points = route.points
+        if (points.size < 2) return
+
+        // Cumulative distance per point, and per step boundary (OSRM order).
+        val cum = DoubleArray(points.size)
+        for (i in 1 until points.size) cum[i] = cum[i - 1] + haversine(points[i - 1], points[i])
+        val total = cum.last().takeIf { it > 0 } ?: return
+        var acc = 0.0
+        val stepEnds = route.steps.map { acc += it.distanceMeters; acc }
+        val totalDur = route.durationSeconds
+        // Play the whole route in ~40 ticks whatever its length.
+        val stride = (points.size / 40).coerceAtLeast(1)
+
+        navJob?.cancel()
+        navJob = viewModelScope.launch {
+            var i = 0
+            while (i < points.size) {
+                val traveled = cum[i]
+                val remaining = (total - traveled).coerceAtLeast(0.0)
+                val stepIdx = stepEnds.indexOfFirst { it > traveled + 1.0 }
+                    .let { if (it < 0) route.steps.lastIndex.coerceAtLeast(0) else it }
+                val instruction = route.steps.getOrNull(stepIdx)?.instruction ?: "Continuez"
+                val distToNext = ((stepEnds.getOrNull(stepIdx) ?: total) - traveled).coerceAtLeast(0.0)
+                val bearing = if (i < points.size - 1) bearingBetween(points[i], points[i + 1]) else _nav.value.bearing
+                _nav.value = NavState(
+                    active = true,
+                    instruction = instruction,
+                    distanceToNext = distToNext,
+                    remainingDistance = remaining,
+                    remainingSeconds = if (total > 0) totalDur * remaining / total else 0.0,
+                    lat = points[i].lat,
+                    lng = points[i].lng,
+                    bearing = bearing,
+                )
+                delay(600)
+                if (i >= points.size - 1) break
+                i = (i + stride).coerceAtMost(points.size - 1)
+            }
+            _nav.value = _nav.value.copy(
+                arrived = true,
+                instruction = "Vous êtes arrivé",
+                distanceToNext = 0.0,
+                remainingDistance = 0.0,
+                remainingSeconds = 0.0,
+            )
+        }
+    }
+
+    fun stopNavigation() {
+        navJob?.cancel()
+        _nav.value = NavState()
+    }
+
     // ── Saved places ──────────────────────────────────────────────────────────
 
     fun openLibrary() {
@@ -710,4 +793,26 @@ private fun maneuverText(type: String, modifier: String?, name: String): String 
         else -> "Continuez" + (dir?.let { " $it" } ?: "")
     }
     return if (name.isNotBlank() && type != "arrive") "$base sur $name" else base
+}
+
+/** Great-circle distance between two points, in metres. */
+private fun haversine(a: GeoPoint, b: GeoPoint): Double {
+    val r = 6_371_000.0
+    val dLat = Math.toRadians(b.lat - a.lat)
+    val dLng = Math.toRadians(b.lng - a.lng)
+    val la1 = Math.toRadians(a.lat)
+    val la2 = Math.toRadians(b.lat)
+    val h = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(la1) * Math.cos(la2) * Math.sin(dLng / 2) * Math.sin(dLng / 2)
+    return 2 * r * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h))
+}
+
+/** Initial bearing from a to b, in degrees [0, 360). */
+private fun bearingBetween(a: GeoPoint, b: GeoPoint): Double {
+    val la1 = Math.toRadians(a.lat)
+    val la2 = Math.toRadians(b.lat)
+    val dLng = Math.toRadians(b.lng - a.lng)
+    val y = Math.sin(dLng) * Math.cos(la2)
+    val x = Math.cos(la1) * Math.sin(la2) - Math.sin(la1) * Math.cos(la2) * Math.cos(dLng)
+    return (Math.toDegrees(Math.atan2(y, x)) + 360.0) % 360.0
 }

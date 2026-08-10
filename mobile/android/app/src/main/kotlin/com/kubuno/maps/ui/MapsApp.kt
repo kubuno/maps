@@ -69,6 +69,7 @@ fun MapsApp(viewModel: MapsViewModel = hiltViewModel()) {
     val searching by viewModel.searching.collectAsStateWithLifecycle()
     val selected by viewModel.selected.collectAsStateWithLifecycle()
     val directions by viewModel.directions.collectAsStateWithLifecycle()
+    val nav by viewModel.nav.collectAsStateWithLifecycle()
     val activeCategory by viewModel.activeCategory.collectAsStateWithLifecycle()
     val pois by viewModel.pois.collectAsStateWithLifecycle()
     val showLibrary by viewModel.showLibrary.collectAsStateWithLifecycle()
@@ -149,6 +150,15 @@ fun MapsApp(viewModel: MapsViewModel = hiltViewModel()) {
         if (directions.needsLocation) {
             controller?.lastLocation()?.let { viewModel.provideOrigin(it) }
         }
+    }
+
+    // Navigation drives a chase camera along the (simulated) position.
+    LaunchedEffect(nav.active, nav.lat, nav.lng, controller) {
+        val ctrl = controller ?: return@LaunchedEffect
+        if (nav.active) ctrl.followNav(nav.lat, nav.lng, nav.bearing)
+    }
+    LaunchedEffect(nav.active) {
+        if (!nav.active) controller?.resetTilt()
     }
 
     // POI markers follow the explore results; tapping one opens its card.
@@ -292,8 +302,8 @@ fun MapsApp(viewModel: MapsViewModel = hiltViewModel()) {
             }
         }
 
-        // Directions: the origin/destination header on top, routes sheet at the bottom.
-        if (directions.active) {
+        // Directions: header on top, routes sheet at the bottom — hidden while navigating.
+        if (directions.active && !nav.active) {
             DirectionsTopCard(
                 state = directions,
                 onClose = { viewModel.closeDirections() },
@@ -304,10 +314,16 @@ fun MapsApp(viewModel: MapsViewModel = hiltViewModel()) {
             DirectionsSheet(
                 state = directions,
                 onSelectRoute = { viewModel.selectRoute(it) },
+                onStart = { viewModel.startNavigation() },
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .navigationBarsPadding(),
             )
+        }
+
+        // Turn-by-turn HUD, over everything.
+        if (nav.active) {
+            NavOverlay(nav = nav, onQuit = { viewModel.stopNavigation() })
         }
 
         // Full-screen search on top of everything when active.
