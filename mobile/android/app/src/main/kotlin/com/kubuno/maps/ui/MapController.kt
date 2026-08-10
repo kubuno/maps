@@ -127,6 +127,23 @@ class MapController(
         routeLines.clear()
     }
 
+    private var trackLine: Line? = null
+
+    /** Draw a GPX track polyline. */
+    fun drawTrack(points: List<GeoPoint>) {
+        clearTrack()
+        val pts = points.map { LatLng(it.lat, it.lng) }
+        if (pts.size < 2) return
+        trackLine = lineManager.create(
+            LineOptions().withLatLngs(pts).withLineColor(ROUTE_SELECTED).withLineWidth(4f),
+        )
+    }
+
+    fun clearTrack() {
+        trackLine?.let { lineManager.delete(it) }
+        trackLine = null
+    }
+
     /** Frame the camera around a set of points (e.g. the selected route). */
     fun fitBounds(points: List<GeoPoint>, paddingPx: Int) {
         if (points.size < 2) return

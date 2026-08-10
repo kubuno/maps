@@ -8,12 +8,16 @@ import com.kubuno.maps.net.CreatePlaceBody
 import com.kubuno.maps.net.MapsApi
 import com.kubuno.maps.net.MapsClients
 import com.kubuno.maps.net.CalculateRouteBody
+import com.kubuno.maps.net.GpxTrace
 import com.kubuno.maps.net.LatLngBody
 import com.kubuno.maps.net.NominatimResult
 import com.kubuno.maps.net.OsrmRouteDto
 import com.kubuno.maps.net.Poi
 import com.kubuno.maps.net.SavedPlace
 import com.kubuno.maps.net.SearchHistoryEntry
+import com.kubuno.maps.net.TrackData
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -169,6 +173,9 @@ data class DirectionsState(
     val needsLocation: Boolean = false,
 )
 
+/** A GPX trace opened on the map: its name plus the resampled track + stats. */
+data class ActiveTrack(val name: String, val track: TrackData)
+
 @HiltViewModel
 class MapsViewModel @Inject constructor(
     sharedAccounts: SharedAccounts,
@@ -209,8 +216,9 @@ class MapsViewModel @Inject constructor(
     private val _savedPlaces = MutableStateFlow<List<SavedPlace>>(emptyList())
     val savedPlaces: StateFlow<List<SavedPlace>> = _savedPlaces.asStateFlow()
 
-    private val _showSaved = MutableStateFlow(false)
-    val showSaved: StateFlow<Boolean> = _showSaved.asStateFlow()
+    // The library sheet (opened from the search bar's menu): places + GPX traces.
+    private val _showLibrary = MutableStateFlow(false)
+    val showLibrary: StateFlow<Boolean> = _showLibrary.asStateFlow()
 
     private val _activeCategory = MutableStateFlow<String?>(null)
     val activeCategory: StateFlow<String?> = _activeCategory.asStateFlow()
@@ -228,6 +236,77 @@ class MapsViewModel @Inject constructor(
 
     fun setBaseMap(base: BaseMap) {
         _baseMap.value = base
+    }
+
+    // ── GPX traces ─────────────────────────────────────────────────────────────
+    private val _gpxTraces = MutableStateFlow<List<GpxTrace>>(emptyList())
+    val gpxTraces: StateFlow<List<GpxTrace>> = _gpxTraces.asStateFlow()
+
+    private val _activeTrack = MutableStateFlow<ActiveTrack?>(null)
+    val activeTrack: StateFlow<ActiveTrack?> = _activeTrack.asStateFlow()
+
+    private var trackJob: Job? = null
+
+    fun loadGpx() {
+        val api = api ?: return
+        viewModelScope.launch {
+            val list = withContext(Dispatchers.IO) {
+                runCatching { api.listGpx().traces }
+                    .onFailure { android.util.Log.w("MapsGpx", "list failed", it) }
+                    .getOrNull()
+            }
+            _gpxTraces.value = list ?: emptyList()
+        }
+    }
+
+    /** Upload a picked GPX file (raw bytes) and refresh the list. */
+    fun uploadGpx(bytes: ByteArray, name: String?) {
+        val api = api ?: return
+        viewModelScope.launch {
+            val ok = withContext(Dispatchers.IO) {
+                runCatching {
+                    api.uploadGpx(
+                        body = bytes.toRequestBody("application/gpx+xml".toMediaType()),
+                        name = name,
+                        activityType = null,
+                    )
+                }.onFailure { android.util.Log.w("MapsGpx", "upload failed", it) }.isSuccess
+            }
+            _message.value = if (ok) "Trace importée" else "Échec de l'import GPX"
+            if (ok) loadGpx()
+        }
+    }
+
+    /** Open a trace: fetch its track, draw it and show the elevation profile. */
+    fun selectTrace(trace: GpxTrace) {
+        _showLibrary.value = false
+        val api = api ?: return
+        trackJob?.cancel()
+        trackJob = viewModelScope.launch {
+            val track = withContext(Dispatchers.IO) {
+                runCatching { api.gpxTrack(trace.id).track }
+                    .onFailure { android.util.Log.w("MapsGpx", "track failed", it) }
+                    .getOrNull()
+            }
+            if (track != null) {
+                _activeTrack.value = ActiveTrack(trace.name, track)
+            } else {
+                _message.value = "Impossible de charger la trace"
+            }
+        }
+    }
+
+    fun clearTrack() {
+        _activeTrack.value = null
+    }
+
+    fun deleteTrace(trace: GpxTrace) {
+        val api = api ?: return
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) { runCatching { api.deleteGpx(trace.id) } }
+            if (_activeTrack.value?.name == trace.name) _activeTrack.value = null
+            loadGpx()
+        }
     }
 
     private var searchJob: Job? = null
@@ -468,13 +547,14 @@ class MapsViewModel @Inject constructor(
 
     // ── Saved places ──────────────────────────────────────────────────────────
 
-    fun openSaved() {
-        _showSaved.value = true
+    fun openLibrary() {
+        _showLibrary.value = true
         loadSavedPlaces()
+        loadGpx()
     }
 
-    fun closeSaved() {
-        _showSaved.value = false
+    fun closeLibrary() {
+        _showLibrary.value = false
     }
 
     fun loadSavedPlaces() {
@@ -491,7 +571,7 @@ class MapsViewModel @Inject constructor(
 
     /** Open a saved place on the map (already a favourite, so the card marks it). */
     fun selectSaved(place: SavedPlace) {
-        _showSaved.value = false
+        _showLibrary.value = false
         _selected.value = SelectedPlace(
             name = place.name,
             category = place.category,

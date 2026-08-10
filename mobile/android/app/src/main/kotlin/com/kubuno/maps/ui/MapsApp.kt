@@ -71,10 +71,25 @@ fun MapsApp(viewModel: MapsViewModel = hiltViewModel()) {
     val directions by viewModel.directions.collectAsStateWithLifecycle()
     val activeCategory by viewModel.activeCategory.collectAsStateWithLifecycle()
     val pois by viewModel.pois.collectAsStateWithLifecycle()
-    val showSaved by viewModel.showSaved.collectAsStateWithLifecycle()
+    val showLibrary by viewModel.showLibrary.collectAsStateWithLifecycle()
     val savedPlaces by viewModel.savedPlaces.collectAsStateWithLifecycle()
+    val gpxTraces by viewModel.gpxTraces.collectAsStateWithLifecycle()
+    val activeTrack by viewModel.activeTrack.collectAsStateWithLifecycle()
     val message by viewModel.message.collectAsStateWithLifecycle()
     val baseMap by viewModel.baseMap.collectAsStateWithLifecycle()
+
+    // Picks a .gpx document and uploads its bytes.
+    val gpxPicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri ->
+        if (uri != null) {
+            val name = queryDisplayName(context, uri)
+            val bytes = runCatching {
+                context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+            }.getOrNull()
+            if (bytes != null) viewModel.uploadGpx(bytes, name)
+        }
+    }
 
     LaunchedEffect(message) {
         message?.let {
@@ -146,6 +161,19 @@ fun MapsApp(viewModel: MapsViewModel = hiltViewModel()) {
         controller?.showPois(pois.map { PoiMarker(it.lat, it.lng, poiKey(it)) })
     }
 
+    // Draw an opened GPX track and frame it; clear it when closed.
+    LaunchedEffect(activeTrack, controller) {
+        val ctrl = controller ?: return@LaunchedEffect
+        val track = activeTrack
+        if (track == null) {
+            ctrl.clearTrack()
+        } else {
+            val pts = track.track.points.map { GeoPoint(it.lat, it.lng) }
+            ctrl.drawTrack(pts)
+            ctrl.fitBounds(pts, 120)
+        }
+    }
+
     Box(Modifier.fillMaxSize()) {
         MapLibreMap(
             modifier = Modifier.fillMaxSize(),
@@ -170,7 +198,7 @@ fun MapsApp(viewModel: MapsViewModel = hiltViewModel()) {
             ) {
                 SearchPill(
                     account = account,
-                    onMenu = { viewModel.openSaved() },
+                    onMenu = { viewModel.openLibrary() },
                     onClick = { viewModel.openSearch() },
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
                 )
@@ -189,7 +217,7 @@ fun MapsApp(viewModel: MapsViewModel = hiltViewModel()) {
 
         // Recentre FAB — hidden while a card or directions occupy the screen.
         AnimatedVisibility(
-            visible = selected == null && !directions.active,
+            visible = selected == null && !directions.active && activeTrack == null,
             enter = fadeIn(),
             exit = fadeOut(),
             modifier = Modifier
@@ -219,7 +247,7 @@ fun MapsApp(viewModel: MapsViewModel = hiltViewModel()) {
 
         // Base-map switcher, bottom-left, out of the way of any bottom card.
         AnimatedVisibility(
-            visible = selected == null && !directions.active,
+            visible = selected == null && !directions.active && activeTrack == null,
             enter = fadeIn(),
             exit = fadeOut(),
             modifier = Modifier
@@ -247,6 +275,20 @@ fun MapsApp(viewModel: MapsViewModel = hiltViewModel()) {
                     onSave = { viewModel.savePlace() },
                     onShare = { sharePlace(context, place) },
                 )
+            }
+        }
+
+        // GPX track card rises from the bottom when a trace is opened.
+        AnimatedVisibility(
+            visible = activeTrack != null,
+            enter = slideInVertically { it } + fadeIn(),
+            exit = slideOutVertically { it } + fadeOut(),
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding(),
+        ) {
+            activeTrack?.let { track ->
+                TrackCard(track = track, onClose = { viewModel.clearTrack() })
             }
         }
 
@@ -282,16 +324,29 @@ fun MapsApp(viewModel: MapsViewModel = hiltViewModel()) {
             )
         }
 
-        // The "Enregistrés" sheet, opened from the search bar's menu.
-        if (showSaved) {
-            SavedPlacesSheet(
+        // The library sheet (saved places + GPX traces), from the search bar menu.
+        if (showLibrary) {
+            LibrarySheet(
                 places = savedPlaces,
-                onSelect = { viewModel.selectSaved(it) },
-                onDismiss = { viewModel.closeSaved() },
+                traces = gpxTraces,
+                onSelectPlace = { viewModel.selectSaved(it) },
+                onSelectTrace = { viewModel.selectTrace(it) },
+                onDeleteTrace = { viewModel.deleteTrace(it) },
+                onImportGpx = { gpxPicker.launch(arrayOf("application/gpx+xml", "application/octet-stream", "*/*")) },
+                onDismiss = { viewModel.closeLibrary() },
             )
         }
     }
 }
+
+/** The picked document's display name (used as the GPX trace name). */
+private fun queryDisplayName(context: android.content.Context, uri: android.net.Uri): String? =
+    runCatching {
+        context.contentResolver.query(uri, null, null, null, null)?.use { c ->
+            val idx = c.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+            if (idx >= 0 && c.moveToFirst()) c.getString(idx)?.substringBeforeLast('.') else null
+        }
+    }.getOrNull()
 
 /** Stable id for a POI marker (round-trips through the MapController on tap). */
 private fun poiKey(poi: com.kubuno.maps.net.Poi): String = "${poi.osmType}/${poi.osmId}"

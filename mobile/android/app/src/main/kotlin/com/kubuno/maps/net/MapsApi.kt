@@ -1,9 +1,11 @@
 package com.kubuno.maps.net
 
 import kotlinx.serialization.json.JsonObject
+import okhttp3.RequestBody
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.Headers
 import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Path
@@ -109,4 +111,24 @@ interface MapsApi {
 
     @DELETE("api/v1/maps/search/history")
     suspend fun clearSearchHistory()
+
+    // --- GPX traces ---
+
+    @GET("api/v1/maps/gpx")
+    suspend fun listGpx(): GpxListDto
+
+    /** Upload = the raw GPX file bytes (not multipart); name/activity as query. */
+    @Headers("Content-Type: application/gpx+xml")
+    @POST("api/v1/maps/gpx")
+    suspend fun uploadGpx(
+        @Body body: RequestBody,
+        @Query("name") name: String? = null,
+        @Query("activity_type") activityType: String? = null,
+    ): GpxUploadDto
+
+    @GET("api/v1/maps/gpx/{id}/track")
+    suspend fun gpxTrack(@Path("id") id: String): GpxTrackDto
+
+    @DELETE("api/v1/maps/gpx/{id}")
+    suspend fun deleteGpx(@Path("id") id: String)
 }
