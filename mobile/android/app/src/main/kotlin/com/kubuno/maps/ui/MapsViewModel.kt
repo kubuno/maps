@@ -31,6 +31,15 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import javax.inject.Inject
 
+/** How a MapLibre style is loaded: a vector style URL, or a raw style JSON. */
+sealed interface MapStyleSpec {
+    data class Uri(val url: String) : MapStyleSpec
+    data class Json(val json: String) : MapStyleSpec
+}
+
+/** The base maps offered by the layers switcher, mirroring the web module. */
+enum class BaseMap { PLAN, SATELLITE, RELIEF }
+
 /** Base map styles, keyless OpenStreetMap-derived, mirroring the web module. */
 object MapStyles {
     // The web's default base map (maps/frontend/src/mapsLayers.ts). The backend's
@@ -38,7 +47,37 @@ object MapStyles {
     // reach, so we use the same public vector style the web does and take only
     // the centre/zoom from /config.
     const val LIBERTY = "https://tiles.openfreemap.org/styles/liberty"
-    const val POSITRON = "https://tiles.openfreemap.org/styles/positron"
+
+    // Raster bases, same sources as the web (all keyless). ESRI uses {z}/{y}/{x};
+    // MapLibre substitutes by name, so the order in the template is respected.
+    private const val ESRI_SATELLITE =
+        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+    private const val OPENTOPO =
+        "https://a.tile.opentopomap.org/{z}/{x}/{y}.png"
+
+    fun specFor(base: BaseMap): MapStyleSpec = when (base) {
+        BaseMap.PLAN -> MapStyleSpec.Uri(LIBERTY)
+        BaseMap.SATELLITE -> MapStyleSpec.Json(rasterStyle(ESRI_SATELLITE, "© Esri, Maxar, Earthstar Geographics"))
+        BaseMap.RELIEF -> MapStyleSpec.Json(rasterStyle(OPENTOPO, "© OpenTopoMap (CC-BY-SA)"))
+    }
+
+    /** A minimal MapLibre style wrapping a single raster tile source. */
+    private fun rasterStyle(tilesUrl: String, attribution: String): String = """
+        {
+          "version": 8,
+          "sources": {
+            "raster-src": {
+              "type": "raster",
+              "tiles": ["$tilesUrl"],
+              "tileSize": 256,
+              "attribution": "$attribution"
+            }
+          },
+          "layers": [
+            { "id": "raster-layer", "type": "raster", "source": "raster-src" }
+          ]
+        }
+    """.trimIndent()
 }
 
 /** What the map needs to first render: which account, where to look, how close. */
@@ -174,6 +213,14 @@ class MapsViewModel @Inject constructor(
     // A one-shot user message (a transient failure the UI shows then clears).
     private val _message = MutableStateFlow<String?>(null)
     val message: StateFlow<String?> = _message.asStateFlow()
+
+    // ── Base map (layers switcher) ────────────────────────────────────────────
+    private val _baseMap = MutableStateFlow(BaseMap.PLAN)
+    val baseMap: StateFlow<BaseMap> = _baseMap.asStateFlow()
+
+    fun setBaseMap(base: BaseMap) {
+        _baseMap.value = base
+    }
 
     private var searchJob: Job? = null
     private var routeJob: Job? = null

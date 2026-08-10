@@ -68,7 +68,8 @@ private fun rememberMapViewWithLifecycle(): MapView {
  */
 @Composable
 fun MapLibreMap(
-    styleUrl: String,
+    styleSpec: MapStyleSpec,
+    styleKey: String,
     initialLat: Double,
     initialLng: Double,
     initialZoom: Double,
@@ -83,9 +84,22 @@ fun MapLibreMap(
     val mapView = rememberMapViewWithLifecycle()
     var mapRef by remember { mutableStateOf<MapLibreMap?>(null) }
     var styleRef by remember { mutableStateOf<Style?>(null) }
+    val specRef by rememberUpdatedState(styleSpec)
     val controllerCb by rememberUpdatedState(onControllerReady)
     val longPressCb by rememberUpdatedState(onLongPress)
     val tapCb by rememberUpdatedState(onMapTap)
+
+    fun applyStyle(map: MapLibreMap, spec: MapStyleSpec) {
+        val builder = when (spec) {
+            is MapStyleSpec.Uri -> Style.Builder().fromUri(spec.url)
+            is MapStyleSpec.Json -> Style.Builder().fromJson(spec.json)
+        }
+        map.setStyle(builder) { style ->
+            styleRef = style
+            // A fresh style means fresh managers/images — hand back a new controller.
+            controllerCb(MapController(context, map, style, mapView))
+        }
+    }
 
     AndroidView(modifier = modifier, factory = { mapView }) { view ->
         if (mapRef == null) {
@@ -102,13 +116,16 @@ fun MapLibreMap(
                     tapCb()
                     false // don't consume — let annotation clicks still fire
                 }
-                map.setStyle(Style.Builder().fromUri(styleUrl)) { style ->
-                    mapRef = map
-                    styleRef = style
-                    controllerCb(MapController(context, map, style, view))
-                }
+                applyStyle(map, specRef)
+                mapRef = map
             }
         }
+    }
+
+    // Swap the base map when the layer changes (after the first load).
+    LaunchedEffect(styleKey) {
+        val map = mapRef ?: return@LaunchedEffect
+        applyStyle(map, specRef)
     }
 
     // Turn the location component on once the style is ready and permission held.
@@ -137,18 +154,18 @@ fun MapLibreMap(
 @SuppressLint("MissingPermission") // guarded by the hasLocationPermission() caller
 private fun enableLocation(context: Context, map: MapLibreMap, style: Style) {
     val lc = map.locationComponent
-    if (!lc.isLocationComponentActivated) {
-        lc.activateLocationComponent(
-            LocationComponentActivationOptions.builder(context, style)
-                .locationComponentOptions(
-                    LocationComponentOptions.builder(context)
-                        .pulseEnabled(true)
-                        .build(),
-                )
-                .useDefaultLocationEngine(true)
-                .build(),
-        )
-    }
+    // Re-activated on every style (re)load: the component binds to the style, so
+    // a base-map switch would otherwise leave a dead "you are here" dot.
+    lc.activateLocationComponent(
+        LocationComponentActivationOptions.builder(context, style)
+            .locationComponentOptions(
+                LocationComponentOptions.builder(context)
+                    .pulseEnabled(true)
+                    .build(),
+            )
+            .useDefaultLocationEngine(true)
+            .build(),
+    )
     lc.isLocationComponentEnabled = true
     // The camera is not hijacked to follow — recentring is an explicit FAB action.
     lc.cameraMode = CameraMode.NONE

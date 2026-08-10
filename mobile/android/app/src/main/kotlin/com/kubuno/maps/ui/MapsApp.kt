@@ -74,6 +74,7 @@ fun MapsApp(viewModel: MapsViewModel = hiltViewModel()) {
     val showSaved by viewModel.showSaved.collectAsStateWithLifecycle()
     val savedPlaces by viewModel.savedPlaces.collectAsStateWithLifecycle()
     val message by viewModel.message.collectAsStateWithLifecycle()
+    val baseMap by viewModel.baseMap.collectAsStateWithLifecycle()
 
     LaunchedEffect(message) {
         message?.let {
@@ -148,7 +149,8 @@ fun MapsApp(viewModel: MapsViewModel = hiltViewModel()) {
     Box(Modifier.fillMaxSize()) {
         MapLibreMap(
             modifier = Modifier.fillMaxSize(),
-            styleUrl = state.styleUrl,
+            styleSpec = MapStyles.specFor(baseMap),
+            styleKey = baseMap.name,
             initialLat = state.centerLat,
             initialLng = state.centerLng,
             initialZoom = state.zoom,
@@ -213,6 +215,19 @@ fun MapsApp(viewModel: MapsViewModel = hiltViewModel()) {
             ) {
                 Icon(Icons.Filled.MyLocation, contentDescription = stringResource(R.string.maps_my_location))
             }
+        }
+
+        // Base-map switcher, bottom-left, out of the way of any bottom card.
+        AnimatedVisibility(
+            visible = selected == null && !directions.active,
+            enter = fadeIn(),
+            exit = fadeOut(),
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .navigationBarsPadding()
+                .padding(16.dp),
+        ) {
+            LayersButton(current = baseMap, onSelect = { viewModel.setBaseMap(it) })
         }
 
         // Place card rises from the bottom when something is selected.
