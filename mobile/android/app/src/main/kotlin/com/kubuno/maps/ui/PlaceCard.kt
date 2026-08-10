@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -17,6 +18,7 @@ import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -45,9 +47,9 @@ fun PlaceCard(
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+        shape = MapsShape.Sheet,
         color = MaterialTheme.colorScheme.surface,
-        shadowElevation = 12.dp,
+        shadowElevation = 16.dp,
         tonalElevation = 2.dp,
     ) {
         Column(Modifier.padding(start = 20.dp, end = 12.dp, top = 10.dp, bottom = 16.dp)) {
@@ -64,18 +66,24 @@ fun PlaceCard(
                 Column(Modifier.weight(1f)) {
                     Text(
                         text = place.name,
-                        style = MaterialTheme.typography.titleLarge,
+                        style = MapsType.TitlePunch,
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
                     place.category?.takeIf { it.isNotBlank() }?.let { category ->
-                        Text(
-                            text = prettyCategory(category),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 2.dp),
-                        )
+                        Surface(
+                            color = MapsColors.Place.copy(alpha = 0.14f),
+                            shape = MapsShape.Pill,
+                            modifier = Modifier.padding(top = 6.dp),
+                        ) {
+                            Text(
+                                text = prettyCategory(category),
+                                style = MapsType.LabelPill,
+                                color = MapsColors.Place,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                            )
+                        }
                     }
                 }
                 IconButton(onClick = onClose) {
@@ -113,13 +121,18 @@ fun PlaceCard(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Button(onClick = onDirections, modifier = Modifier.weight(1f)) {
+                Button(
+                    onClick = onDirections,
+                    shape = MapsShape.Button,
+                    colors = ButtonDefaults.buttonColors(containerColor = MapsColors.BlueVivid),
+                    modifier = Modifier.weight(1f).heightIn(min = 50.dp),
+                ) {
                     Icon(
                         Icons.Filled.Directions,
                         contentDescription = null,
-                        modifier = Modifier.size(18.dp),
+                        modifier = Modifier.size(20.dp),
                     )
-                    Text("Itinéraire", modifier = Modifier.padding(start = 8.dp))
+                    Text("Itinéraire", style = MapsType.BodyStrong, modifier = Modifier.padding(start = 8.dp))
                 }
                 CardAction(
                     icon = if (place.saved) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,

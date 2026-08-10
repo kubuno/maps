@@ -29,12 +29,14 @@ fun CategoryChips(
             FilterChip(
                 selected = active == category.id,
                 onClick = { onToggle(category) },
-                label = { Text("${category.emoji}  ${category.label}") },
+                shape = MapsShape.Pill,
+                label = { Text("${category.emoji}  ${category.label}", style = MapsType.BodyStrong) },
                 colors = FilterChipDefaults.filterChipColors(
                     containerColor = MaterialTheme.colorScheme.surface,
-                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                    selectedContainerColor = MapsColors.BlueVivid.copy(alpha = 0.16f),
+                    selectedLabelColor = MapsColors.BlueDeep,
                 ),
-                elevation = FilterChipDefaults.filterChipElevation(elevation = 2.dp),
+                elevation = FilterChipDefaults.filterChipElevation(elevation = 3.dp),
             )
         }
     }
