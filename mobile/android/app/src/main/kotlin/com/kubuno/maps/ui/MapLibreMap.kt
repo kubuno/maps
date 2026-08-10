@@ -25,9 +25,15 @@ import org.maplibre.android.location.LocationComponentActivationOptions
 import org.maplibre.android.location.LocationComponentOptions
 import org.maplibre.android.location.modes.CameraMode
 import org.maplibre.android.location.modes.RenderMode
+import android.graphics.Color
 import org.maplibre.android.maps.MapLibreMap
 import org.maplibre.android.maps.MapView
 import org.maplibre.android.maps.Style
+import org.maplibre.android.style.layers.HillshadeLayer
+import org.maplibre.android.style.layers.PropertyFactory
+import org.maplibre.android.style.layers.SymbolLayer
+import org.maplibre.android.style.sources.RasterDemSource
+import org.maplibre.android.style.sources.TileSet
 
 /**
  * A MapLibre [MapView] bound to the composition's lifecycle. Created once and
@@ -93,8 +99,10 @@ fun MapLibreMap(
         val builder = when (spec) {
             is MapStyleSpec.Uri -> Style.Builder().fromUri(spec.url)
             is MapStyleSpec.Json -> Style.Builder().fromJson(spec.json)
+            is MapStyleSpec.Hillshade -> Style.Builder().fromUri(spec.baseUrl)
         }
         map.setStyle(builder) { style ->
+            if (spec is MapStyleSpec.Hillshade) addReliefHillshade(style)
             styleRef = style
             // A fresh style means fresh managers/images — hand back a new controller.
             controllerCb(MapController(context, map, style, mapView))
@@ -171,6 +179,28 @@ private fun enableLocation(context: Context, map: MapLibreMap, style: Style) {
     lc.cameraMode = CameraMode.NONE
     lc.renderMode = RenderMode.COMPASS
 }
+
+/**
+ * Adds a soft relief hillshade (terrarium DEM) UNDER the base's label layers, so
+ * the terrain shading reads while streets and names stay legible — the reason
+ * Relief uses the clean Positron base rather than raw OpenTopoMap.
+ */
+private fun addReliefHillshade(style: Style) {
+    if (style.getLayer(HILLSHADE_LAYER) != null) return
+    val tileSet = TileSet("2.1.0", MapStyles.TERRARIUM).apply { encoding = "terrarium" }
+    style.addSource(RasterDemSource(HILLSHADE_DEM, tileSet, 256))
+    val hillshade = HillshadeLayer(HILLSHADE_LAYER, HILLSHADE_DEM).withProperties(
+        PropertyFactory.hillshadeExaggeration(0.45f),
+        PropertyFactory.hillshadeShadowColor(Color.parseColor("#66404040")),
+        PropertyFactory.hillshadeHighlightColor(Color.parseColor("#22FFFFFF")),
+    )
+    // Keep the shading beneath labels/symbols so text stays crisp.
+    val firstSymbol = style.layers.firstOrNull { it is SymbolLayer }?.id
+    if (firstSymbol != null) style.addLayerBelow(hillshade, firstSymbol) else style.addLayer(hillshade)
+}
+
+private const val HILLSHADE_DEM = "kubuno-relief-dem"
+private const val HILLSHADE_LAYER = "kubuno-relief-hillshade"
 
 fun hasLocationPermission(context: Context): Boolean =
     ContextCompat.checkSelfPermission(

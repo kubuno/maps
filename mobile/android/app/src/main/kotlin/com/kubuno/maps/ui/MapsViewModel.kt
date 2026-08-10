@@ -31,10 +31,14 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import javax.inject.Inject
 
-/** How a MapLibre style is loaded: a vector style URL, or a raw style JSON. */
+/** How a MapLibre style is loaded. */
 sealed interface MapStyleSpec {
+    /** A vector style URL. */
     data class Uri(val url: String) : MapStyleSpec
+    /** A raw style JSON (used for the raster satellite base). */
     data class Json(val json: String) : MapStyleSpec
+    /** A light vector base with a relief hillshade added under its labels. */
+    data class Hillshade(val baseUrl: String) : MapStyleSpec
 }
 
 /** The base maps offered by the layers switcher, mirroring the web module. */
@@ -47,18 +51,22 @@ object MapStyles {
     // reach, so we use the same public vector style the web does and take only
     // the centre/zoom from /config.
     const val LIBERTY = "https://tiles.openfreemap.org/styles/liberty"
+    const val POSITRON = "https://tiles.openfreemap.org/styles/positron"
 
-    // Raster bases, same sources as the web (all keyless). ESRI uses {z}/{y}/{x};
-    // MapLibre substitutes by name, so the order in the template is respected.
+    // Keyless terrain DEM (terrarium encoding) for the relief hillshade overlay.
+    const val TERRARIUM = "https://elevation-tiles-prod.s3.amazonaws.com/terrarium/{z}/{x}/{y}.png"
+
+    // ESRI uses {z}/{y}/{x}; MapLibre substitutes by name so the order holds.
     private const val ESRI_SATELLITE =
         "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-    private const val OPENTOPO =
-        "https://a.tile.opentopomap.org/{z}/{x}/{y}.png"
 
     fun specFor(base: BaseMap): MapStyleSpec = when (base) {
         BaseMap.PLAN -> MapStyleSpec.Uri(LIBERTY)
         BaseMap.SATELLITE -> MapStyleSpec.Json(rasterStyle(ESRI_SATELLITE, "© Esri, Maxar, Earthstar Geographics"))
-        BaseMap.RELIEF -> MapStyleSpec.Json(rasterStyle(OPENTOPO, "© OpenTopoMap (CC-BY-SA)"))
+        // Relief = the clean light base with a soft hillshade UNDER its labels,
+        // so streets and names stay readable (raw OpenTopoMap was too busy in
+        // dense cities).
+        BaseMap.RELIEF -> MapStyleSpec.Hillshade(POSITRON)
     }
 
     /** A minimal MapLibre style wrapping a single raster tile source. */
