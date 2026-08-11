@@ -16,11 +16,13 @@ import {
   ModuleServiceRegistry,
   useSidebarStore,
   useToolbarStore,
+  useRightPanelStore,
   SDK_VERSION,
 } from '@kubuno/sdk'
 import './index.css'
 import './i18n'
 import MapsLogo from './MapsLogo'
+import MapsMiniPanel from './MapsMiniPanel'
 import MapsSidebarBody from './MapsSidebarBody'
 import { geoipLookup } from './geoipService'
 import MiniMap from './MiniMap'
@@ -73,6 +75,15 @@ export function register() {
   useToolbarStore.getState().register({
     moduleId:    'maps-settings',
     routePrefix: '/maps/settings',
+  })
+
+  // Side panel: saved places, reachable from any module.
+  useRightPanelStore.getState().registerEntry({
+    moduleId:       'maps',
+    icon:           MapsLogo,
+    label:          'Maps',
+    panelComponent: MapsMiniPanel,
+    openPath:       '/maps',
   })
 
   // Routes
