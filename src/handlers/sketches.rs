@@ -165,6 +165,14 @@ pub async fn share(
     Path(id): Path<Uuid>,
     Json(dto): Json<ShareDto>,
 ) -> Result<Json<Value>> {
+    // Publishing a sketch hands out a URL that resolves WITHOUT a session, so the
+    // instance policy is checked before a new token is minted. Un-sharing stays
+    // allowed whatever the policy: tightening the rules must never trap a user
+    // with a link they can no longer retract.
+    if dto.public && !state.instance().sketch_sharing.allows_new_link() {
+        return Err(MapsError::Forbidden);
+    }
+
     let token: Option<String> = if dto.public {
         Some(Uuid::new_v4().simple().to_string())
     } else {
@@ -197,6 +205,14 @@ pub async fn get_public(
     State(state): State<AppState>,
     Path(token): Path<String>,
 ) -> Result<Json<Value>> {
+    // The one unauthenticated read surface of this module. When the policy
+    // revokes existing links, answer exactly as if the token were unknown —
+    // telling an anonymous caller that the sketch exists but is withheld would
+    // leak the existence of the resource.
+    if !state.instance().sketch_sharing.allows_existing_link() {
+        return Err(MapsError::NotFound("Croquis partagé".into()));
+    }
+
     let row = sqlx::query(
         "SELECT name, data FROM maps.sketches WHERE share_token = $1 AND is_public = TRUE",
     )

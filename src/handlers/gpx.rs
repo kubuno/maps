@@ -30,9 +30,41 @@ pub async fn upload(
     Query(q): Query<UploadQuery>,
     body: Bytes,
 ) -> Result<Json<Value>> {
-    let max_bytes = state.settings.maps.max_gpx_size_mb * 1024 * 1024;
+    // Prefer the admin-set instance ceiling, falling back to config.toml when
+    // unchanged from the compiled default.
+    let cfg = state.instance();
+    let d   = crate::config::instance::InstanceConfig::default();
+    let max_gpx_mb = if cfg.max_gpx_size_mb == d.max_gpx_size_mb {
+        state.settings.maps.max_gpx_size_mb
+    } else {
+        cfg.max_gpx_size_mb
+    };
+    let max_bytes = max_gpx_mb * 1024 * 1024;
     if body.len() as u64 > max_bytes {
         return Err(MapsError::FileTooLarge);
+    }
+
+    // Per-user ceiling on the NUMBER of traces, checked before the file is parsed
+    // and written to storage so a user over quota costs the instance nothing.
+    // `0` means "no limit", the shipped behaviour.
+    let max_traces = cfg.max_gpx_per_user;
+    if max_traces > 0 {
+        let count: i64 = sqlx::query_scalar(
+            "SELECT COUNT(*) FROM maps.gpx_traces WHERE owner_id = $1",
+        )
+        .bind(user.id)
+        .fetch_one(&state.db)
+        .await
+        .map_err(|e| {
+            tracing::error!(error = %e, user_id = %user.id, "Comptage des traces GPX");
+            MapsError::Database(e)
+        })?;
+
+        if count as u64 >= max_traces {
+            return Err(MapsError::Validation(format!(
+                "Nombre maximal de traces GPX atteint ({max_traces})"
+            )));
+        }
     }
 
     let gpx_file = gpx_service::parse_gpx(&body)?;

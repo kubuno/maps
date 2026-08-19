@@ -58,6 +58,9 @@ interface MapConfig {
   default_lng:  number
   default_zoom: number
   style_url:    string
+  /** Instance flags: a control the server would refuse is hidden, not offered. */
+  enable_overpass?:      boolean
+  allow_sketch_sharing?: boolean
 }
 
 interface Place {
@@ -702,6 +705,12 @@ export default function MapsPage() {
   // Centre de la dernière recherche POI (pour trier les résultats par distance).
   const [poiCenter,   setPoiCenter]   = useState<{ lat: number; lng: number } | null>(null)
 
+  // ── Réglages d'instance (servis par /maps/config) ──
+  // L'administrateur peut couper la recherche de POI et le partage public d'un
+  // croquis. On masque le contrôle plutôt que de le laisser échouer côté serveur.
+  const [poiEnabled,            setPoiEnabled]            = useState(true)
+  const [sketchSharingAllowed,  setSketchSharingAllowed]  = useState(true)
+
   // ── État du panneau « Couches » ──
   const [layersOpen, setLayersOpen] = useState(false)
   const [baseMap,    setBaseMap]    = useState<BaseMap>('default')
@@ -758,6 +767,10 @@ export default function MapsPage() {
       if (data.default_lat && data.default_lng) {
         map.jumpTo({ center: [data.default_lng, data.default_lat], zoom: data.default_zoom ?? 12 })
       }
+      // An older backend sends neither flag; treat a missing flag as "allowed"
+      // so this module keeps working against a core that predates them.
+      setPoiEnabled(data.enable_overpass !== false)
+      setSketchSharingAllowed(data.allow_sketch_sharing !== false)
     }).catch(() => {/* use defaults */})
 
     // Right-click context menu
@@ -1795,7 +1808,7 @@ export default function MapsPage() {
                     onSimulateNav={() => nav.start(true)}
                   />
                 )}
-                {tab === 'sketch' && <MapsSketchPanel s={sketch} />}
+                {tab === 'sketch' && <MapsSketchPanel s={sketch} allowSharing={sketchSharingAllowed} />}
               </div>
             </div>
           ) : null}
@@ -1807,7 +1820,9 @@ export default function MapsPage() {
         <HeaderActions compact />
       </div>
 
-      {/* ── Chips de catégories (haut) — masquées sur mobile (place réduite) ── */}
+      {/* ── Chips de catégories (haut) — masquées sur mobile (place réduite), et
+             absentes quand l'administrateur a coupé la recherche de POI. ── */}
+      {poiEnabled && (
       <div className="absolute top-4 left-[400px] right-[252px] z-[1090] hidden sm:flex flex-col items-start gap-2 no-print">
         <div className="flex gap-2 overflow-x-auto max-w-full" style={{ scrollbarWidth: 'none' }}>
           {POI_CHIPS.map(c => {
@@ -1834,6 +1849,7 @@ export default function MapsPage() {
           </div>
         )}
       </div>
+      )}
 
       {/* Bandeau de sélection d'un point d'itinéraire sur la carte */}
       {routePickMode !== null && (
@@ -2002,8 +2018,9 @@ export default function MapsPage() {
                   onClick: () => { setWaypoints(wp => { const n = [...wp]; n.splice(Math.max(1, n.length - 1), 0, { lat: ctxMenu.lat, lng: ctxMenu.lng }); return n }); setTab('route'); setCtxMenu(null) } },
               ],
             },
-            {
-              type: 'submenu',
+            // Retiré du menu quand l'administrateur a coupé la recherche de POI.
+            ...(poiEnabled ? [{
+              type: 'submenu' as const,
               icon: <Search size={13} />,
               label: t('maps_explore_around', { defaultValue: 'Explorer autour' }),
               items: POI_CHIPS.map(c => ({
@@ -2011,7 +2028,7 @@ export default function MapsPage() {
                 label: `${c.emoji}  ${t(c.labelKey, { defaultValue: c.fallback })}`,
                 onClick: () => { searchCategory(c, { lat: ctxMenu.lat, lng: ctxMenu.lng }); setCtxMenu(null) },
               })),
-            },
+            }] : []),
             {
               type: 'submenu',
               icon: <Ruler size={13} />,

@@ -40,3 +40,200 @@ publishes = [
     "PlaceSaved",
     "RouteShared",
 ]
+
+# ── Admin panel pages ───────────────────────────────────────────────────────────
+# `id` is a stable, untranslated slug (it travels in the admin URL).
+
+[[setting_groups]]
+id          = "providers"
+label       = "Fournisseurs de cartographie"
+icon        = "Layers"
+position    = 1
+description = "Les serveurs de tuiles et de calcul d'itinéraires que l'instance utilise."
+
+[[setting_groups]]
+id          = "geocoding"
+label       = "Géocodage & POI"
+icon        = "Search"
+position    = 2
+description = "Les services de recherche d'adresses (Nominatim) et de points d'intérêt (Overpass)."
+
+[[setting_groups]]
+id          = "defaults"
+label       = "Valeurs par défaut"
+icon        = "SlidersHorizontal"
+position    = 3
+description = "Le centre et le zoom initial de la carte, et la taille maximale d'une trace GPX importée."
+
+[[setting_groups]]
+id          = "policies"
+label       = "Partage & quotas"
+icon        = "ShieldCheck"
+position    = 4
+description = "Ce que les utilisateurs peuvent publier hors de l'instance, et combien ils peuvent conserver."
+
+# ── Settings manifest ───────────────────────────────────────────────────────────
+# Declarative source of truth for the module's instance-wide parameters. The core
+# seeds the "global" scope into core.settings and exposes it in the admin console;
+# the backend prefers the instance value over config.toml at each consumption point.
+# The core only accepts value types bool|int|string|enum — coordinates are floats,
+# so they are declared as "string" and parsed by the backend.
+
+[[settings]]
+key         = "tile_url"
+scope       = "global"
+group       = "providers"
+type        = "string"
+default     = "http://localhost:3000"
+label       = "URL du serveur de tuiles"
+description = "Base des tuiles, appelée sous la forme {url}/{source}/{z}/{x}/{y}."
+
+[[settings]]
+key         = "tile_style_url"
+scope       = "global"
+group       = "providers"
+type        = "string"
+default     = "http://localhost:3000/style.json"
+label       = "URL du style (style.json)"
+description = "Feuille de style MapLibre transmise au client."
+
+[[settings]]
+key         = "osrm_url"
+scope       = "global"
+group       = "providers"
+type        = "string"
+default     = "http://localhost:5000"
+label       = "URL du serveur d'itinéraires (OSRM)"
+description = "Base OSRM. Une valeur renseignée ici s'applique à tous les profils et remplace les serveurs publics par défaut."
+
+[[settings]]
+key         = "nominatim_url"
+scope       = "global"
+group       = "geocoding"
+type        = "string"
+default     = "https://nominatim.openstreetmap.org"
+label       = "URL de Nominatim"
+description = "Service de géocodage (recherche d'adresses et géocodage inverse)."
+
+[[settings]]
+key         = "nominatim_lang"
+scope       = "global"
+group       = "geocoding"
+type        = "string"
+default     = "fr,en"
+label       = "Langue des résultats (Accept-Language)"
+description = "En-tête Accept-Language envoyé à Nominatim, par ordre de préférence (ex. fr,en)."
+
+[[settings]]
+key         = "overpass_url"
+scope       = "global"
+group       = "geocoding"
+type        = "string"
+default     = "https://overpass-api.de/api/interpreter"
+label       = "URL de l'API Overpass"
+description = "Service de recherche de points d'intérêt autour d'un lieu."
+
+[[settings]]
+key         = "overpass_timeout_secs"
+scope       = "global"
+group       = "geocoding"
+type        = "int"
+default     = 10
+min         = 1
+max         = 120
+unit        = "s"
+label       = "Délai d'expiration Overpass (secondes)"
+description = "Durée maximale d'une requête Overpass avant abandon."
+
+[[settings]]
+key         = "default_lat"
+scope       = "global"
+group       = "defaults"
+type        = "string"
+default     = "48.8566"
+label       = "Latitude par défaut"
+description = "Latitude sur laquelle la carte s'ouvre en l'absence de position enregistrée."
+
+[[settings]]
+key         = "default_lng"
+scope       = "global"
+group       = "defaults"
+type        = "string"
+default     = "2.3522"
+label       = "Longitude par défaut"
+description = "Longitude sur laquelle la carte s'ouvre en l'absence de position enregistrée."
+
+[[settings]]
+key         = "default_zoom"
+scope       = "global"
+group       = "defaults"
+type        = "int"
+default     = 12
+min         = 0
+max         = 22
+label       = "Zoom par défaut"
+description = "Niveau de zoom initial de la carte (0 = monde, ~19 = rue)."
+
+[[settings]]
+key         = "max_gpx_size_mb"
+scope       = "global"
+group       = "defaults"
+type        = "int"
+default     = 10
+min         = 1
+max         = 500
+unit        = "Mo"
+label       = "Taille maximale d'une trace GPX (Mo)"
+description = "Plafond appliqué à l'import d'un fichier GPX."
+
+# ── Partage & quotas ────────────────────────────────────────────────────────────
+# Un croquis publié est lisible SANS session par quiconque détient le lien : c'est
+# la seule surface de ce module qui sort de l'instance. L'état intermédiaire
+# sépare « arrêter de publier » de « révoquer ce qui est publié » — durcir une
+# politique ne doit pas réécrire en silence ce que les utilisateurs ont déjà
+# partagé.
+[[settings]]
+key         = "sketch_sharing"
+scope       = "global"
+group       = "policies"
+type        = "enum"
+default     = "on"
+risk        = "warning"
+label       = "Liens de partage public des croquis"
+description = "Un croquis partagé est consultable par toute personne détenant le lien, sans authentification. « Liens existants seulement » empêche d'en créer de nouveaux tout en laissant fonctionner ceux déjà distribués ; « Désactivé » coupe aussi les liens existants."
+values      = [
+    { value = "on",            label = "Autorisé" },
+    { value = "existing_only", label = "Liens existants seulement (aucun nouveau)" },
+    { value = "off",           label = "Désactivé (les liens existants cessent de fonctionner)" },
+]
+
+[[settings]]
+key         = "enable_overpass"
+scope       = "global"
+group       = "policies"
+type        = "bool"
+default     = true
+label       = "Recherche de points d'intérêt"
+description = "Autorise la recherche de POI autour d'un lieu via l'API Overpass. Désactivée, la fonction disparaît de l'interface et aucune requête ne sort de l'instance."
+
+[[settings]]
+key         = "max_places_per_user"
+scope       = "global"
+group       = "policies"
+type        = "int"
+default     = 0
+min         = 0
+max         = 1000000
+label       = "Nombre maximal de lieux enregistrés par utilisateur"
+description = "Plafond du nombre de lieux qu'un utilisateur peut conserver. 0 = illimité."
+
+[[settings]]
+key         = "max_gpx_per_user"
+scope       = "global"
+group       = "policies"
+type        = "int"
+default     = 0
+min         = 0
+max         = 1000000
+label       = "Nombre maximal de traces GPX par utilisateur"
+description = "Plafond du nombre de traces GPX qu'un utilisateur peut conserver. 0 = illimité."

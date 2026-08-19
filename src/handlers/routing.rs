@@ -29,7 +29,19 @@ pub async fn calculate(
         return Err(MapsError::Validation(format!("Profil inconnu: {profile}")));
     }
 
-    let osrm = OsrmService::new(state.http.clone(), state.settings.osrm.url_for(profile).to_string());
+    // Prefer the admin-set instance OSRM base. Because the config carries
+    // per-profile overrides (public FOSSGIS servers) that shadow the base URL,
+    // the instance value only applies once the admin changed it from the
+    // compiled default; left untouched, routing keeps the per-profile config
+    // behaviour so it still works out of the box.
+    let cfg = state.instance();
+    let d   = crate::config::instance::InstanceConfig::default();
+    let osrm_url = if cfg.osrm_url == d.osrm_url {
+        state.settings.osrm.url_for(profile).to_string()
+    } else {
+        cfg.osrm_url
+    };
+    let osrm = OsrmService::new(state.http.clone(), osrm_url);
     let resp = osrm
         .route(
             &dto.coords(),

@@ -13,7 +13,17 @@ use crate::{
 };
 
 pub fn build(state: AppState) -> Router {
-    let max_gpx = (state.settings.maps.max_gpx_size_mb * 1024 * 1024) as usize;
+    // Body-limit ceiling from the instance settings (a startup snapshot; changing
+    // it takes a restart), falling back to config.toml when unchanged. The live
+    // per-request check in `gpx::upload` reads the current value each time.
+    let cfg = state.instance();
+    let d   = crate::config::instance::InstanceConfig::default();
+    let max_gpx_mb = if cfg.max_gpx_size_mb == d.max_gpx_size_mb {
+        state.settings.maps.max_gpx_size_mb
+    } else {
+        cfg.max_gpx_size_mb
+    };
+    let max_gpx = (max_gpx_mb * 1024 * 1024) as usize;
 
     // Routes authentifiées
     let authed = Router::new()
@@ -91,11 +101,43 @@ async fn config_handler(
     axum::extract::State(state): axum::extract::State<AppState>,
     axum::extract::Extension(_user): axum::extract::Extension<crate::middleware::MapsUser>,
 ) -> axum::Json<serde_json::Value> {
+    // Prefer the admin-set instance values, falling back to config.toml when a
+    // setting was never changed from its compiled default. Coordinates use an
+    // epsilon compare (an exact-equal default means "unchanged").
+    let cfg = state.instance();
+    let d   = crate::config::instance::InstanceConfig::default();
+    let default_lat = if (cfg.default_lat - d.default_lat).abs() < f64::EPSILON {
+        state.settings.maps.default_lat
+    } else {
+        cfg.default_lat
+    };
+    let default_lng = if (cfg.default_lng - d.default_lng).abs() < f64::EPSILON {
+        state.settings.maps.default_lng
+    } else {
+        cfg.default_lng
+    };
+    let default_zoom = if cfg.default_zoom == d.default_zoom {
+        state.settings.maps.default_zoom
+    } else {
+        cfg.default_zoom
+    };
+    let style_url = if cfg.tile_style_url == d.tile_style_url {
+        state.settings.tile_server.style_url.clone()
+    } else {
+        cfg.tile_style_url.clone()
+    };
     axum::Json(serde_json::json!({
-        "default_lat":  state.settings.maps.default_lat,
-        "default_lng":  state.settings.maps.default_lng,
-        "default_zoom": state.settings.maps.default_zoom,
-        "style_url":    state.settings.tile_server.style_url,
+        "default_lat":  default_lat,
+        "default_lng":  default_lng,
+        "default_zoom": default_zoom,
+        "style_url":    style_url,
+        // Feature flags the client needs in order to hide a control rather than
+        // offer one that the server will refuse. The POI catalogue is built into
+        // the frontend, so the flag — not an empty catalogue — is what tells it
+        // to drop the category chips.
+        "enable_overpass":       cfg.enable_overpass,
+        // Whether the "share this sketch" control may offer to publish a link.
+        "allow_sketch_sharing":  cfg.sketch_sharing.allows_new_link(),
     }))
 }
 

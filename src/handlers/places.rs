@@ -39,6 +39,30 @@ pub async fn create(
     if dto.name.trim().is_empty() {
         return Err(MapsError::Validation("Le nom est requis".into()));
     }
+
+    // Per-user ceiling set by the administrator. `0` means "no limit", which is
+    // the shipped behaviour, so the count query is skipped entirely in that case
+    // and an unconfigured instance pays nothing for the feature.
+    let quota = state.instance().max_places_per_user;
+    if quota > 0 {
+        let count: i64 = sqlx::query_scalar(
+            "SELECT COUNT(*) FROM maps.saved_places WHERE owner_id = $1",
+        )
+        .bind(user.id)
+        .fetch_one(&state.db)
+        .await
+        .map_err(|e| {
+            tracing::error!(error = %e, user_id = %user.id, "Comptage des lieux enregistrés");
+            MapsError::Database(e)
+        })?;
+
+        if count as u64 >= quota {
+            return Err(MapsError::Validation(format!(
+                "Nombre maximal de lieux enregistrés atteint ({quota})"
+            )));
+        }
+    }
+
     let place: crate::models::place::SavedPlace =
         place_service::create_place(&state.db, user.id, &dto).await?;
     Ok(Json(json!({ "place": place })))

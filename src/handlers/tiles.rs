@@ -18,7 +18,16 @@ pub async fn proxy_tile(
     Path((source, z, x, y)): Path<(String, u32, u32, String)>,
     Query(_params): Query<TileParams>,
 ) -> Result<Response, MapsError> {
-    let tile_url = format!("{}/{}/{}/{}/{}", state.settings.tile_server.url, source, z, x, y);
+    // Prefer the admin-set instance value; fall back to config.toml when the
+    // setting was never changed from the compiled default.
+    let cfg = state.instance();
+    let d   = crate::config::instance::InstanceConfig::default();
+    let base = if cfg.tile_url == d.tile_url {
+        state.settings.tile_server.url.as_str()
+    } else {
+        cfg.tile_url.as_str()
+    };
+    let tile_url = format!("{base}/{source}/{z}/{x}/{y}");
 
     let resp = state.http
         .get(&tile_url)
@@ -47,8 +56,14 @@ pub async fn proxy_tile(
 }
 
 pub async fn get_style(State(state): State<AppState>) -> impl IntoResponse {
-    // Redirect client to the configured style.json endpoint
-    axum::Json(json!({
-        "style_url": state.settings.tile_server.style_url,
-    }))
+    // Redirect client to the configured style.json endpoint. Prefer the
+    // admin-set instance value, falling back to config.toml when unchanged.
+    let cfg = state.instance();
+    let d   = crate::config::instance::InstanceConfig::default();
+    let style_url = if cfg.tile_style_url == d.tile_style_url {
+        state.settings.tile_server.style_url.clone()
+    } else {
+        cfg.tile_style_url.clone()
+    };
+    axum::Json(json!({ "style_url": style_url }))
 }

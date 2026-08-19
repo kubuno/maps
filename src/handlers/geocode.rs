@@ -26,6 +26,25 @@ pub struct SearchQuery {
 
 fn default_limit() -> u32 { 10 }
 
+/// Resolves the Nominatim base URL and `Accept-Language`, preferring the
+/// admin-set instance values and falling back to `config.toml` when a setting
+/// was never changed from its compiled default.
+fn nominatim_endpoint(state: &AppState) -> (String, String) {
+    let cfg = state.instance();
+    let d   = crate::config::instance::InstanceConfig::default();
+    let url = if cfg.nominatim_url == d.nominatim_url {
+        state.settings.nominatim.url.clone()
+    } else {
+        cfg.nominatim_url
+    };
+    let lang = if cfg.nominatim_lang == d.nominatim_lang {
+        state.settings.nominatim.accept_language.clone()
+    } else {
+        cfg.nominatim_lang
+    };
+    (url, lang)
+}
+
 pub async fn search(
     State(state): State<AppState>,
     Extension(user): Extension<MapsUser>,
@@ -35,11 +54,8 @@ pub async fn search(
         return Err(MapsError::Validation("Requête vide".into()));
     }
 
-    let nominatim = NominatimService::new(
-        state.http.clone(),
-        state.settings.nominatim.url.clone(),
-        state.settings.nominatim.accept_language.clone(),
-    );
+    let (nom_url, nom_lang) = nominatim_endpoint(&state);
+    let nominatim = NominatimService::new(state.http.clone(), nom_url, nom_lang);
 
     let bounds = match (q.minlat, q.minlng, q.maxlat, q.maxlng) {
         (Some(s), Some(w), Some(n), Some(e)) => Some([s, w, n, e]),
@@ -86,11 +102,8 @@ pub async fn reverse(
     Extension(_user): Extension<MapsUser>,
     Query(q): Query<ReverseQuery>,
 ) -> Result<Json<Value>> {
-    let nominatim = NominatimService::new(
-        state.http.clone(),
-        state.settings.nominatim.url.clone(),
-        state.settings.nominatim.accept_language.clone(),
-    );
+    let (nom_url, nom_lang) = nominatim_endpoint(&state);
+    let nominatim = NominatimService::new(state.http.clone(), nom_url, nom_lang);
 
     let result = nominatim.reverse(q.lat, q.lng, q.zoom).await?;
     Ok(Json(json!({ "result": result })))

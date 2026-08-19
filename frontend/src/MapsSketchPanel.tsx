@@ -24,7 +24,12 @@ const KIND_ICON: Record<string, typeof Ruler> = {
   'measure-line': Ruler, 'measure-area': Shapes,
 }
 
-export function MapsSketchPanel({ s }: { s: SketchApi }) {
+/**
+ * `allowSharing` reflects the instance policy: when an administrator forbids new
+ * public links, the control is hidden rather than left to fail server-side.
+ * Defaults to `true` so the panel behaves unchanged wherever the flag is absent.
+ */
+export function MapsSketchPanel({ s, allowSharing = true }: { s: SketchApi; allowSharing?: boolean }) {
   const { t } = useTranslation('maps')
   const multiActive = ['line', 'polygon', 'measure-line', 'measure-area'].includes(s.tool)
 
@@ -127,8 +132,10 @@ export function MapsSketchPanel({ s }: { s: SketchApi }) {
           </button>
           <button onClick={s.newSketch} title={t('maps_sketch_new', { defaultValue: 'Nouveau' })}
             className="flex items-center justify-center px-2.5 py-1.5 rounded-lg border border-border text-text-secondary hover:bg-surface-1"><FilePlus size={14} /></button>
-          <button onClick={() => s.shareSketch()} disabled={s.busy} title={t('maps_sketch_share', { defaultValue: 'Partager' })}
-            className="flex items-center justify-center px-2.5 py-1.5 rounded-lg border border-border text-text-secondary hover:bg-surface-1 disabled:opacity-50"><Share2 size={14} /></button>
+          {allowSharing && (
+            <button onClick={() => s.shareSketch()} disabled={s.busy} title={t('maps_sketch_share', { defaultValue: 'Partager' })}
+              className="flex items-center justify-center px-2.5 py-1.5 rounded-lg border border-border text-text-secondary hover:bg-surface-1 disabled:opacity-50"><Share2 size={14} /></button>
+          )}
         </div>
         {s.shareUrl && (
           <p className="text-[10px] text-text-tertiary break-all bg-surface-1 rounded px-2 py-1">
