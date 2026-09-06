@@ -1125,6 +1125,35 @@ export default function MapsPage() {
     }
   }, [mapReady, whatIsHere])
 
+  // Deep link `?dest=<adresse>`: another module — a meeting invitation, say —
+  // asks for the way to a place it only knows by name. Geocode that text, make
+  // it the destination and open the route tab, exactly as "Itinéraire" does
+  // from a place panel. The tab opens either way: an address nobody can resolve
+  // still leaves the reader in front of the route form rather than nowhere.
+  const destLinkDone = useRef(false)
+  useEffect(() => {
+    if (destLinkDone.current) return
+    const dest = new URLSearchParams(window.location.search).get('dest')?.trim()
+    if (!dest) return
+    destLinkDone.current = true
+    setTab('route')
+    void (async () => {
+      try {
+        const res = await fetch(buildNominatimSearchUrl(dest, 1))
+        if (!res.ok) return
+        const rows = (await res.json()) as Record<string, unknown>[]
+        if (!rows.length) return
+        const r = mapNominatimResult(rows[0])
+        routeToPlace(parseFloat(r.lat), parseFloat(r.lon), r.display_name.split(',')[0].trim() || dest)
+      } catch {
+        /* address not resolvable: the route tab is open, the guest types it */
+      }
+    })()
+    // Deliberately NOT waiting for the map: opening the route panel and filling
+    // the destination is state, not drawing. The reader sees the form at once
+    // and the map catches up.
+  }, [routeToPlace, setTab])
+
   // ── Save place from right-click ───────────────────────────────────────────────
   const saveFromContextMenu = useCallback(async (lat: number, lng: number) => {
     let defaultName = `${lat.toFixed(4)}, ${lng.toFixed(4)}`
@@ -1829,7 +1858,7 @@ export default function MapsPage() {
             const active = activeCat === c.key
             return (
               <button key={c.key} onClick={() => searchCategory(c)}
-                className={`flex items-center gap-1.5 h-9 px-3.5 rounded-full border shadow-sm text-xs font-medium whitespace-nowrap flex-shrink-0 transition-colors
+                className={`flex items-center gap-1.5 h-9 px-3.5 rounded-md border shadow-sm text-xs font-medium whitespace-nowrap flex-shrink-0 transition-colors
                   ${active ? 'bg-primary border-primary text-white hover:bg-primary-hover'
                            : 'bg-surface-0 border-border text-text-primary hover:bg-surface-1'}`}>
                 <span aria-hidden>{c.emoji}</span>

@@ -32,12 +32,18 @@ import { registerDataCardRenderer } from './kubunoData'
 export const sdkVersion = SDK_VERSION
 
 export function register() {
-  FaviconRegistry.register('maps', '/maps-logo.svg')
+  FaviconRegistry.register('maps', '/maps-logo.png')
 
   // Services maps offre aux autres modules (présents uniquement quand maps est
   // installé+actif → les consommateurs dégradent proprement si absent).
   ModuleServiceRegistry.publish('maps', {
     geoip: (ip: string) => geoipLookup(ip),
+    /// The URL that opens Maps on the way to `destination`, given as free text
+    /// (an address, a place name). Consumers build a link with it instead of
+    /// hard-coding a route into this module — and simply show nothing when Maps
+    /// is not installed, since the service is then absent.
+    directionsUrl: (destination: string) =>
+      `/maps?dest=${encodeURIComponent(destination)}`,
     geoipCountry: (ip: string) => geoipLookup(ip).then(r => r.country),
     // Reusable map component, rendered by maps: a consumer gets it via
     // ModuleServiceRegistry.get('maps','MiniMap') and renders <MiniMap markers/>.
