@@ -11,6 +11,39 @@ number at release time, and CI publishes that section as the GitHub Release note
 
 ### Changed
 
+- **A new look for the default map.** The default basemap now uses the Kubuno
+  theme: near-white land, a soft grey urban mask with white streets, warm beige
+  industrial and commercial areas, light green vegetation and teal-blue water.
+  Motorways are drawn grey-blue, regional roads light grey-blue, and road
+  numbers appear in colour-coded shields (red for motorways and national roads,
+  yellow for departmental roads, green for European routes). Buildings are flat
+  light-grey shapes at every zoom, and place labels are tinted by category
+  (green for parks, orange for food, blue for shops and transit, red for
+  health). The theme is applied on top of the streamed OpenFreeMap style, so
+  the data source, the other basemaps (light, terrain, satellite, offline) and
+  the overlays are unchanged.
+- **The search bar is now a rounded pill with a directions shortcut.** The
+  field sits in a white pill with a soft shadow; a search button and a
+  directions button (diamond icon) live inside it. When a place is open, the
+  pill shows its name with a clear button instead. Suggestions open attached
+  under the pill in the same card, with keyboard navigation (arrow keys,
+  Enter, Escape); the part of each name that matches what you typed is shown
+  in bold, and places near the current view are listed first.
+- **Category chips are now white pills with line icons.** The most useful
+  categories come first (restaurants, hotels, things to do, museums, public
+  transport, parking, pharmacies, ATMs); chips that do not fit in the row
+  fold into a "More" menu. "Things to do" also finds theme parks, zoos and
+  aquariums, and "Public transport" also finds subway entrances and stations.
+- **The layers control is now a map thumbnail.** The bottom-left button shows
+  a preview of the alternative basemap (satellite imagery while the map is
+  shown, and vice versa) labelled "Layers", follows the map as you pan, and
+  moves out of the way of the place panel.
+- **The place panel fills the left side of the map.** It opens as a
+  full-height white panel: hero photo under the search pill, larger title, a
+  rating line computed from the reviews left on Kubuno, tabs (Overview,
+  Reviews, About, and Tickets when the place has a booking link), five round
+  actions, an expandable description card and icon-led information rows.
+
 
 - **The README now opens with the module's logo.** The public README on
   GitHub now shows the module's designer logo (the same PNG shown as the
@@ -26,9 +59,66 @@ number at release time, and CI publishes that section as the GitHub Release note
 
 
 
+### Added
+
+- **Home and Work shortcuts** in the search dropdown, editable inline and
+  saved with your account preferences; **recent searches** are listed under
+  them, with a link to the full history, and they also match while you type.
+- **An "around here" card** under the search dropdown shows the town at the
+  centre of the map and the current temperature (from Open-Meteo, cached for
+  ten minutes). A traffic line is ready in the card but stays hidden until a
+  traffic data source is configured — no invented data.
+- **"Send to your phone"** on a place shows a QR code of the place link,
+  generated locally without any third-party service.
+- **A share menu** on a place offers "Copy link" (with a confirmation
+  message) and "Copy place card" for pasting into other modules.
+- **A handle on the place panel's edge** collapses the whole left panel off
+  the map and brings it back; the save button shows "Saved" when the place is
+  already in your saved places.
+- **The directions panel was rebuilt.** A travel-mode row (Recommended, Car,
+  Public transport, Walking, Bike, Plane), stacked origin and destination
+  fields with a connector column and a swap button, suggestions under the
+  fields (your location, Home and Work, recent searches) and result cards
+  with the mode icon, duration, distance and expected arrival time.
+  "Recommended" compares car, bike and walking routes side by side, fastest
+  first; each route can be picked from the panel or by clicking its line on
+  the map (the chosen one is blue, the others grey). "Plane" draws the
+  great-circle line with the straight-line distance and an indicative flight
+  time. Public transport is shown but not available yet: Kubuno has no
+  timetable source.
+- **Up to nine points per route**: add destinations, drag stops to reorder
+  them, remove them, or pick any point on the map.
+- **Route options**: avoid motorways, tolls or ferries, and distance units
+  (kilometres or miles, shared with the settings page). When the routing
+  server does not support the requested exclusions, the panel says so and
+  recomputes without them instead of pretending.
+- **"Leave now", "Leave at…" and "Arrive by…"** show the expected arrival or
+  departure time on each result. There is no traffic model, so the route
+  itself does not change with the time.
+- **Route actions**: send to a phone (QR code), copy link, print. A route link
+  reopens the same route when the page loads.
+
 ### Fixed
 
+- **The map no longer flickers to black while the window is resized.** During a
+  resize the map's drawing surface was reallocated on every observer tick and,
+  for one frame, the dark space background behind the globe showed through.
+  Resizes are now coalesced to one per frame and the map is redrawn
+  synchronously, so no empty frame is ever shown.
 
+- **Selecting a search suggestion is now recorded in the search history.**
+  The history was never populated because the map queried the geocoder
+  directly; a selection is now recorded server-side as well.
+- **Recent searches keep their coordinates.** The history endpoint reported
+  them as empty (a numeric column was read with the wrong type), so a recent
+  entry could not be reopened in one click. Entries without coordinates are
+  now geocoded again on selection.
+- **Search suggestions favour places near the current map view** instead of
+  listing homonyms from the other side of the world first.
+- **Sketch points and labels are drawn again.** The two map layers that show
+  sketch points and text labels were declared with a filter the map engine
+  rejects, so they were silently dropped (with an error in the browser console)
+  every time the basemap loaded. They now render as intended.
 - **A withdrawn dependency is no longer used.** A crate deep in the tree
   (`spin` 0.9.8, pulled in through the HTTP stack) was yanked by its authors.
   No vulnerability was announced, but a withdrawn crate has no business in a

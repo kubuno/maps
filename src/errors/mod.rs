@@ -22,6 +22,9 @@ pub enum MapsError {
     #[error("Calcul d'itinéraire impossible: {0}")]
     RoutingFailed(String),
 
+    #[error("Le serveur d'itinéraires ne prend pas en charge ces options")]
+    ExcludeUnsupported,
+
     #[error("Service Nominatim indisponible")]
     NominatimUnavailable,
 
@@ -55,6 +58,7 @@ impl IntoResponse for MapsError {
             MapsError::NotFound(_)            => (StatusCode::NOT_FOUND,            "NOT_FOUND",           self.to_string()),
             MapsError::Validation(_)          => (StatusCode::UNPROCESSABLE_ENTITY, "VALIDATION",          self.to_string()),
             MapsError::RoutingFailed(_)       => (StatusCode::BAD_GATEWAY,          "ROUTING_FAILED",      self.to_string()),
+            MapsError::ExcludeUnsupported     => (StatusCode::UNPROCESSABLE_ENTITY, "EXCLUDE_UNSUPPORTED", self.to_string()),
             MapsError::NominatimUnavailable   => (StatusCode::BAD_GATEWAY,          "NOMINATIM_ERROR",     self.to_string()),
             MapsError::OsrmUnavailable        => (StatusCode::BAD_GATEWAY,          "OSRM_ERROR",          self.to_string()),
             MapsError::OverpassUnavailable    => (StatusCode::BAD_GATEWAY,          "OVERPASS_ERROR",      self.to_string()),

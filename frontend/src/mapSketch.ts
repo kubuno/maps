@@ -205,7 +205,7 @@ export function ensureSketchLayers(map: AnyMap) {
   if (!map.getLayer('sketch-point')) {
     map.addLayer({
       id: 'sketch-point', type: 'circle', source: SRC,
-      filter: ['all', ['==', '$type', 'Point'], ['==', ['get', 'isPoint'], true]],
+      filter: ['all', ['==', ['geometry-type'], 'Point'], ['==', ['get', 'isPoint'], true]],
       paint: {
         'circle-radius': 6, 'circle-color': ['get', 'color'],
         'circle-stroke-width': 2, 'circle-stroke-color': '#fff',
@@ -215,7 +215,7 @@ export function ensureSketchLayers(map: AnyMap) {
   if (!map.getLayer('sketch-label')) {
     map.addLayer({
       id: 'sketch-label', type: 'symbol', source: SRC,
-      filter: ['all', ['==', '$type', 'Point'], ['==', ['get', 'isLabel'], true]],
+      filter: ['all', ['==', ['geometry-type'], 'Point'], ['==', ['get', 'isLabel'], true]],
       layout: {
         'text-field': ['get', 'label'], 'text-size': 12,
         'text-offset': [0, -1.4], 'text-anchor': 'bottom',

@@ -1,14 +1,17 @@
 import type maplibregl from 'maplibre-gl'
 import type { StyleSpecification } from 'maplibre-gl'
 import { offlineRasterStyle } from './mapOffline'
+import { THEME_STYLE_URL } from './mapsTheme'
 
-// ── Fonds de carte ──────────────────────────────────────────────────────────────
+// ── Basemaps ────────────────────────────────────────────────────────────────────
 
 export type BaseMap = 'default' | 'light' | 'terrain' | 'satellite' | 'offline'
 
-// Fond vectoriel par défaut (OpenFreeMap Liberty, streaming, gratuit).
-export const DEFAULT_STYLE = 'https://tiles.openfreemap.org/styles/liberty'
-// Fond clair/minimal (OpenFreeMap Positron).
+// Default vector basemap: OpenFreeMap Liberty (streamed, free) restyled with the
+// Kubuno theme through the `kbstyle://` protocol (see mapsTheme.ts). Every map
+// using it must have called `registerThemeProtocol` first.
+export const DEFAULT_STYLE = THEME_STYLE_URL
+// Light / minimal basemap (OpenFreeMap Positron).
 export const LIGHT_STYLE = 'https://tiles.openfreemap.org/styles/positron'
 
 const GLYPHS = 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf'

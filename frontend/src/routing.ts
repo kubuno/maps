@@ -133,8 +133,20 @@ export function fmtDistance(m: number): string {
   return m >= 1000 ? `${(m / 1000).toFixed(m >= 10000 ? 0 : 1)} km` : `${Math.round(m)} m`
 }
 
-/** Formats a duration for display (h / min). */
+export type DistanceUnits = 'km' | 'miles'
+const METERS_PER_MILE = 1609.344
+
+/** Formats a distance in the user's units (`prefs.units`: km or miles). */
+export function fmtDistanceIn(m: number, units: DistanceUnits): string {
+  if (units !== 'miles') return fmtDistance(m)
+  const mi = m / METERS_PER_MILE
+  if (mi < 0.1) return `${Math.round(m * 3.28084)} ft`
+  return `${mi.toFixed(mi >= 10 ? 0 : 1)} mi`
+}
+
+/** Formats a duration for display (h / min); anything under a minute reads "< 1 min". */
 export function fmtDurationShort(s: number): string {
+  if (s < 60) return '< 1 min'
   const h = Math.floor(s / 3600)
   const m = Math.round((s % 3600) / 60)
   return h > 0 ? `${h} h ${m.toString().padStart(2, '0')}` : `${m} min`

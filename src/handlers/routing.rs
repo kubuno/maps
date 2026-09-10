@@ -9,7 +9,7 @@ use uuid::Uuid;
 use crate::{
     errors::{MapsError, Result},
     middleware::MapsUser,
-    models::route::CalculateRouteDto,
+    models::route::{CalculateRouteDto, ALLOWED_EXCLUDES},
     services::osrm_service::OsrmService,
     state::AppState,
 };
@@ -27,6 +27,13 @@ pub async fn calculate(
     let allowed = &state.settings.osrm.profiles;
     if !allowed.iter().any(|p| p == profile) {
         return Err(MapsError::Validation(format!("Profil inconnu: {profile}")));
+    }
+
+    // Classes to avoid: validated against the closed list before anything is
+    // forwarded to OSRM (never relay arbitrary strings to the upstream URL).
+    let exclude: Vec<String> = dto.exclude.clone().unwrap_or_default();
+    if let Some(bad) = exclude.iter().find(|e| !ALLOWED_EXCLUDES.contains(&e.as_str())) {
+        return Err(MapsError::Validation(format!("Exclusion inconnue: {bad}")));
     }
 
     // Prefer the admin-set instance OSRM base. Because the config carries
@@ -48,9 +55,15 @@ pub async fn calculate(
             profile,
             dto.alternatives.unwrap_or(false),
             dto.steps.unwrap_or(false),
+            &exclude,
         )
         .await?;
 
+    // Public OSRM servers are not built with every exclude combination: tell
+    // the client precisely so it can retry without restrictions.
+    if resp.is_exclude_unsupported() {
+        return Err(MapsError::ExcludeUnsupported);
+    }
     if resp.code != "Ok" {
         return Err(MapsError::RoutingFailed(resp.code));
     }

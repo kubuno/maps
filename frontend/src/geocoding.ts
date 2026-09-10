@@ -38,11 +38,22 @@ export function mapNominatimResult(r: Record<string, unknown>): SearchResult {
 }
 
 /** Builds the Nominatim forward-geocoding URL. */
-export function buildNominatimSearchUrl(query: string, limit = 8): string {
+export function buildNominatimSearchUrl(
+  query: string, limit = 8,
+  /** Current map view [west, north, east, south]: results inside it rank first (not excluded). */
+  viewbox?: [number, number, number, number],
+  /** With `viewbox`: true restricts results to the box, false only ranks them first. */
+  bounded = false,
+): string {
   const url = new URL('https://nominatim.openstreetmap.org/search')
   url.searchParams.set('q',              query)
   url.searchParams.set('format',         'json')
   url.searchParams.set('limit',          String(limit))
+  url.searchParams.set('dedupe',         '1')
+  if (viewbox) {
+    url.searchParams.set('viewbox', viewbox.map(v => v.toFixed(5)).join(','))
+    url.searchParams.set('bounded', bounded ? '1' : '0')
+  }
   url.searchParams.set('addressdetails', '1')
   // extratags/namedetails → horaires, téléphone, site web, accessibilité, wikidata…
   url.searchParams.set('extratags',      '1')
@@ -52,9 +63,10 @@ export function buildNominatimSearchUrl(query: string, limit = 8): string {
 }
 
 /** Builds the Nominatim reverse-geocoding URL. */
-export function buildNominatimReverseUrl(lat: number, lng: number): string {
+export function buildNominatimReverseUrl(lat: number, lng: number, zoom?: number): string {
   return `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`
     + `&addressdetails=1&extratags=1&namedetails=1&accept-language=fr`
+    + (zoom !== undefined ? `&zoom=${zoom}` : '')   // e.g. 10 → town-level result
 }
 
 // ── Détails structurés d'un lieu (extraits des tags OSM) ────────────────────────

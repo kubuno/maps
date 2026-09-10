@@ -3,25 +3,22 @@ import { useTranslation } from 'react-i18next'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import {
-  Search, MapPin, Star, Navigation, Upload, Trash2,
-  X, ChevronRight, Layers, RefreshCw, Route, AlertCircle,
-  Activity, Plus,
-  Minus, Locate,
-  ArrowUp, ArrowUpRight, ArrowRight, ArrowUpLeft, ArrowLeft,
-  CornerUpRight, CornerUpLeft, RotateCcw, RotateCw, Flag,
-  ChevronUp, ChevronDown, List,
-  Ruler, Shapes, Copy, Info, Type as TypeIcon, Compass, Play,
-  HelpCircle, WifiOff, Keyboard, Circle, Check, Orbit,
+  Search, MapPin, Star, Navigation, X, ChevronRight, Layers, RefreshCw, Route, Plus, Minus, Locate, Flag, Ruler, Shapes, Copy, Info, Compass, HelpCircle, WifiOff, Keyboard, Orbit, Type as TypeIcon,
 } from 'lucide-react'
 import { api } from '@kubuno/sdk'
-import { Button, MenuDropdown, Input, Textarea } from '@ui'
+import { MenuDropdown } from '@ui'
 import { HeaderActions } from '@kubuno/sdk'
 import { useChromelessHeader } from '@kubuno/sdk'
 import { useUiStore } from '@kubuno/sdk'
 import { useMapsUiStore } from './mapsUiStore'
-import { MapsAddressInput } from './MapsAddressInput'
+import { MapsRoutePanel } from './MapsRoutePanel'
+import { useRouteModes } from './useRouteModes'
+import { parseRouteLink } from './routeLink'
 import { MapsPlacePanel } from './MapsPlacePanel'
+import { MapsSearchBar } from './MapsSearchBar'
 import { MapsLayersPanel } from './MapsLayersPanel'
+import { MapsLayersButton } from './MapsLayersButton'
+import { MapsCategoryChips } from './MapsCategoryChips'
 import {
   DEFAULT_STYLE, styleFor, applyProjection, applyLabels, applyCycle, applyRelief,
   applyTransit, applyPrecip, applyTerrain3D, addImportLayer, removeImportLayer,
@@ -33,10 +30,7 @@ import {
   type SearchResult,
 } from './geocoding'
 import { POI_CHIPS, fetchNearbyPois, poiToSearchResult, type Poi } from './poi'
-import {
-  parseOsrmRoute, fmtDistance, fmtDurationShort,
-  type RouteResult, type RouteGeometry,
-} from './routing'
+import { type RouteResult, type RouteGeometry } from './routing'
 import { useSketch } from './useSketch'
 import { copyKubunoData, openLabelPicker, pointEnvelope, routeEnvelope, viewEnvelope } from './kubunoData'
 import { MapsSketchPanel } from './MapsSketchPanel'
@@ -48,8 +42,13 @@ import { MapsElevationChart, type TrackData } from './MapsElevationChart'
 import { useNavigation } from './useNavigation'
 import { MapsNavOverlay } from './MapsNavOverlay'
 import { registerOfflineProtocol, downloadArea, cachedTileCount, clearOfflineCache } from './mapOffline'
+import { registerThemeProtocol, installThemeImages } from './mapsTheme'
 import { MapsCosmos3D } from './MapsCosmos3D'
 import { worldById, MOON_FEATURES, MARS_FEATURES, type World } from './worlds'
+import { fmtDist, makePlaceEl, makePoiEl, makeWaypointEl, haversineM } from './mapMarkers'
+import { PoiResultsPanel } from './MapsPoiResultsPanel'
+import { GpxPanel, type GpxTrace } from './MapsGpxPanel'
+import { SavePlaceModal } from './MapsSavePlaceModal'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -76,565 +75,9 @@ interface Place {
   collection_id: string | null
 }
 
-interface GpxTrace {
-  id:              string
-  name:            string
-  distance_meters: number | null
-  elevation_gain:  number | null
-  activity_type:   string
-  point_count:     number
-  recorded_at:     string | null
-  created_at:      string
-}
 
 interface Waypoint { lat: number; lng: number; label?: string }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-function fmtDist(m: number | null) {
-  if (m === null) return '—'
-  return m >= 1000 ? `${(m / 1000).toFixed(1)} km` : `${Math.round(m)} m`
-}
-
-function makePlaceEl(emoji: string): HTMLElement {
-  const el = document.createElement('div')
-  el.innerHTML = `<div style="background:#1a73e8;color:#fff;border-radius:50% 50% 50% 0;
-                       transform:rotate(-45deg);width:30px;height:30px;
-                       display:flex;align-items:center;justify-content:center;
-                       font-size:14px;box-shadow:0 2px 6px rgba(0,0,0,.35)">
-             <span style="transform:rotate(45deg)">${emoji}</span>
-           </div>`
-  return el
-}
-
-// POI marker (category search): a white pill with the category emoji, visually
-// distinct from saved-place teardrops so an explore result reads as transient.
-function makePoiEl(emoji: string): HTMLElement {
-  const el = document.createElement('div')
-  el.style.cursor = 'pointer'
-  el.innerHTML = `<div style="background:#fff;border:1.5px solid rgba(0,0,0,.12);
-                       border-radius:50%;width:26px;height:26px;
-                       display:flex;align-items:center;justify-content:center;
-                       font-size:14px;box-shadow:0 1px 4px rgba(0,0,0,.3)">
-             <span>${emoji}</span>
-           </div>`
-  return el
-}
-
-function makeWaypointEl(label: string): HTMLElement {
-  const el = document.createElement('div')
-  el.innerHTML = `<div style="background:#1a73e8;color:#fff;border-radius:4px;
-                       padding:2px 6px;font-size:11px;font-weight:600;
-                       box-shadow:0 2px 4px rgba(0,0,0,.35);white-space:nowrap">${label}</div>`
-  return el
-}
-
-// ── Panneau des résultats d'exploration (POI par catégorie) ─────────────────────
-
-function PoiResultsPanel({
-  title, emoji, pois, center, loading, error, onSelect, onClose,
-}: {
-  title:    string
-  emoji:    string
-  pois:     Poi[]
-  center:   { lat: number; lng: number } | null
-  loading:  boolean
-  error:    string | null
-  onSelect: (p: Poi) => void
-  onClose:  () => void
-}) {
-  const { t } = useTranslation('maps')
-  const fmt = (m: number) => (m >= 1000 ? `${(m / 1000).toFixed(1)} km` : `${Math.round(m)} m`)
-  return (
-    <div className="bg-surface-0 rounded-2xl shadow-xl border border-border overflow-hidden flex flex-col h-full min-h-0">
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-border flex-shrink-0">
-        <span className="text-lg" aria-hidden>{emoji}</span>
-        <div className="flex-1 min-w-0">
-          <h2 className="text-sm font-semibold text-text-primary leading-tight truncate">{title}</h2>
-          {!loading && !error && (
-            <p className="text-[11px] text-text-tertiary">
-              {t('maps_poi_count', { count: pois.length, defaultValue: `${pois.length} lieu(x)` })}
-            </p>
-          )}
-        </div>
-        <button onClick={onClose} className="text-text-tertiary hover:text-text-primary flex-shrink-0">
-          <X size={18} />
-        </button>
-      </div>
-      <div className="overflow-y-auto flex-1 min-h-0">
-        {loading && (
-          <div className="flex items-center gap-2 px-4 py-6 text-xs text-text-tertiary">
-            <RefreshCw size={13} className="animate-spin" /> {t('maps_calculating', { defaultValue: 'Recherche…' })}
-          </div>
-        )}
-        {!loading && error && <p className="px-4 py-6 text-xs text-text-tertiary">{error}</p>}
-        {!loading && !error && pois.map(p => {
-          const dist = center ? haversineM(center.lat, center.lng, p.lat, p.lng) : null
-          return (
-            <button
-              key={`${p.osm_type}-${p.osm_id}`}
-              onClick={() => onSelect(p)}
-              className="w-full flex items-start gap-2.5 px-4 py-2.5 text-left border-t border-border first:border-t-0 hover:bg-surface-1 transition-colors"
-            >
-              <span className="text-base mt-0.5 flex-shrink-0" aria-hidden>{p.icon || '📍'}</span>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-text-primary leading-snug truncate">
-                  {p.name || t('maps_poi_unnamed', { defaultValue: 'Lieu sans nom' })}
-                </p>
-                <p className="text-[11px] text-text-tertiary capitalize truncate">
-                  {(p.tags?.cuisine || p.tags?.amenity || p.tags?.shop || p.tags?.tourism || p.category || '').replace(/_/g, ' ')}
-                </p>
-              </div>
-              {dist !== null && <span className="text-[11px] text-text-tertiary flex-shrink-0 mt-0.5">{fmt(dist)}</span>}
-            </button>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
-// ── Search panel ──────────────────────────────────────────────────────────────
-
-// Barre de recherche PERMANENTE (façon Google) : toujours visible en haut du
-// rail gauche. Les résultats apparaissent en menu déroulant ; quand un lieu est
-// sélectionné, la barre affiche son nom (avec une croix pour revenir).
-function SearchBar({
-  onSelect, onSave, placeTitle, onClear,
-}: {
-  onSelect:   (r: SearchResult) => void
-  onSave:     (r: SearchResult) => void
-  placeTitle?: string
-  onClear?:   () => void
-}) {
-  const { t } = useTranslation('maps')
-  const [q,       setQ]       = useState('')
-  const [results, setResults] = useState<SearchResult[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error,   setError]   = useState<string | null>(null)
-  const [open,    setOpen]    = useState(false)
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  // Reflète le lieu sélectionné dans la barre (et vide les résultats).
-  useEffect(() => { setQ(placeTitle ?? ''); setResults([]); setError(null) }, [placeTitle])
-
-  const search = useCallback(async (query: string) => {
-    if (query.trim().length < 2) { setResults([]); return }
-    setLoading(true); setError(null)
-    try {
-      const res = await fetch(buildNominatimSearchUrl(query))
-      if (!res.ok) throw new Error('HTTP ' + res.status)
-      const raw: Array<Record<string, unknown>> = await res.json()
-      setResults(raw.map(mapNominatimResult)); setOpen(true)
-    } catch {
-      setError(t('maps_geocoding_unavailable')); setResults([])
-    } finally { setLoading(false) }
-  }, [])
-
-  const onChange = (val: string) => {
-    setQ(val)
-    if (timer.current) clearTimeout(timer.current)
-    timer.current = setTimeout(() => search(val), 400)
-  }
-
-  const clear = () => { setQ(''); setResults([]); setError(null); onClear?.() }
-
-  return (
-    <div className="relative flex-shrink-0">
-      <div className="flex items-center h-12 px-3.5 rounded-full bg-surface-0 shadow-lg border border-border">
-        <Search size={17} className="text-text-tertiary flex-shrink-0" />
-        <input
-          value={q}
-          onChange={e => onChange(e.target.value)}
-          onFocus={() => setOpen(true)}
-          onBlur={() => setTimeout(() => setOpen(false), 150)}
-          placeholder={t('maps_search_placeholder')}
-          className="flex-1 min-w-0 bg-transparent px-2.5 text-sm text-text-primary focus:outline-none"
-        />
-        {loading && <RefreshCw size={14} className="text-text-tertiary animate-spin flex-shrink-0 mr-1" />}
-        {(q.length > 0 || placeTitle) && (
-          <button onClick={clear} title={t('common_close', { defaultValue: 'Effacer' })}
-            className="text-text-tertiary hover:text-text-primary flex-shrink-0"><X size={17} /></button>
-        )}
-      </div>
-
-      {open && (results.length > 0 || error) && (
-        <div className="absolute top-full mt-1.5 left-0 right-0 z-30 bg-surface-0 rounded-2xl shadow-xl border border-border overflow-hidden max-h-[55vh] overflow-y-auto">
-          {error && <p className="px-3 py-3 text-xs text-danger flex items-center gap-1"><AlertCircle size={12}/>{error}</p>}
-          {results.map(r => (
-            <div
-              key={r.place_id}
-              className="group flex items-start gap-2 px-3 py-2.5 border-t border-border first:border-t-0 hover:bg-surface-1 cursor-pointer"
-              onMouseDown={() => { onSelect(r); setResults([]); setOpen(false) }}
-            >
-              <MapPin size={15} className="text-text-tertiary mt-0.5 flex-shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-text-primary leading-snug line-clamp-2">{r.display_name}</p>
-                {r.category && <p className="text-[10px] text-text-tertiary capitalize">{r.category}</p>}
-              </div>
-              <button
-                title={t('maps_save_place')}
-                onMouseDown={e => { e.stopPropagation(); onSave(r); setResults([]); setOpen(false) }}
-                className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-primary/10 hover:text-primary text-text-tertiary transition-opacity flex-shrink-0"
-              ><Plus size={13} /></button>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ── Places panel ──────────────────────────────────────────────────────────────
-
-// ── GPX panel ─────────────────────────────────────────────────────────────────
-
-function GpxPanel({
-  traces, onShow, onDelete, onUpload, recording, recStats, onStartRec, onStopRec,
-}: {
-  traces:   GpxTrace[]
-  onShow:   (id: string, name: string) => void
-  onDelete: (id: string) => void
-  onUpload: (file: File) => void
-  recording: boolean
-  recStats:  { points: number; dist: number; elapsed: number } | null
-  onStartRec: () => void
-  onStopRec:  (save: boolean) => void
-}) {
-  const { t } = useTranslation('maps')
-  const inputRef = useRef<HTMLInputElement>(null)
-  const fmtElapsed = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`
-
-  return (
-    <div className="flex flex-col gap-2">
-      {/* Enregistrement d'une trace GPS */}
-      {recording ? (
-        <div className="flex flex-col gap-2 p-3 rounded-lg bg-danger/5 border border-danger/30">
-          <div className="flex items-center justify-between">
-            <span className="flex items-center gap-1.5 text-xs font-semibold text-danger">
-              <span className="w-2 h-2 rounded-full bg-danger animate-pulse" /> {t('maps_rec_active', { defaultValue: 'Enregistrement…' })}
-            </span>
-            <span className="text-xs font-mono text-text-secondary">{recStats ? fmtElapsed(recStats.elapsed) : '0:00'}</span>
-          </div>
-          <div className="flex items-center gap-4 text-[11px] text-text-secondary">
-            <span>{fmtDist(recStats?.dist ?? 0)}</span>
-            <span>{recStats?.points ?? 0} {t('maps_rec_points', { defaultValue: 'points' })}</span>
-          </div>
-          <div className="flex gap-2">
-            <button onClick={() => onStopRec(true)}
-              className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-primary text-white text-xs font-medium hover:bg-primary-hover">
-              <Check size={13} /> {t('maps_rec_save', { defaultValue: 'Terminer & enregistrer' })}
-            </button>
-            <button onClick={() => onStopRec(false)} title={t('maps_rec_discard', { defaultValue: 'Abandonner' })}
-              className="px-2.5 py-1.5 rounded-lg border border-border text-text-tertiary hover:text-danger hover:bg-surface-1"><X size={14} /></button>
-          </div>
-        </div>
-      ) : (
-        <button onClick={onStartRec}
-          className="flex items-center justify-center gap-2 py-2 rounded-lg bg-danger/10 text-danger text-xs font-medium hover:bg-danger/20 transition-colors">
-          <Circle size={11} fill="currentColor" /> {t('maps_rec_start', { defaultValue: 'Enregistrer une trace' })}
-        </button>
-      )}
-
-      <button
-        onClick={() => inputRef.current?.click()}
-        className="flex items-center justify-center gap-2 py-2 rounded-lg border border-dashed border-border hover:border-primary hover:bg-primary/5 text-text-tertiary hover:text-primary text-xs transition-colors"
-      >
-        <Upload size={13} /> {t('maps_gpx_import')}
-      </button>
-      <input ref={inputRef} type="file" accept=".gpx" className="hidden"
-        onChange={e => { const f = e.target.files?.[0]; if (f) { onUpload(f); e.target.value = '' } }} />
-
-      {traces.length === 0 ? (
-        <div className="flex flex-col items-center py-8 gap-2 text-text-tertiary">
-          <Activity size={24} className="opacity-30" />
-          <p className="text-xs text-center">{t('maps_gpx_empty')}</p>
-        </div>
-      ) : (
-        <div className="flex flex-col gap-0.5">
-          {traces.map(t => (
-            <div key={t.id} className="group flex items-start gap-2 px-2 py-2 rounded-lg hover:bg-surface-1">
-              <Activity size={14} className="text-text-tertiary mt-0.5 flex-shrink-0" />
-              <div className="flex-1 min-w-0 cursor-pointer" onClick={() => onShow(t.id, t.name)}>
-                <p className="text-xs font-medium text-text-primary truncate">{t.name}</p>
-                <p className="text-[10px] text-text-tertiary">
-                  {fmtDist(t.distance_meters)}
-                  {t.elevation_gain ? ` · +${Math.round(t.elevation_gain)}m` : ''}
-                  {' · '}{t.activity_type}
-                </p>
-              </div>
-              <button
-                onClick={() => onDelete(t.id)}
-                className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-danger/10 hover:text-danger text-text-tertiary transition-opacity"
-              >
-                <Trash2 size={12} />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ── Route panel ───────────────────────────────────────────────────────────────
-
-// Maneuver key → lucide icon node (used by the turn-by-turn list).
-function maneuverIcon(key: string, size = 15): React.ReactNode {
-  switch (key) {
-    case 'depart':       return <ArrowUp size={size} />
-    case 'arrive':       return <Flag size={size} />
-    case 'slight-right': return <ArrowUpRight size={size} />
-    case 'right':        return <ArrowRight size={size} />
-    case 'sharp-right':  return <CornerUpRight size={size} />
-    case 'slight-left':  return <ArrowUpLeft size={size} />
-    case 'left':         return <ArrowLeft size={size} />
-    case 'sharp-left':   return <CornerUpLeft size={size} />
-    case 'uturn':        return <RotateCcw size={size} />
-    case 'roundabout':   return <RotateCw size={size} />
-    case 'straight':
-    default:             return <ArrowUp size={size} />
-  }
-}
-
-type RouteMode = 'driving' | 'cycling' | 'foot'
-
-function RoutePanel({
-  waypoints, mode, setMode, results, selected, setSelected, loading, error,
-  onSetWaypoint, onClearWaypoint, onPickOnMap, onAddStop, onRemoveStop, onMoveStop, onClearAll,
-  onStartNav, onSimulateNav,
-}: {
-  waypoints:    (Waypoint | null)[]
-  mode:         RouteMode
-  setMode:      (m: RouteMode) => void
-  results:      RouteResult[]
-  selected:     number
-  setSelected:  (i: number) => void
-  loading:      boolean
-  error:        string | null
-  onSetWaypoint:   (index: number, lat: number, lng: number, label?: string) => void
-  onClearWaypoint: (index: number) => void
-  onPickOnMap:     (index: number) => void
-  onAddStop:       () => void
-  onRemoveStop:    (index: number) => void
-  onMoveStop:      (index: number, dir: -1 | 1) => void
-  onClearAll:      () => void
-  onStartNav:      () => void
-  onSimulateNav:   () => void
-}) {
-  const { t } = useTranslation('maps')
-  const [showSteps, setShowSteps] = useState(true)
-
-  const modes: { id: RouteMode; label: string }[] = [
-    { id: 'driving', label: t('maps_mode_driving') },
-    { id: 'cycling', label: t('maps_mode_cycling') },
-    { id: 'foot',    label: t('maps_mode_foot') },
-  ]
-
-  const wpValue = (w: Waypoint | null) =>
-    w ? (w.label ?? `${w.lat.toFixed(4)}, ${w.lng.toFixed(4)}`) : null
-
-  // Couleur de pastille : départ (vert), arrivée (rouge), étapes (bleu).
-  const dotColor = (i: number) =>
-    i === 0 ? '#1e8e3e' : i === waypoints.length - 1 ? '#d93025' : '#1a73e8'
-
-  const hasAny = waypoints.some(Boolean)
-  const sel = results[selected]
-
-  return (
-    <div className="flex flex-col gap-3">
-      {/* Champs des points (départ → étapes → arrivée) */}
-      <div className="flex flex-col gap-1.5">
-        {waypoints.map((w, i) => (
-          <div key={i} className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: dotColor(i) }} />
-            <div className="flex-1 min-w-0">
-              <MapsAddressInput
-                value={wpValue(w)} accent={dotColor(i)}
-                placeholder={
-                  i === 0 ? t('maps_route_from', { defaultValue: 'Point de départ' })
-                  : i === waypoints.length - 1 ? t('maps_route_to', { defaultValue: "Point d'arrivée" })
-                  : t('maps_route_stop', { defaultValue: 'Étape' })
-                }
-                onSelect={r => onSetWaypoint(i, parseFloat(r.lat), parseFloat(r.lon), placeDetails(r).title)}
-                onClear={() => onClearWaypoint(i)}
-              />
-            </div>
-            <button onClick={() => onPickOnMap(i)} title={t('maps_pick_on_map', { defaultValue: 'Choisir sur la carte' })}
-              className="p-1 text-text-tertiary hover:text-primary transition-colors flex-shrink-0">
-              <MapPin size={14} />
-            </button>
-            {/* Réordonner / retirer une étape (seulement si > 2 points) */}
-            {waypoints.length > 2 && (
-              <div className="flex flex-col -my-1">
-                <button onClick={() => onMoveStop(i, -1)} disabled={i === 0}
-                  className="text-text-tertiary hover:text-primary disabled:opacity-30 transition-colors"><ChevronUp size={12} /></button>
-                <button onClick={() => onMoveStop(i, 1)} disabled={i === waypoints.length - 1}
-                  className="text-text-tertiary hover:text-primary disabled:opacity-30 transition-colors"><ChevronDown size={12} /></button>
-              </div>
-            )}
-            {waypoints.length > 2 && (
-              <button onClick={() => onRemoveStop(i)} title={t('maps_route_remove_stop', { defaultValue: 'Retirer' })}
-                className="p-1 text-text-tertiary hover:text-danger transition-colors flex-shrink-0"><Trash2 size={13} /></button>
-            )}
-          </div>
-        ))}
-        <button onClick={onAddStop}
-          className="self-start flex items-center gap-1 px-1 text-[11px] text-primary hover:underline">
-          <Plus size={12} /> {t('maps_route_add_stop', { defaultValue: 'Ajouter une étape' })}
-        </button>
-      </div>
-
-      {/* Mode de transport */}
-      <div className="flex gap-1">
-        {modes.map(m => (
-          <button key={m.id} onClick={() => setMode(m.id)}
-            className={`flex-1 py-1 rounded text-xs font-medium transition-colors ${
-              mode === m.id ? 'bg-primary text-white' : 'bg-surface-2 text-text-secondary hover:bg-surface-3'
-            }`}>{m.label}</button>
-        ))}
-      </div>
-
-      {loading && (
-        <p className="text-xs text-text-tertiary flex items-center gap-1.5">
-          <RefreshCw size={12} className="animate-spin" /> {t('maps_calculating')}
-        </p>
-      )}
-      {error && <p className="text-xs text-danger flex items-center gap-1"><AlertCircle size={12}/>{error}</p>}
-
-      {/* Itinéraires alternatifs sélectionnables */}
-      {!loading && results.length > 0 && (
-        <div className="flex flex-col gap-1.5">
-          {results.map((r, i) => (
-            <button key={i} onClick={() => setSelected(i)}
-              className={`flex items-center justify-between gap-2 px-3 py-2 rounded-lg border text-left transition-colors ${
-                i === selected ? 'border-primary bg-primary-light' : 'border-border bg-surface-0 hover:bg-surface-1'
-              }`}>
-              <div className="min-w-0">
-                <p className={`text-sm font-semibold ${i === selected ? 'text-primary' : 'text-text-primary'}`}>
-                  {fmtDurationShort(r.duration)}
-                </p>
-                <p className="text-[11px] text-text-tertiary">
-                  {i === 0
-                    ? t('maps_route_best', { defaultValue: 'Meilleur itinéraire' })
-                    : t('maps_route_alt', { defaultValue: 'Variante' })}
-                </p>
-              </div>
-              <span className="text-xs text-text-secondary flex-shrink-0">{fmtDistance(r.distance)}</span>
-            </button>
-          ))}
-          {/* Démarrer la navigation guidée */}
-          <div className="flex gap-2 mt-0.5">
-            <button onClick={onStartNav}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-primary-hover transition-colors">
-              <Navigation size={14} /> {t('maps_nav_start', { defaultValue: 'Démarrer' })}
-            </button>
-            <button onClick={onSimulateNav} title={t('maps_nav_simulate', { defaultValue: 'Simuler le trajet' })}
-              className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-border text-text-secondary text-xs font-medium hover:bg-surface-1 transition-colors">
-              <Play size={13} /> {t('maps_nav_sim', { defaultValue: 'Simulation' })}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Feuille de route virage-par-virage */}
-      {!loading && sel && sel.steps.length > 0 && (
-        <div className="border border-border rounded-lg overflow-hidden">
-          <button onClick={() => setShowSteps(s => !s)}
-            className="w-full flex items-center justify-between gap-2 px-3 py-2 bg-surface-1 text-xs font-medium text-text-secondary hover:bg-surface-2 transition-colors">
-            <span className="flex items-center gap-1.5"><List size={13} /> {t('maps_route_steps', { defaultValue: 'Feuille de route' })} · {sel.steps.length}</span>
-            {showSteps ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-          </button>
-          {showSteps && (
-            <div className="max-h-64 overflow-y-auto">
-              {sel.steps.map((s, i) => (
-                <div key={i} className="flex items-start gap-2.5 px-3 py-2 border-t border-border first:border-t-0">
-                  <span className="text-text-tertiary mt-0.5 flex-shrink-0">{maneuverIcon(s.iconKey)}</span>
-                  <p className="flex-1 min-w-0 text-xs text-text-primary leading-snug">{s.text}</p>
-                  {s.distance > 0 && <span className="text-[11px] text-text-tertiary flex-shrink-0 mt-0.5">{fmtDistance(s.distance)}</span>}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {hasAny && (
-        <button onClick={onClearAll} className="text-xs text-text-tertiary hover:text-danger flex items-center gap-1 transition-colors">
-          <X size={12} /> {t('maps_clear_route')}
-        </button>
-      )}
-    </div>
-  )
-}
-
-// ── Save place modal ───────────────────────────────────────────────────────────
-
-function SavePlaceModal({
-  lat, lng, defaultName, onSave, onClose,
-}: {
-  lat: number; lng: number
-  defaultName: string
-  onSave:  (name: string, note: string) => void
-  onClose: () => void
-}) {
-  const { t } = useTranslation('maps')
-  const [name, setName] = useState(defaultName)
-  const [note, setNote] = useState('')
-
-  return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/20">
-      <div className="bg-surface-0 rounded-xl shadow-xl border border-border p-5 w-80 flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-text-primary flex items-center gap-2">
-            <MapPin size={16} className="text-primary" /> {t('maps_save_place')}
-          </h2>
-          <button onClick={onClose} className="p-1 rounded hover:bg-surface-2 text-text-tertiary"><X size={15} /></button>
-        </div>
-        <p className="text-xs text-text-tertiary font-mono">{lat.toFixed(6)}, {lng.toFixed(6)}</p>
-        <Input
-          value={name}
-          onChange={e => setName(e.target.value)}
-          placeholder={t('maps_place_name')}
-          autoFocus
-        />
-        <Textarea
-          value={note}
-          onChange={e => setNote(e.target.value)}
-          placeholder={t('maps_note_optional')}
-          rows={2}
-          className="h-auto min-h-0 resize-none"
-        />
-        <div className="flex gap-2 justify-end">
-          <Button variant="secondary" size="sm" onClick={onClose}>{t('common_cancel')}</Button>
-          <Button
-            size="sm"
-            onClick={() => { if (name.trim()) onSave(name.trim(), note.trim()) }}
-            disabled={!name.trim()}
-          >
-            {t('common_save')}
-          </Button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ── Chrome façon carte plein écran ─────────────────────────────────────────────
-
-// Bouton du rail vertical de gauche (icône + petit libellé), style application carto.
-// Les « chips » de catégories (Restaurants, Musées, Cinémas…) sont déclarées dans
-// `poi.ts` (POI_CHIPS) et déclenchent une recherche POI via le proxy Overpass.
-
-// Haversine distance (meters) — used to size the explore radius from the viewport.
-function haversineM(aLat: number, aLng: number, bLat: number, bLng: number): number {
-  const R = 6371000
-  const dLat = (bLat - aLat) * Math.PI / 180
-  const dLng = (bLng - aLng) * Math.PI / 180
-  const la1 = aLat * Math.PI / 180, la2 = bLat * Math.PI / 180
-  const h = Math.sin(dLat / 2) ** 2 + Math.cos(la1) * Math.cos(la2) * Math.sin(dLng / 2) ** 2
-  return 2 * R * Math.asin(Math.sqrt(h))
-}
 
 // ── Main component ────────────────────────────────────────────────────────────
 
@@ -664,6 +107,7 @@ export default function MapsPage() {
   // Onglet actif partagé avec la nav de la sidebar du core (MapsSidebarBody).
   const tab    = useMapsUiStore(s => s.tab)
   const setTab = useMapsUiStore(s => s.setTab)
+  const panelCollapsed = useMapsUiStore(s => s.panelCollapsed)
   const [places,    setPlaces]    = useState<Place[]>([])
   const [collections, setCollections] = useState<Collection[]>([])
   const [history,   setHistory]   = useState<HistoryEntry[]>([])
@@ -673,21 +117,13 @@ export default function MapsPage() {
   // Itinéraire avancé : ≥ 2 points (départ → étapes → arrivée), null = vide.
   const [waypoints, setWaypoints] = useState<(Waypoint | null)[]>([null, null])
   const [routePickMode, setRoutePickMode] = useState<number | null>(null)
-  const [routeMode,     setRouteMode]     = useState<RouteMode>('driving')
-  const [routeResults,  setRouteResults]  = useState<RouteResult[]>([])
-  const [selectedRoute, setSelectedRoute] = useState(0)
-  const [routeLoading,  setRouteLoading]  = useState(false)
-  const [routeError,    setRouteError]    = useState<string | null>(null)
-
-  // Navigation temps réel (guidage virage-par-virage) sur l'itinéraire sélectionné.
-  const nav = useNavigation(mapRef, routeResults[selectedRoute] ?? null, {
-    onOffRoute: (lat, lng) => setWaypoints(wp => { const n = [...wp]; n[0] = { lat, lng }; return n }),
-  })
 
   const [ctxMenu,   setCtxMenu]   = useState<{ x: number; y: number; lat: number; lng: number; name?: string } | null>(null)
   const [saveModal, setSaveModal] = useState<{ lat: number; lng: number; name: string } | null>(null)
   const [uploading, setUploading] = useState(false)
   const [selectedPlace, setSelectedPlace] = useState<SearchResult | null>(null)
+  // The left rail covers the map's left edge when a place or a tab card is open.
+  const railOpen = !panelCollapsed && (!!selectedPlace || tab !== 'search')
 
   // ── Enregistrement d'une trace GPS ──
   const [recording, setRecording] = useState(false)
@@ -743,7 +179,8 @@ export default function MapsPage() {
   useEffect(() => {
     if (!mapDivRef.current || mapRef.current) return
 
-    registerOfflineProtocol(maplibregl)   // protocole kbtile:// (cache-first hors-ligne)
+    registerOfflineProtocol(maplibregl)   // kbtile:// protocol (cache-first offline tiles)
+    registerThemeProtocol(maplibregl)     // kbstyle:// protocol (Kubuno-themed default basemap)
 
     const map = new maplibregl.Map({
       container: mapDivRef.current,
@@ -751,6 +188,7 @@ export default function MapsPage() {
       center: [2.3522, 48.8566],   // [lng, lat]
       zoom: 11,
     })
+    installThemeImages(map)               // road shields generated on demand
     // Projection globe (dezoom → planète entière) : à appliquer UNE FOIS le style
     // chargé, sinon MapLibre lève « Style is not done loading » et plante la page.
     map.on('load', () => {
@@ -796,15 +234,30 @@ export default function MapsPage() {
     // figé jusqu'au prochain resize (d'où « ça remplit seulement après avoir
     // (dé)roulé la sidebar »). On force donc un resize après la 1ʳᵉ mise en page
     // ET on observe le conteneur pour tout changement ultérieur.
-    const doResize = () => { try { map.resize() } catch { /* carte retirée */ } }
-    const ro = new ResizeObserver(doResize)
+    // Coalesce resizes to at most one per animation frame. A window drag fires
+    // ResizeObserver dozens of times per second; resizing the GL drawing buffer
+    // on every tick reallocates it, and the browser resets the freed canvas to
+    // transparent — so the dark `.maps-space` background behind the globe shows
+    // through for a frame (the black flicker the user saw). `redraw()` renders
+    // synchronously into the just-resized buffer in the SAME frame, so no empty
+    // frame is ever composited; coalescing keeps it to one such pass per frame.
+    let resizeRaf = 0
+    const scheduleResize = () => {
+      if (resizeRaf) return
+      resizeRaf = requestAnimationFrame(() => {
+        resizeRaf = 0
+        try { map.resize(); map.redraw() } catch { /* carte retirée */ }
+      })
+    }
+    const ro = new ResizeObserver(scheduleResize)
     ro.observe(mapDivRef.current)
-    const raf = requestAnimationFrame(doResize)
-    const t1  = setTimeout(doResize, 250)
+    const raf = requestAnimationFrame(scheduleResize)
+    const t1  = setTimeout(scheduleResize, 250)
 
     return () => {
       ro.disconnect()
       cancelAnimationFrame(raf)
+      if (resizeRaf) cancelAnimationFrame(resizeRaf)
       clearTimeout(t1)
       map.remove()
       mapRef.current = null
@@ -1394,23 +847,27 @@ export default function MapsPage() {
     setWaypoints(wp => { const n = [...wp]; n[index] = null; return n })
   }, [])
 
-  // Ajoute une étape vide juste avant la destination (façon Google Maps).
+  // Inserts an empty stop right before the destination.
   const addStop = useCallback(() => {
     setWaypoints(wp => { const n = [...wp]; n.splice(Math.max(1, n.length - 1), 0, null); return n })
   }, [])
 
-  // Retire une étape (on garde toujours au moins 2 points).
+  // Removes a stop (always keeps at least 2 points).
   const removeStop = useCallback((index: number) => {
     setWaypoints(wp => (wp.length <= 2 ? wp : wp.filter((_, i) => i !== index)))
   }, [])
 
-  // Réordonne une étape (monter/descendre).
-  const moveStop = useCallback((index: number, dir: -1 | 1) => {
+  // Moves a point to another position (drag-and-drop in the route panel).
+  const reorderStop = useCallback((from: number, to: number) => {
     setWaypoints(wp => {
-      const j = index + dir
-      if (j < 0 || j >= wp.length) return wp
-      const n = [...wp];[n[index], n[j]] = [n[j], n[index]]; return n
+      if (from === to || from < 0 || to < 0 || from >= wp.length || to >= wp.length) return wp
+      const n = [...wp]; const [moved] = n.splice(from, 1); n.splice(to, 0, moved); return n
     })
+  }, [])
+
+  // Swaps the origin and the destination (stops keep their order).
+  const swapEnds = useCallback(() => {
+    setWaypoints(wp => { const n = [...wp]; [n[0], n[n.length - 1]] = [n[n.length - 1], n[0]]; return n })
   }, [])
 
   // Retire tous les calques de tracé d'itinéraire (route-*).
@@ -1426,13 +883,19 @@ export default function MapsPage() {
     })
   }, [])
 
-  // Dessine les itinéraires : variantes en gris (dessous) + sélectionné en bleu (dessus).
-  const drawRoutes = useCallback((results: RouteResult[], selIdx: number) => {
+  // Click / hover handlers attached to the alternative lines (removed with them).
+  const altHandlersRef = useRef<Record<string, { click: () => void; enter: () => void; leave: () => void }>>({})
+
+  // Draws the routes: alternatives in grey (below, clickable) + selected in
+  // blue (above). `dashed` = plane mode (great circle, own layer id).
+  const drawRoutes = useCallback((results: RouteResult[], selIdx: number, dashed: boolean, onPickAlt: (i: number) => void) => {
     const map = mapRef.current
     if (!map) return
     const draw = () => {
       Array.from(lineIdsRef.current).forEach(id => {
         if (id.startsWith('route-')) {
+          const h = altHandlersRef.current[id]
+          if (h) { map.off('click', id, h.click); map.off('mouseenter', id, h.enter); map.off('mouseleave', id, h.leave); delete altHandlersRef.current[id] }
           if (map.getLayer(id)) map.removeLayer(id)
           if (map.getSource(id)) map.removeSource(id)
           lineIdsRef.current.delete(id)
@@ -1447,18 +910,28 @@ export default function MapsPage() {
         map.addLayer({
           id, type: 'line', source: id,
           layout: { 'line-cap': 'round', 'line-join': 'round' },
-          paint:  { 'line-color': '#9aa0a6', 'line-width': 5, 'line-opacity': 0.7 },
+          paint:  { 'line-color': '#9aa0a6', 'line-width': 5, 'line-opacity': 0.7, ...(dashed ? { 'line-dasharray': [2, 2] } : {}) },
         })
         lineIdsRef.current.add(id)
+        // An alternative is selectable from the map as well as from the panel.
+        const h = {
+          click: () => onPickAlt(i),
+          enter: () => { map.getCanvas().style.cursor = 'pointer' },
+          leave: () => { map.getCanvas().style.cursor = '' },
+        }
+        altHandlersRef.current[id] = h
+        map.on('click', id, h.click); map.on('mouseenter', id, h.enter); map.on('mouseleave', id, h.leave)
       })
       const sel = results[selIdx]
       if (sel?.geometry && Array.isArray(sel.geometry.coordinates) && sel.geometry.coordinates.length) {
-        const id = 'route-line'
+        const id = dashed ? 'route-plane' : 'route-line'
         map.addSource(id, { type: 'geojson', data: { type: 'Feature', properties: {}, geometry: sel.geometry } })
         map.addLayer({
           id, type: 'line', source: id,
-          layout: { 'line-cap': 'round', 'line-join': 'round' },
-          paint:  { 'line-color': '#1a73e8', 'line-width': 6, 'line-opacity': 0.9 },
+          layout: { 'line-cap': dashed ? 'butt' : 'round', 'line-join': 'round' },
+          paint:  dashed
+            ? { 'line-color': '#1a73e8', 'line-width': 3, 'line-opacity': 0.9, 'line-dasharray': [2, 2] }
+            : { 'line-color': '#1a73e8', 'line-width': 6, 'line-opacity': 0.9 },
         })
         lineIdsRef.current.add(id)
       }
@@ -1476,54 +949,48 @@ export default function MapsPage() {
     map.fitBounds(b, { padding: 60, duration: 800 })
   }, [])
 
-  // Calcule les itinéraires (variantes + virage-par-virage) via OSRM.
-  const calculateRoutes = useCallback(async () => {
-    const pts = waypoints.filter(Boolean) as Waypoint[]
-    if (pts.length < 2) { setRouteResults([]); setRouteError(null); return }
-    setRouteLoading(true); setRouteError(null)
-    try {
-      const { data } = await api.post<{ routes: Parameters<typeof parseOsrmRoute>[0][] }>(
-        '/maps/routes',
-        {
-          waypoints:    pts.map(w => ({ lat: w.lat, lng: w.lng })),
-          mode:         routeMode,
-          alternatives: true,
-          steps:        true,
-        },
-      )
-      const raw = data.routes ?? []
-      if (!raw.length) { setRouteResults([]); setRouteError(t('maps_route_none')); return }
-      const lang = i18n.language || 'fr'
-      const parsed = raw.map(r => parseOsrmRoute(r, lang))
-      setRouteResults(parsed)
-      setSelectedRoute(0)
-      fitToRoute(parsed[0].geometry)
-    } catch {
-      setRouteResults([]); setRouteError(t('maps_route_service_unavailable'))
-    } finally {
-      setRouteLoading(false)
-    }
-  }, [waypoints, routeMode, t, i18n, fitToRoute])
+  // Route computation (single profile with alternatives, "recommended"
+  // multi-mode view, plane great circle, avoid options) lives in the hook.
+  const route = useRouteModes({
+    waypoints,
+    lang:       i18n.language || 'fr',
+    fitToRoute,
+    onEmpty:    clearRouteLines,
+    messages:   { none: t('maps_route_none'), unavailable: t('maps_route_service_unavailable') },
+  })
+  const { setSelected: selectRoute } = route
 
-  // Recalcule automatiquement dès que les points (tous définis) ou le mode changent.
-  const wpKey = waypoints.map(w => (w ? `${w.lat},${w.lng}` : '∅')).join('|')
-  useEffect(() => {
-    const ready = waypoints.filter(Boolean).length >= 2
-    if (ready) calculateRoutes()
-    else { setRouteResults([]); setRouteError(null); clearRouteLines() }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [wpKey, routeMode])
+  // Live navigation (turn-by-turn guidance) on the selected route.
+  const nav = useNavigation(mapRef, route.results[route.selected] ?? null, {
+    onOffRoute: (lat, lng) => setWaypoints(wp => { const n = [...wp]; n[0] = { lat, lng }; return n }),
+  })
 
-  // Redessine quand le set de résultats ou la sélection change.
+  // Redraw when the result set, the selection or the mode changes.
   useEffect(() => {
-    drawRoutes(routeResults, selectedRoute)
-  }, [routeResults, selectedRoute, drawRoutes])
+    drawRoutes(route.results, route.selected, route.mode === 'plane', selectRoute)
+  }, [route.results, route.selected, route.mode, drawRoutes, selectRoute])
 
   const clearRoute = useCallback(() => {
     setWaypoints([null, null])
-    setRouteResults([]); setSelectedRoute(0); setRouteError(null)
+    route.reset()
     clearRouteLines()
-  }, [clearRouteLines])
+  }, [clearRouteLines, route.reset])   // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Closing the panel from its cross: back to the bare map, nothing drawn.
+  const closeRoutePanel = useCallback(() => { clearRoute(); setTab('search') }, [clearRoute, setTab])
+
+  // Share link `?route=lat,lng;lat,lng[;…]&mode=…` (QR / "copy link" of the
+  // route panel): reopen the panel with those points on arrival.
+  const routeLinkDone = useRef(false)
+  useEffect(() => {
+    if (routeLinkDone.current) return
+    const parsed = parseRouteLink(window.location.search)
+    if (!parsed) return
+    routeLinkDone.current = true
+    setWaypoints(parsed.waypoints.map(p => ({ lat: p.lat, lng: p.lng })))
+    if (parsed.mode && parsed.mode !== 'transit') route.setMode(parsed.mode)
+    setTab('route')
+  }, [route.setMode, setTab])
 
   // ── Couches : type de fond + calques + bascules ──
   // Changer de fond recharge le style ; on réapplique projection, libellés,
@@ -1542,7 +1009,7 @@ export default function MapsPage() {
       if (precip)   applyPrecip(map, true)
       if (terrain3d) applyTerrain3D(map, true)
       imports.forEach(im => addImportLayer(map, im.id, importDataRef.current[im.id]))
-      if (routeResults.length) drawRoutes(routeResults, selectedRoute)
+      if (route.results.length) drawRoutes(route.results, route.selected, route.mode === 'plane', selectRoute)
     })
   }
   const toggleGlobe = () => {
@@ -1769,21 +1236,34 @@ export default function MapsPage() {
           NB : on utilise w-full/h-full et NON `absolute inset-0` car maplibre-gl.css force
           `.maplibregl-map { position: relative }`, ce qui écraserait le positionnement absolu
           et ferait retomber le canvas à sa hauteur par défaut (300px → carte invisible). */}
-      <div ref={mapDivRef} className="w-full h-full" />
+      <div ref={mapDivRef} className="w-full h-full no-print" />
 
       {/* ── Rail gauche pleine hauteur : barre de recherche PERMANENTE + contenu ──
           La barre de recherche reste toujours visible (façon Google) ; le panneau
           (lieu / résultats / onglet) occupe toute la hauteur sous la barre. */}
-      <div className="absolute left-3 top-3 bottom-3 w-[384px] max-w-[calc(100vw-24px)] z-[1100] flex flex-col gap-2 min-h-0 no-print">
-        <SearchBar
+      <div className={`absolute z-[1100] flex flex-col gap-2 min-h-0 transition-transform duration-200 ${
+        tab === 'route' && !selectedPlace && !activeCat ? 'maps-rail-route' : 'no-print'} ${
+        selectedPlace
+          // Place open: the rail is the full-height white panel, flush with the map
+          // edges; the search pill floats over the hero photo (cf. .maps-rail-place).
+          ? `maps-rail-place left-0 top-0 bottom-0 w-[400px] max-w-[100vw] bg-surface-0 shadow-xl ${panelCollapsed ? '-translate-x-full' : ''}`
+          : 'left-3 top-3 bottom-3 w-[384px] max-w-[calc(100vw-24px)]'}`}>
+        <MapsSearchBar
+          mapRef={mapRef} mapReady={mapReady} history={history}
           onSelect={selectPlace} onSave={saveFromSearch}
           placeTitle={selectedPlace ? placeDetails(selectedPlace).title : undefined}
           onClear={clearSelectedPlace}
+          onDirections={() => selectedPlace
+            ? routeToPlace(parseFloat(selectedPlace.lat), parseFloat(selectedPlace.lon), placeDetails(selectedPlace).title)
+            : setTab('route')}
+          onOpenHistory={() => setTab('places')}
+          onHistoryChanged={loadHistory}
         />
         <div className="flex-1 min-h-0 flex flex-col">
           {selectedPlace ? (
             <MapsPlacePanel
               place={selectedPlace}
+              saved={places.some(p => Math.abs(p.lat - parseFloat(selectedPlace.lat)) < 1e-4 && Math.abs(p.lng - parseFloat(selectedPlace.lon)) < 1e-4)}
               onClose={clearSelectedPlace}
               onRouteTo={routeToPlace}
               onSave={saveFromSearch}
@@ -1804,7 +1284,8 @@ export default function MapsPage() {
             />
           ) : tab !== 'search' ? (
             <div className="bg-surface-0 rounded-2xl shadow-xl border border-border overflow-hidden flex flex-col h-full min-h-0">
-              <div className="overflow-y-auto p-3 flex-1 min-h-0">
+              {/* The route panel lays out its own rows edge to edge (no padding). */}
+              <div className={`overflow-y-auto flex-1 min-h-0 ${tab === 'route' ? '' : 'p-3'}`}>
                 {tab === 'places' && (
                   <MapsPlacesPanel
                     places={places} collections={collections} history={history}
@@ -1821,18 +1302,19 @@ export default function MapsPage() {
                 {tab === 'gpx'    && <GpxPanel traces={traces} onShow={showGpx} onDelete={deleteGpx} onUpload={uploadGpx}
                   recording={recording} recStats={recStats} onStartRec={startRecording} onStopRec={stopRecording} />}
                 {tab === 'route'  && (
-                  <RoutePanel
+                  <MapsRoutePanel
+                    route={route}
                     waypoints={waypoints}
-                    mode={routeMode} setMode={setRouteMode}
-                    results={routeResults} selected={selectedRoute} setSelected={setSelectedRoute}
-                    loading={routeLoading} error={routeError}
+                    history={history}
                     onSetWaypoint={setWaypointAt}
                     onClearWaypoint={clearWaypointAt}
                     onPickOnMap={(i) => setRoutePickMode(i)}
                     onAddStop={addStop}
                     onRemoveStop={removeStop}
-                    onMoveStop={moveStop}
+                    onReorder={reorderStop}
+                    onSwap={swapEnds}
                     onClearAll={clearRoute}
+                    onClose={closeRoutePanel}
                     onStartNav={() => nav.start(false)}
                     onSimulateNav={() => nav.start(true)}
                   />
@@ -1849,34 +1331,15 @@ export default function MapsPage() {
         <HeaderActions compact />
       </div>
 
-      {/* ── Chips de catégories (haut) — masquées sur mobile (place réduite), et
-             absentes quand l'administrateur a coupé la recherche de POI. ── */}
+      {/* ── Category chips (top) — hidden on mobile (no room) and absent when
+             the administrator disabled POI search. ── */}
       {poiEnabled && (
-      <div className="absolute top-4 left-[400px] right-[252px] z-[1090] hidden sm:flex flex-col items-start gap-2 no-print">
-        <div className="flex gap-2 overflow-x-auto max-w-full" style={{ scrollbarWidth: 'none' }}>
-          {POI_CHIPS.map(c => {
-            const active = activeCat === c.key
-            return (
-              <button key={c.key} onClick={() => searchCategory(c)}
-                className={`flex items-center gap-1.5 h-9 px-3.5 rounded-md border shadow-sm text-xs font-medium whitespace-nowrap flex-shrink-0 transition-colors
-                  ${active ? 'bg-primary border-primary text-white hover:bg-primary-hover'
-                           : 'bg-surface-0 border-border text-text-primary hover:bg-surface-1'}`}>
-                <span aria-hidden>{c.emoji}</span>
-                {t(c.labelKey, { defaultValue: c.fallback })}
-                {active && poiLoading && <RefreshCw size={12} className="animate-spin" />}
-                {active && !poiLoading && <X size={13} className="opacity-80" />}
-              </button>
-            )
-          })}
-        </div>
-        {/* Compteur / état de l'exploration */}
-        {activeCat && !poiLoading && (
-          <div className="flex items-center gap-2 px-3 h-7 rounded-full bg-surface-0 border border-border shadow-sm text-xs text-text-secondary">
-            {poiError
-              ? <span className="text-text-tertiary">{poiError}</span>
-              : <span>{t('maps_poi_count', { count: pois.length, defaultValue: `${pois.length} lieu(x)` })}</span>}
-          </div>
-        )}
+      <div className={`absolute top-4 right-[320px] z-[1090] hidden sm:flex transition-[left] duration-200 ${railOpen ? 'left-[416px]' : 'left-[400px]'} flex-col items-start gap-1 overflow-hidden no-print`}>
+        <MapsCategoryChips
+          chips={POI_CHIPS} activeKey={activeCat}
+          count={pois.length} loading={poiLoading} error={poiError}
+          onSelect={searchCategory}
+        />
       </div>
       )}
 
@@ -1916,10 +1379,11 @@ export default function MapsPage() {
         </div>
       </div>
 
-      {/* ── Calques (bas-gauche) ── */}
-      <div className="absolute bottom-6 left-3 z-[1100] no-print">
+      {/* ── Layers control (bottom-left): basemap thumbnail + panel ── */}
+      {/* Bottom-left layers control: slides right of the place rail while it is open. */}
+      <div className={`absolute bottom-6 z-[1100] no-print transition-[left] duration-200 ${railOpen ? 'left-[416px]' : 'left-3'}`}>
         {layersOpen && (
-          <div className="absolute bottom-12 left-0">
+          <div className="absolute bottom-0 left-[84px]">
             <MapsLayersPanel
               baseMap={baseMap}      onBaseMap={switchBase}
               showLabels={showLabels} onToggleLabels={toggleLabels}
@@ -1937,11 +1401,10 @@ export default function MapsPage() {
             />
           </div>
         )}
-        <button title={t('maps_layers')} onClick={() => setLayersOpen(o => !o)}
-          className={`flex items-center gap-2 h-10 px-3 rounded-lg border shadow-md text-xs font-medium transition-colors
-            ${layersOpen ? 'bg-primary-light border-primary text-primary' : 'bg-surface-0 border-border text-text-secondary hover:bg-surface-1'}`}>
-          <Layers size={16} /> {t('maps_layers')}
-        </button>
+        <MapsLayersButton
+          baseMap={baseMap} mapRef={mapRef} mapReady={mapReady} online={online}
+          open={layersOpen} onToggle={() => setLayersOpen(o => !o)}
+        />
       </div>
 
       {/* Bandeau hors-ligne */}
@@ -1966,7 +1429,7 @@ export default function MapsPage() {
                 ['R', t('maps_tab_route', { defaultValue: 'Itinéraire' })],
                 ['G', 'GPX'],
                 ['D', t('maps_tab_sketch', { defaultValue: 'Croquis' })],
-                ['L', t('maps_layers', { defaultValue: 'Couches' })],
+                ['L', t('maps_layers_button', { defaultValue: 'Calques' })],
                 ['+ / −', t('maps_zoom_in', { defaultValue: 'Zoom' })],
                 ['Échap', t('common_close', { defaultValue: 'Fermer' })],
                 ['?', t('maps_shortcuts', { defaultValue: 'Cette aide' })],
@@ -2081,11 +1544,11 @@ export default function MapsPage() {
             // Cross-module labels (core-managed, browsable at /labels).
             { type: 'action', icon: <Star size={13} />, label: t('maps_kubuno_labels', { defaultValue: 'Étiquettes Kubuno…' }),
               onClick: () => { openLabelPicker(pointEnvelope(ctxMenu.lat, ctxMenu.lng, ctxMenu.name)); setCtxMenu(null) } },
-            ...(routeResults[selectedRoute] ? [{
+            ...(route.results[route.selected] ? [{
               type: 'action' as const, icon: <Route size={13} />, label: t('maps_copy_route', { defaultValue: "Copier l'itinéraire" }),
               onClick: () => {
                 const wps = waypoints.filter((w): w is Waypoint => w != null)
-                copyKubunoData(routeEnvelope(routeResults[selectedRoute], wps, routeMode))
+                copyKubunoData(routeEnvelope(route.results[route.selected], wps, route.effectiveMode))
                 setCtxMenu(null)
               },
             }] : []),

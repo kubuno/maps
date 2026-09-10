@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { DEFAULT_STYLE } from './mapsLayers'
+import { registerThemeProtocol, installThemeImages } from './mapsTheme'
 
 export interface MapMarker {
   lat: number
@@ -39,6 +40,7 @@ export default function MiniMap({ markers, height = 300 }: { markers: MapMarker[
     if (!divRef.current || mapRef.current) return
     let map: maplibregl.Map
     try {
+      registerThemeProtocol(maplibregl)
       map = new maplibregl.Map({
         container: divRef.current,
         style: DEFAULT_STYLE,
@@ -51,6 +53,7 @@ export default function MiniMap({ markers, height = 300 }: { markers: MapMarker[
       setWebglError(true)
       return
     }
+    installThemeImages(map)
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right')
     mapRef.current = map
 

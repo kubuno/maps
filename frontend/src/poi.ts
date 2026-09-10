@@ -5,6 +5,11 @@
 // (MapsPlacePanel) can render its details (hours, phone, website, access…).
 
 import { api } from '@kubuno/sdk'
+import {
+  Utensils, BedDouble, Camera, Landmark, TrainFront, SquareParking, Pill, Banknote,
+  Coffee, Beer, Clapperboard, ShoppingCart, HeartPulse, Fuel,
+  type LucideIcon,
+} from 'lucide-react'
 import type { SearchResult } from './geocoding'
 
 /** A point of interest returned by the Overpass proxy. */
@@ -23,32 +28,46 @@ export interface Poi {
  * A user-facing category chip. Each maps to one or more backend category ids
  * (CSV passed to `/maps/overpass/nearby`). Grouping a few OSM categories under
  * one chip keeps the bar readable while staying exhaustive.
+ *
+ * `icon` is the lucide component drawn in the chips row; `emoji` is kept for
+ * the places where a plain string is needed (map markers, results panel header,
+ * context-menu entries).
  */
 export interface PoiChip {
   key:      string
   labelKey: string
   fallback: string
+  icon:     LucideIcon
   emoji:    string
   cats:     string[]
 }
 
-// Order roughly follows everyday usefulness. `cats` reference ids declared in
-// the backend catalogue (services/overpass_service.rs CATEGORIES).
+/**
+ * Size of the priority set at the head of POI_CHIPS (the categories consumer
+ * map apps surface by default). The chips row shows as many chips as fit, in
+ * this order, and folds the rest into a « Plus » overflow menu.
+ */
+export const PRIMARY_CHIP_COUNT = 8
+
+// The first PRIMARY_CHIP_COUNT entries mirror what consumer map apps surface by
+// default; the rest are secondary. `cats` reference ids declared in the backend
+// catalogue (services/overpass_service.rs CATEGORIES).
 export const POI_CHIPS: PoiChip[] = [
-  { key: 'restaurants', labelKey: 'maps_cat_restaurants', fallback: 'Restaurants',     emoji: '🍽️', cats: ['restaurant', 'fast_food'] },
-  { key: 'cafes',       labelKey: 'maps_cat_cafes',       fallback: 'Cafés',           emoji: '☕',  cats: ['cafe', 'bakery'] },
-  { key: 'bars',        labelKey: 'maps_cat_bars',        fallback: 'Bars',            emoji: '🍺', cats: ['bar'] },
-  { key: 'hotels',      labelKey: 'maps_cat_hotels',      fallback: 'Hôtels',          emoji: '🏨', cats: ['hotel'] },
-  { key: 'museums',     labelKey: 'maps_cat_museums',     fallback: 'Musées',          emoji: '🏛️', cats: ['museum'] },
-  { key: 'cinemas',     labelKey: 'maps_cat_cinemas',     fallback: 'Cinémas',         emoji: '🎬', cats: ['cinema', 'theatre'] },
-  { key: 'activities',  labelKey: 'maps_cat_activities',  fallback: 'Activités',       emoji: '📸', cats: ['attraction', 'viewpoint', 'park', 'sport'] },
-  { key: 'shops',       labelKey: 'maps_cat_shops',       fallback: 'Commerces',       emoji: '🛒', cats: ['supermarket'] },
-  { key: 'pharmacies',  labelKey: 'maps_cat_pharmacies',  fallback: 'Pharmacies',      emoji: '💊', cats: ['pharmacy'] },
-  { key: 'health',      labelKey: 'maps_cat_health',      fallback: 'Santé',           emoji: '🏥', cats: ['hospital', 'doctor'] },
-  { key: 'atm',         labelKey: 'maps_cat_atm',         fallback: 'Distributeurs',   emoji: '🏧', cats: ['atm', 'bank'] },
-  { key: 'fuel',        labelKey: 'maps_cat_fuel',        fallback: 'Carburant',       emoji: '⛽', cats: ['fuel', 'charging'] },
-  { key: 'parking',     labelKey: 'maps_cat_parking',     fallback: 'Parkings',        emoji: '🅿️', cats: ['parking'] },
-  { key: 'transit',     labelKey: 'maps_cat_transit',     fallback: 'Transports',      emoji: '🚏', cats: ['transit'] },
+  { key: 'restaurants', labelKey: 'maps_cat_restaurants', fallback: 'Restaurants',              icon: Utensils,      emoji: '🍽️', cats: ['restaurant', 'fast_food'] },
+  { key: 'hotels',      labelKey: 'maps_cat_hotels',      fallback: 'Hôtels',                   icon: BedDouble,     emoji: '🏨', cats: ['hotel'] },
+  { key: 'activities',  labelKey: 'maps_cat_activities',  fallback: 'Activités à découvrir',    icon: Camera,        emoji: '📸', cats: ['attraction', 'viewpoint', 'park', 'sport'] },
+  { key: 'museums',     labelKey: 'maps_cat_museums',     fallback: 'Musées',                   icon: Landmark,      emoji: '🏛️', cats: ['museum'] },
+  { key: 'transit',     labelKey: 'maps_cat_transit',     fallback: 'Transports en commun',     icon: TrainFront,    emoji: '🚏', cats: ['transit'] },
+  { key: 'parking',     labelKey: 'maps_cat_parking',     fallback: 'Parkings',                 icon: SquareParking, emoji: '🅿️', cats: ['parking'] },
+  { key: 'pharmacies',  labelKey: 'maps_cat_pharmacies',  fallback: 'Pharmacies',               icon: Pill,          emoji: '💊', cats: ['pharmacy'] },
+  { key: 'atm',         labelKey: 'maps_cat_atm',         fallback: 'Distributeurs de billets', icon: Banknote,      emoji: '🏧', cats: ['atm', 'bank'] },
+  // Secondary categories (overflow on narrow widths).
+  { key: 'cafes',       labelKey: 'maps_cat_cafes',       fallback: 'Cafés',                    icon: Coffee,        emoji: '☕',  cats: ['cafe', 'bakery'] },
+  { key: 'bars',        labelKey: 'maps_cat_bars',        fallback: 'Bars',                     icon: Beer,          emoji: '🍺', cats: ['bar'] },
+  { key: 'cinemas',     labelKey: 'maps_cat_cinemas',     fallback: 'Cinémas',                  icon: Clapperboard,  emoji: '🎬', cats: ['cinema', 'theatre'] },
+  { key: 'shops',       labelKey: 'maps_cat_shops',       fallback: 'Commerces',                icon: ShoppingCart,  emoji: '🛒', cats: ['supermarket'] },
+  { key: 'health',      labelKey: 'maps_cat_health',      fallback: 'Santé',                    icon: HeartPulse,    emoji: '🏥', cats: ['hospital', 'doctor'] },
+  { key: 'fuel',        labelKey: 'maps_cat_fuel',        fallback: 'Carburant',                icon: Fuel,          emoji: '⛽', cats: ['fuel', 'charging'] },
 ]
 
 /** Fetches POIs of the given categories around a point (radius in meters). */

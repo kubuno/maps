@@ -5,6 +5,7 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import { MapPinned } from 'lucide-react'
 import { api } from '@kubuno/sdk'
 import { DEFAULT_STYLE, geoJsonBounds } from './mapsLayers'
+import { registerThemeProtocol, installThemeImages } from './mapsTheme'
 import { fromFeatureCollection, renderSketch } from './mapSketch'
 
 // Vue PUBLIQUE en lecture seule d'un croquis partagé — route hors-shell
@@ -21,6 +22,7 @@ export default function MapsPublicSketch() {
     let cancelled = false
     if (!mapDivRef.current || mapRef.current) return
 
+    registerThemeProtocol(maplibregl)
     const map = new maplibregl.Map({
       container: mapDivRef.current,
       style: DEFAULT_STYLE,
@@ -28,6 +30,7 @@ export default function MapsPublicSketch() {
       zoom: 4,
       attributionControl: { compact: true },
     })
+    installThemeImages(map)
     mapRef.current = map
 
     const load = async () => {
@@ -51,12 +54,22 @@ export default function MapsPublicSketch() {
     }
     load()
 
-    const ro = new ResizeObserver(() => { try { map.resize() } catch { /* removed */ } })
+    // One resize per frame with a synchronous redraw, so a window drag never
+    // composites an empty (cleared) canvas frame. See MapsPage for the details.
+    let resizeRaf = 0
+    const ro = new ResizeObserver(() => {
+      if (resizeRaf) return
+      resizeRaf = requestAnimationFrame(() => {
+        resizeRaf = 0
+        try { map.resize(); map.redraw() } catch { /* removed */ }
+      })
+    })
     ro.observe(mapDivRef.current)
 
     return () => {
       cancelled = true
       ro.disconnect()
+      if (resizeRaf) cancelAnimationFrame(resizeRaf)
       map.remove()
       mapRef.current = null
     }

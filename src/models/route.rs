@@ -23,18 +23,24 @@ pub struct WaypointDto {
 
 #[derive(Debug, Deserialize)]
 pub struct CalculateRouteDto {
-    // Le frontend envoie des objets { lat, lng } ; on les convertit en [lat, lng]
-    // pour OsrmService (qui réordonne en lng,lat pour l'API OSRM).
+    // The frontend sends { lat, lng } objects; they are converted to [lat, lng]
+    // for OsrmService (which reorders to lng,lat for the OSRM API).
     pub waypoints:    Vec<WaypointDto>,
     pub mode:         Option<String>,
     pub alternatives: Option<bool>,
-    /// Demande les étapes virage-par-virage (legs[].steps[].maneuver). Coûteux,
-    /// donc opt-in : seul le panneau d'itinéraire avancé le réclame.
+    /// Requests turn-by-turn steps (legs[].steps[].maneuver). Costly, hence
+    /// opt-in: only the advanced route panel asks for them.
     pub steps:        Option<bool>,
+    /// Road classes to avoid (OSRM `exclude=`): any of `toll`, `motorway`, `ferry`.
+    /// Optional; an empty list means no restriction.
+    pub exclude:      Option<Vec<String>>,
 }
 
+/// Values accepted for `CalculateRouteDto::exclude` (OSRM class names).
+pub const ALLOWED_EXCLUDES: &[&str] = &["toll", "motorway", "ferry"];
+
 impl CalculateRouteDto {
-    /// Coordonnées au format attendu par OsrmService : [lat, lng] par point.
+    /// Coordinates in the shape OsrmService expects: [lat, lng] per point.
     pub fn coords(&self) -> Vec<[f64; 2]> {
         self.waypoints.iter().map(|w| [w.lat, w.lng]).collect()
     }

@@ -16,7 +16,11 @@ pub async fn history(
     Extension(user): Extension<MapsUser>,
 ) -> Result<Json<Value>> {
     let rows = sqlx::query(
-        "SELECT id, query, result_name, result_lat, result_lng,
+        // NUMERIC columns cannot be decoded as f64 by sqlx (BigDecimal only):
+        // without the cast, `try_get::<Option<f64>>` fails and the coordinates
+        // were silently reported as null.
+        "SELECT id, query, result_name,
+                result_lat::float8 AS result_lat, result_lng::float8 AS result_lng,
                 result_osm_type, result_osm_id, searched_at
          FROM maps.search_history WHERE owner_id = $1
          ORDER BY searched_at DESC LIMIT 50"

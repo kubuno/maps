@@ -30,3 +30,21 @@
   background-repeat: no-repeat;
   background-size: cover;
 }
+
+/* Left rail while a place is open (MapsPage): the place panel fills the whole
+ * rail behind (absolute), and the search pill stays in flow, raised above the
+ * hero photo whose top band is reserved for it (MapsPlaceHeader.PILL_BAND). */
+.maps-rail-place > :first-child { position: relative; z-index: 2; margin: 12px 12px 0; }
+.maps-rail-place > :last-child  { position: absolute; inset: 0; z-index: 1; }
+
+/* "Imprimer" from the route panel: the left rail becomes a static full-width
+ * block (map, search pill and the rest of the chrome are `no-print`); the
+ * scroll containers unfold so the whole itinerary is on paper. */
+@media print {
+  .maps-rail-route { position: static !important; width: 100% !important; max-width: none !important; transform: none !important; }
+  .maps-rail-route > :first-child { display: none !important; }
+  .maps-rail-route > div, .maps-rail-route .overflow-y-auto, .maps-rail-route .h-full {
+    height: auto !important; max-height: none !important; min-height: 0 !important;
+  }
+  .maps-rail-route .shadow-xl { box-shadow: none !important; border: 0 !important; }
+}

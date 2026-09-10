@@ -127,7 +127,7 @@ export function MapsPlacesPanel({
 
   const Chip = ({ id, label, color, count }: { id: string; label: string; color?: string; count?: number }) => (
     <button onClick={() => setFilter(id)}
-      className={`flex items-center gap-1.5 h-7 px-2.5 rounded-full border text-[11px] font-medium whitespace-nowrap flex-shrink-0 transition-colors ${
+      className={`flex items-center gap-1.5 h-7 px-2.5 rounded-md border text-[11px] font-medium whitespace-nowrap flex-shrink-0 transition-colors ${
         filter === id ? 'bg-primary text-white border-primary' : 'bg-surface-0 text-text-secondary border-border hover:bg-surface-1'
       }`}>
       {color && <span className="w-2 h-2 rounded-full" style={{ background: color }} />}
