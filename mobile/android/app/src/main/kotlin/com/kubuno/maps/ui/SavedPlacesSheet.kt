@@ -24,7 +24,8 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import com.kubuno.android.ui.components.KubunoButton
+import com.kubuno.android.ui.components.KubunoButtonVariant
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -91,10 +92,13 @@ private fun TracesTab(
     onDelete: (GpxTrace) -> Unit,
     onImport: () -> Unit,
 ) {
-    TextButton(onClick = onImport, modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) {
-        Icon(Icons.Outlined.FileUpload, contentDescription = null, modifier = Modifier.size(18.dp))
-        Text("Importer un fichier GPX", modifier = Modifier.padding(start = 8.dp))
-    }
+    KubunoButton(
+        "Importer un fichier GPX",
+        onClick = onImport,
+        variant = KubunoButtonVariant.TEXT,
+        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+        icon = { Icon(Icons.Outlined.FileUpload, contentDescription = null, modifier = Modifier.size(18.dp)) },
+    )
     if (traces.isEmpty()) {
         Empty("Aucune trace. Importez un fichier .gpx pour commencer.")
         return

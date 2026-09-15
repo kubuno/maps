@@ -70,11 +70,15 @@ object MapsType {
     val LabelPill = TextStyle(fontFamily = Rounded, fontSize = 12.sp, lineHeight = 14.sp, fontWeight = FontWeight.Bold)
 }
 
-/** Rounded corners used across the maps redesign. */
+/**
+ * Corners. Cards and buttons are flattened to the Kubuno web scale (8dp) so
+ * maps reads as part of the same visual identity; only the bottom-sheet lip and
+ * the transport-mode pills keep a rounder shape, which is their signature.
+ */
 object MapsShape {
-    val Card = RoundedCornerShape(20.dp)
-    val Sheet = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
-    val Button = RoundedCornerShape(28.dp)
+    val Card = RoundedCornerShape(8.dp)
+    val Sheet = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+    val Button = RoundedCornerShape(8.dp)
     val Pill = RoundedCornerShape(50)
 }
 
