@@ -9,6 +9,8 @@ number at release time, and CI publishes that section as the GitHub Release note
 
 ## [Unreleased]
 
+## [0.1.7] - 2026-09-18
+
 ### Fixed
 
 - **A map embedded in a page no longer steals the scroll wheel.** Scrolling
@@ -216,5 +218,6 @@ number at release time, and CI publishes that section as the GitHub Release note
 - Default application background token aligned with the core (`--body-bg` `#f8fafd`). Only
   visible when the module runs standalone: inside the shell the active theme sets it.
 
-[Unreleased]: https://github.com/kubuno/maps/compare/v0.1.6...HEAD
+[Unreleased]: https://github.com/kubuno/maps/compare/v0.1.7...HEAD
+[0.1.7]: https://github.com/kubuno/maps/releases/tag/v0.1.7
 [0.1.6]: https://github.com/kubuno/maps/releases/tag/v0.1.6
