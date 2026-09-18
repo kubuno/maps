@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect, type ReactNode } from 'react'
 import { Search, RefreshCw, X, MapPin } from 'lucide-react'
-import { mapNominatimResult, buildNominatimSearchUrl, type SearchResult } from './geocoding'
+import { buildNominatimSearchUrl, type SearchResult } from './geocoding'
+import { fetchResults } from './searchRows'
 
 /** Hover tint via inline style: `hover:` utilities can lose against the host's layer. */
 const hoverBg = (color: string) => ({
@@ -47,10 +48,9 @@ export function MapsAddressInput({
     if (query.trim().length < 2) { setResults([]); return }
     setLoading(true)
     try {
-      const res = await fetch(buildNominatimSearchUrl(query, 6))
-      const raw: Array<Record<string, unknown>> = await res.json()
+      const rows = await fetchResults(buildNominatimSearchUrl(query, 6))
       if (id !== seq.current) return
-      setResults(raw.map(mapNominatimResult))
+      setResults(rows)
       setOpen(true)
     } catch { if (id === seq.current) setResults([]) }
     finally { if (id === seq.current) setLoading(false) }

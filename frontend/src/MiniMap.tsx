@@ -55,6 +55,18 @@ export default function MiniMap({ markers, height = 300 }: { markers: MapMarker[
     }
     installThemeImages(map)
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right')
+
+    // The wheel belongs to the PAGE until the map is taken. Embedded in a panel
+    // that scrolls, a map that swallows every wheel turn passing over it sends
+    // the reader into orbit instead of down the page. Scroll-zoom is therefore
+    // granted only while the map holds focus; the zoom buttons work throughout.
+    map.scrollZoom.disable()
+    const canvas = map.getCanvas()
+    const grant  = () => map.scrollZoom.enable()
+    const revoke = () => map.scrollZoom.disable()
+    canvas.addEventListener('focus', grant)
+    canvas.addEventListener('blur', revoke)
+
     mapRef.current = map
 
     map.on('load', () => {
@@ -88,7 +100,11 @@ export default function MiniMap({ markers, height = 300 }: { markers: MapMarker[
       sync()
     })
 
-    return () => { map.remove(); mapRef.current = null }
+    return () => {
+      canvas.removeEventListener('focus', grant)
+      canvas.removeEventListener('blur', revoke)
+      map.remove(); mapRef.current = null
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

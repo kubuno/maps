@@ -37,6 +37,30 @@ export function mapNominatimResult(r: Record<string, unknown>): SearchResult {
   }
 }
 
+/**
+ * One place, one row.
+ *
+ * The geocoder answers with OSM OBJECTS, and a single place is usually several
+ * of them: Paris is a boundary relation AND a place node, each with its own id
+ * and the very same `display_name`. `dedupe=1` on the request only collapses
+ * duplicates of the *same* object, so a search for "paris" comes back with two
+ * lines a reader cannot tell apart — and choosing between them means nothing.
+ *
+ * The key is therefore what is actually READ, and the first of each label wins:
+ * the geocoder returns them by relevance. Two genuinely distinct places never
+ * collide, because a display name carries the whole administrative hierarchy —
+ * "Paris, Île-de-France…" and "Paris, Texas…" are different strings.
+ */
+export function dedupeByLabel(rows: SearchResult[]): SearchResult[] {
+  const seen = new Set<string>()
+  return rows.filter(r => {
+    const key = r.display_name.trim().toLowerCase()
+    if (key === '' || seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}
+
 /** Builds the Nominatim forward-geocoding URL. */
 export function buildNominatimSearchUrl(
   query: string, limit = 8,

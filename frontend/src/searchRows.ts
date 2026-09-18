@@ -1,7 +1,7 @@
 // Row building and Nominatim querying for the map search bar (kept out of the
 // component so MapsSearchBar.tsx stays focused on state and rendering).
 import type maplibregl from 'maplibre-gl'
-import { mapNominatimResult, buildNominatimSearchUrl, type SearchResult } from './geocoding'
+import { mapNominatimResult, buildNominatimSearchUrl, dedupeByLabel, type SearchResult } from './geocoding'
 import type { HistoryEntry } from './MapsPlacesPanel'
 import { fold, historyTitle, type SearchRow } from './MapsSearchDropdown'
 
@@ -67,7 +67,8 @@ export async function fetchResults(url: string): Promise<SearchResult[]> {
   const res = await fetch(url)
   if (!res.ok) throw new Error('HTTP ' + res.status)
   const raw: Array<Record<string, unknown>> = await res.json()
-  return raw.map(mapNominatimResult)
+  // Un lieu = une ligne : voir `dedupeByLabel`.
+  return dedupeByLabel(raw.map(mapNominatimResult))
 }
 
 /**
@@ -89,7 +90,10 @@ export async function searchNearbyFirst(query: string, map: maplibregl.Map | nul
     seen.add(key); merged.push(r)
     if (merged.length >= limit) break
   }
-  return merged
+  // Les deux listes sont déjà dédoublonnées chacune de son côté ; leur FUSION
+  // ne l'est que par identité OSM, et le même lieu revient volontiers sous deux
+  // objets différents — d'où un dernier passage sur le libellé.
+  return dedupeByLabel(merged)
 }
 
 export function historyToResult(e: HistoryEntry): SearchResult {

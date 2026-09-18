@@ -153,6 +153,15 @@ const en = {
   maps_route_send_to_phone_hint: "Scan this code with your phone's camera to open this route in Kubuno.",
   maps_route_copy_link: "Copy link",
   maps_route_print: "Print",
+  maps_pick_search: "Search for an address or a place…",
+  maps_pick_hint: "Click the map to place the point, or drag the pin. The wheel zooms once the map is selected.",
+  maps_pick_from_address: "Locate the address entered",
+  maps_pick_not_found: "Address not found.",
+  maps_pick_clear: "Clear the position",
+  maps_pick_latitude: "Latitude",
+  maps_pick_longitude: "Longitude",
+  maps_pick_no_webgl: "Map unavailable on this browser: enter the coordinates by hand.",
+  maps_pick_unset: "No position chosen",
 }
 
 const fr = {
@@ -308,6 +317,15 @@ const fr = {
   maps_route_send_to_phone_hint: "Scannez ce code avec l'appareil photo de votre téléphone pour ouvrir cet itinéraire dans Kubuno.",
   maps_route_copy_link: "Copier le lien",
   maps_route_print: "Imprimer",
+  maps_pick_search: "Rechercher une adresse ou un lieu…",
+  maps_pick_hint: "Cliquez sur la carte pour placer le point, ou déplacez le repère. La molette zoome une fois la carte sélectionnée.",
+  maps_pick_from_address: "Situer l’adresse saisie",
+  maps_pick_not_found: "Adresse introuvable.",
+  maps_pick_clear: "Effacer la position",
+  maps_pick_latitude: "Latitude",
+  maps_pick_longitude: "Longitude",
+  maps_pick_no_webgl: "Carte indisponible sur ce navigateur : saisissez les coordonnées à la main.",
+  maps_pick_unset: "Aucune position choisie",
 }
 
 const es = {
@@ -463,6 +481,15 @@ const es = {
   maps_route_send_to_phone_hint: "Escanea este código con la cámara de tu teléfono para abrir esta ruta en Kubuno.",
   maps_route_copy_link: "Copiar enlace",
   maps_route_print: "Imprimir",
+  maps_pick_search: "Buscar una dirección o un lugar…",
+  maps_pick_hint: "Haga clic en el mapa para situar el punto, o arrastre el marcador. La rueda hace zoom una vez seleccionado el mapa.",
+  maps_pick_from_address: "Situar la dirección introducida",
+  maps_pick_not_found: "Dirección no encontrada.",
+  maps_pick_clear: "Borrar la posición",
+  maps_pick_latitude: "Latitud",
+  maps_pick_longitude: "Longitud",
+  maps_pick_no_webgl: "Mapa no disponible en este navegador: introduzca las coordenadas a mano.",
+  maps_pick_unset: "Ninguna posición elegida",
 }
 
 const pt = {
@@ -618,6 +645,15 @@ const pt = {
   maps_route_send_to_phone_hint: "Digitalize este código com a câmara do seu telemóvel para abrir este itinerário no Kubuno.",
   maps_route_copy_link: "Copiar ligação",
   maps_route_print: "Imprimir",
+  maps_pick_search: "Procurar uma morada ou um local…",
+  maps_pick_hint: "Clique no mapa para colocar o ponto, ou arraste o marcador. A roda faz zoom depois de selecionar o mapa.",
+  maps_pick_from_address: "Localizar a morada indicada",
+  maps_pick_not_found: "Morada não encontrada.",
+  maps_pick_clear: "Limpar a posição",
+  maps_pick_latitude: "Latitude",
+  maps_pick_longitude: "Longitude",
+  maps_pick_no_webgl: "Mapa indisponível neste navegador: introduza as coordenadas manualmente.",
+  maps_pick_unset: "Nenhuma posição escolhida",
 }
 
 const it = {
@@ -773,6 +809,15 @@ const it = {
   maps_route_send_to_phone_hint: "Scansiona questo codice con la fotocamera del telefono per aprire questo percorso in Kubuno.",
   maps_route_copy_link: "Copia link",
   maps_route_print: "Stampa",
+  maps_pick_search: "Cerca un indirizzo o un luogo…",
+  maps_pick_hint: "Fai clic sulla mappa per posizionare il punto, o trascina il segnaposto. La rotellina ingrandisce una volta selezionata la mappa.",
+  maps_pick_from_address: "Individua l’indirizzo inserito",
+  maps_pick_not_found: "Indirizzo non trovato.",
+  maps_pick_clear: "Cancella la posizione",
+  maps_pick_latitude: "Latitudine",
+  maps_pick_longitude: "Longitudine",
+  maps_pick_no_webgl: "Mappa non disponibile su questo browser: inserisci le coordinate a mano.",
+  maps_pick_unset: "Nessuna posizione scelta",
 }
 
 const de = {
@@ -928,6 +973,15 @@ const de = {
   maps_route_send_to_phone_hint: "Scannen Sie diesen Code mit der Kamera Ihres Telefons, um diese Route in Kubuno zu öffnen.",
   maps_route_copy_link: "Link kopieren",
   maps_route_print: "Drucken",
+  maps_pick_search: "Adresse oder Ort suchen…",
+  maps_pick_hint: "Klicken Sie auf die Karte, um den Punkt zu setzen, oder ziehen Sie die Markierung. Das Mausrad zoomt, sobald die Karte ausgewählt ist.",
+  maps_pick_from_address: "Eingegebene Adresse verorten",
+  maps_pick_not_found: "Adresse nicht gefunden.",
+  maps_pick_clear: "Position löschen",
+  maps_pick_latitude: "Breitengrad",
+  maps_pick_longitude: "Längengrad",
+  maps_pick_no_webgl: "Karte in diesem Browser nicht verfügbar: Koordinaten bitte von Hand eingeben.",
+  maps_pick_unset: "Keine Position gewählt",
 }
 
 const el = {
@@ -1083,6 +1137,15 @@ const el = {
   maps_route_send_to_phone_hint: "Σαρώστε αυτόν τον κωδικό με την κάμερα του τηλεφώνου σας για να ανοίξετε αυτή τη διαδρομή στο Kubuno.",
   maps_route_copy_link: "Αντιγραφή συνδέσμου",
   maps_route_print: "Εκτύπωση",
+  maps_pick_search: "Αναζήτηση διεύθυνσης ή τοποθεσίας…",
+  maps_pick_hint: "Κάντε κλικ στον χάρτη για να τοποθετήσετε το σημείο, ή σύρετε τον δείκτη. Η ροδέλα κάνει ζουμ μόλις επιλεγεί ο χάρτης.",
+  maps_pick_from_address: "Εντοπισμός της διεύθυνσης που δόθηκε",
+  maps_pick_not_found: "Η διεύθυνση δεν βρέθηκε.",
+  maps_pick_clear: "Καθαρισμός θέσης",
+  maps_pick_latitude: "Γεωγραφικό πλάτος",
+  maps_pick_longitude: "Γεωγραφικό μήκος",
+  maps_pick_no_webgl: "Ο χάρτης δεν είναι διαθέσιμος σε αυτό το πρόγραμμα περιήγησης: εισαγάγετε τις συντεταγμένες χειροκίνητα.",
+  maps_pick_unset: "Δεν έχει επιλεγεί θέση",
 }
 
 const ru = {
@@ -1238,6 +1301,15 @@ const ru = {
   maps_route_send_to_phone_hint: "Отсканируйте этот код камерой телефона, чтобы открыть этот маршрут в Kubuno.",
   maps_route_copy_link: "Копировать ссылку",
   maps_route_print: "Печать",
+  maps_pick_search: "Поиск адреса или места…",
+  maps_pick_hint: "Щёлкните по карте, чтобы поставить точку, или перетащите метку. Колёсико масштабирует после выбора карты.",
+  maps_pick_from_address: "Найти введённый адрес",
+  maps_pick_not_found: "Адрес не найден.",
+  maps_pick_clear: "Очистить положение",
+  maps_pick_latitude: "Широта",
+  maps_pick_longitude: "Долгота",
+  maps_pick_no_webgl: "Карта недоступна в этом браузере: введите координаты вручную.",
+  maps_pick_unset: "Положение не выбрано",
 }
 
 const ar = {
@@ -1393,6 +1465,15 @@ const ar = {
   maps_route_send_to_phone_hint: "امسح هذا الرمز بكاميرا هاتفك لفتح هذا المسار في Kubuno.",
   maps_route_copy_link: "نسخ الرابط",
   maps_route_print: "طباعة",
+  maps_pick_search: "ابحث عن عنوان أو مكان…",
+  maps_pick_hint: "انقر على الخريطة لتحديد النقطة، أو اسحب المؤشّر. تعمل عجلة الفأرة على التكبير بعد تحديد الخريطة.",
+  maps_pick_from_address: "تحديد العنوان المُدخل",
+  maps_pick_not_found: "لم يُعثر على العنوان.",
+  maps_pick_clear: "مسح الموضع",
+  maps_pick_latitude: "خط العرض",
+  maps_pick_longitude: "خط الطول",
+  maps_pick_no_webgl: "الخريطة غير متاحة في هذا المتصفّح: أدخل الإحداثيات يدويًا.",
+  maps_pick_unset: "لم يتم اختيار أي موضع",
 }
 
 const he = {
@@ -1548,6 +1629,15 @@ const he = {
   maps_route_send_to_phone_hint: "סרקו קוד זה במצלמת הטלפון כדי לפתוח מסלול זה ב-Kubuno.",
   maps_route_copy_link: "העתקת הקישור",
   maps_route_print: "הדפסה",
+  maps_pick_search: "חיפוש כתובת או מקום…",
+  maps_pick_hint: "לחצו על המפה כדי למקם את הנקודה, או גררו את הסמן. גלגלת העכבר מתקרבת רק לאחר בחירת המפה.",
+  maps_pick_from_address: "איתור הכתובת שהוזנה",
+  maps_pick_not_found: "הכתובת לא נמצאה.",
+  maps_pick_clear: "ניקוי המיקום",
+  maps_pick_latitude: "קו רוחב",
+  maps_pick_longitude: "קו אורך",
+  maps_pick_no_webgl: "המפה אינה זמינה בדפדפן הזה: הזינו את הקואורדינטות ידנית.",
+  maps_pick_unset: "לא נבחר מיקום",
 }
 
 const hi = {
@@ -1703,6 +1793,15 @@ const hi = {
   maps_route_send_to_phone_hint: "इस मार्ग को Kubuno में खोलने के लिए अपने फ़ोन के कैमरे से यह कोड स्कैन करें।",
   maps_route_copy_link: "लिंक कॉपी करें",
   maps_route_print: "प्रिंट करें",
+  maps_pick_search: "कोई पता या स्थान खोजें…",
+  maps_pick_hint: "बिंदु रखने के लिए मानचित्र पर क्लिक करें, या निशान खींचें। मानचित्र चुनने के बाद व्हील ज़ूम करता है।",
+  maps_pick_from_address: "दर्ज किया गया पता ढूँढें",
+  maps_pick_not_found: "पता नहीं मिला।",
+  maps_pick_clear: "स्थिति मिटाएँ",
+  maps_pick_latitude: "अक्षांश",
+  maps_pick_longitude: "देशांतर",
+  maps_pick_no_webgl: "इस ब्राउज़र में मानचित्र उपलब्ध नहीं: निर्देशांक हाथ से भरें।",
+  maps_pick_unset: "कोई स्थिति नहीं चुनी गई",
 }
 
 const zh = {
@@ -1858,6 +1957,15 @@ const zh = {
   maps_route_send_to_phone_hint: "用手机相机扫描此二维码，即可在 Kubuno 中打开此路线。",
   maps_route_copy_link: "复制链接",
   maps_route_print: "打印",
+  maps_pick_search: "搜索地址或地点…",
+  maps_pick_hint: "点击地图放置该点，或拖动标记。选中地图后，滚轮才会缩放。",
+  maps_pick_from_address: "定位已填写的地址",
+  maps_pick_not_found: "未找到该地址。",
+  maps_pick_clear: "清除位置",
+  maps_pick_latitude: "纬度",
+  maps_pick_longitude: "经度",
+  maps_pick_no_webgl: "此浏览器无法显示地图：请手动输入坐标。",
+  maps_pick_unset: "尚未选择位置",
 }
 
 const ja = {
@@ -2013,6 +2121,15 @@ const ja = {
   maps_route_send_to_phone_hint: "スマートフォンのカメラでこのコードを読み取ると、このルートを Kubuno で開けます。",
   maps_route_copy_link: "リンクをコピー",
   maps_route_print: "印刷",
+  maps_pick_search: "住所または場所を検索…",
+  maps_pick_hint: "地図をクリックして地点を置くか、ピンをドラッグします。地図を選択するとホイールで拡大縮小できます。",
+  maps_pick_from_address: "入力した住所を地図上に示す",
+  maps_pick_not_found: "住所が見つかりません。",
+  maps_pick_clear: "位置を消去",
+  maps_pick_latitude: "緯度",
+  maps_pick_longitude: "経度",
+  maps_pick_no_webgl: "このブラウザーでは地図を表示できません。座標を手入力してください。",
+  maps_pick_unset: "位置が未選択です",
 }
 
 registerModuleTranslations('maps', { en, fr, es, pt, it, de, el, ru, ar, he, hi, zh, ja })

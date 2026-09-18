@@ -14,6 +14,7 @@ import {
   FaviconRegistry,
   ModuleSettingsRegistry,
   ModuleServiceRegistry,
+  SlotRegistry,
   useSidebarStore,
   useToolbarStore,
   useRightPanelStore,
@@ -26,6 +27,7 @@ import MapsMiniPanel from './MapsMiniPanel'
 import MapsSidebarBody from './MapsSidebarBody'
 import { geoipLookup } from './geoipService'
 import MiniMap from './MiniMap'
+import MapsLocationPicker from './MapsLocationPicker'
 import MapsDataCard from './MapsDataCard'
 import { registerDataCardRenderer } from './kubunoData'
 
@@ -49,6 +51,15 @@ export function register() {
     // ModuleServiceRegistry.get('maps','MiniMap') and renders <MiniMap markers/>.
     MiniMap,
   })
+
+  // « Choisir un point sur Terre » : partout où l'hôte pose ce champ (la fiche
+  // d'un bâtiment dans la console, aujourd'hui), il montre une carte au lieu de
+  // deux champs numériques. L'hôte ne nous nomme pas, il déclare le trou ; nous
+  // le remplissons, et il retrouve ses deux champs si maps est désinstallé.
+  // Importé directement, pas en `lazy` : l'hôte rend la surcharge là où il rend
+  // ses propres champs, sans `Suspense` autour — et maplibre est déjà dans ce
+  // bundle (MiniMap), donc le différer n'économiserait rien.
+  SlotRegistry.registerOverride('geo-point-field', 'maps', MapsLocationPicker)
 
   // Rich card for maps JSON envelopes copied to the clipboard (`maps.place`…):
   // consumer modules (chat…) resolve it through the shared extension point.
