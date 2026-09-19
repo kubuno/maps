@@ -1,15 +1,46 @@
 use chrono::{DateTime, Utc};
-use quick_xml::events::Event;
+use quick_xml::events::{BytesRef, BytesText, Event};
 use quick_xml::Reader;
 
 use crate::errors::{MapsError, Result};
 use crate::models::gpx::{GpxFile, GpxPoint, GpxStats, GpxTrack};
 
+/// Character data of a `Text` event: decoded, line-end normalised, entities
+/// resolved. A malformed entity falls back to the decoded form rather than
+/// discarding the whole node.
+fn text_content(e: &BytesText) -> String {
+    match e.xml10_content() {
+        Ok(decoded) => match quick_xml::escape::unescape(&decoded) {
+            Ok(unescaped) => unescaped.into_owned(),
+            Err(_) => decoded.into_owned(),
+        },
+        Err(_) => String::new(),
+    }
+}
+
+/// Character data a `GeneralRef` event stands for: `amp` -> `&`, `#10` -> newline.
+/// An unknown entity keeps its source form instead of vanishing.
+fn ref_content(e: &BytesRef) -> String {
+    match e.decode() {
+        Ok(name) => {
+            let source = format!("&{name};");
+            quick_xml::escape::unescape(&source).map_or(source.clone(), |r| r.into_owned())
+        }
+        Err(_) => String::new(),
+    }
+}
+
 pub fn parse_gpx(content: &[u8]) -> Result<GpxFile> {
     let mut reader = Reader::from_reader(content);
-    reader.config_mut().trim_text(true);
+    // NOT trim_text(true): since quick-xml 0.41 an entity is its own event, so
+    // `A &amp; B` arrives in three pieces. Trimming each piece separately would
+    // weld them together. The assembled value is trimmed once, at the end tag.
+    reader.config_mut().trim_text(false);
 
     let mut buf = Vec::new();
+    // Character data of the element being read, reassembled from `Text` and
+    // `GeneralRef` events and consumed at the matching end tag.
+    let mut text_acc = String::new();
 
     let mut file = GpxFile {
         name:        None,
@@ -37,6 +68,7 @@ pub fn parse_gpx(content: &[u8]) -> Result<GpxFile> {
     loop {
         match reader.read_event_into(&mut buf) {
             Ok(Event::Start(ref e)) => {
+                text_acc.clear();
                 let tag = std::str::from_utf8(e.local_name().as_ref()).unwrap_or("").to_string();
                 match tag.as_str() {
                     "metadata" => { in_metadata = true; }
@@ -67,6 +99,40 @@ pub fn parse_gpx(content: &[u8]) -> Result<GpxFile> {
             }
             Ok(Event::End(ref e)) => {
                 let tag = std::str::from_utf8(e.local_name().as_ref()).unwrap_or("").to_string();
+                // The element is finished, so its character data is complete:
+                // trim once, here, rather than fragment by fragment.
+                let text = std::mem::take(&mut text_acc).trim().to_string();
+                if in_ele {
+                    if let (Some(pt), Ok(elev)) = (current_point.as_mut(), text.trim().parse::<f64>()) {
+                        pt.elevation = Some(elev);
+                    }
+                } else if in_time {
+                    let parsed = text.trim().parse::<DateTime<Utc>>().ok();
+                    if in_trkpt || in_wpt {
+                        if let Some(pt) = current_point.as_mut() {
+                            pt.time = parsed;
+                        }
+                    }
+                } else if in_pt_name {
+                    if let Some(pt) = current_point.as_mut() {
+                        pt.name = Some(text.clone());
+                    }
+                } else if in_name {
+                    if in_trk {
+                        if let Some(track) = current_track.as_mut() {
+                            track.name = Some(text.clone());
+                        }
+                    } else if !in_metadata {
+                        // top-level gpx name
+                    } else {
+                        file.name = Some(text.clone());
+                    }
+                } else if in_desc && !in_metadata {
+                    // skip
+                } else if in_desc {
+                    file.description = Some(text.clone());
+                }
+
                 match tag.as_str() {
                     "metadata" => { in_metadata = false; }
                     "trk"      => {
@@ -105,49 +171,12 @@ pub fn parse_gpx(content: &[u8]) -> Result<GpxFile> {
                     _ => {}
                 }
             }
-            Ok(Event::Text(ref e)) => {
-                // quick-xml no longer offers a single `unescape()`: decode the
-                // bytes (and normalize line endings) first, then turn XML
-                // entities back into characters. GPX text nodes are content,
-                // so the caller wants the unescaped form.
-                let decoded = e.xml10_content().unwrap_or_default();
-                let unescaped = quick_xml::escape::unescape(&decoded);
-                let text = match &unescaped {
-                    Ok(s)   => s.as_ref(),
-                    Err(_)  => decoded.as_ref(),
-                }
-                .to_string();
-                if in_ele {
-                    if let (Some(pt), Ok(elev)) = (current_point.as_mut(), text.trim().parse::<f64>()) {
-                        pt.elevation = Some(elev);
-                    }
-                } else if in_time {
-                    let parsed = text.trim().parse::<DateTime<Utc>>().ok();
-                    if in_trkpt || in_wpt {
-                        if let Some(pt) = current_point.as_mut() {
-                            pt.time = parsed;
-                        }
-                    }
-                } else if in_pt_name {
-                    if let Some(pt) = current_point.as_mut() {
-                        pt.name = Some(text.clone());
-                    }
-                } else if in_name {
-                    if in_trk {
-                        if let Some(track) = current_track.as_mut() {
-                            track.name = Some(text.clone());
-                        }
-                    } else if !in_metadata {
-                        // top-level gpx name
-                    } else {
-                        file.name = Some(text.clone());
-                    }
-                } else if in_desc && !in_metadata {
-                    // skip
-                } else if in_desc {
-                    file.description = Some(text.clone());
-                }
-            }
+            Ok(Event::Text(ref e)) => text_acc.push_str(&text_content(e)),
+            // Since quick-xml 0.41 an entity is reported separately from the
+            // text around it. Ignoring it would drop the character it stands
+            // for and, because each text event was assigned on its own, lose
+            // everything read before it.
+            Ok(Event::GeneralRef(ref e)) => text_acc.push_str(&ref_content(e)),
             Ok(Event::Eof) => break,
             Err(e) => return Err(MapsError::InvalidGpx(e.to_string())),
             _ => {}
@@ -335,4 +364,29 @@ fn haversine(lat1: f64, lng1: f64, lat2: f64, lng2: f64) -> f64 {
     let a = (d_lat / 2.0).sin().powi(2)
         + lat1.to_radians().cos() * lat2.to_radians().cos() * (d_lng / 2.0).sin().powi(2);
     2.0 * R * a.sqrt().asin()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// An ampersand in a waypoint name must survive the round trip.
+    ///
+    /// quick-xml reports an entity as its own event since 0.38, so `A &amp; B`
+    /// arrives as three events rather than one. A parser that only looks at
+    /// `Event::Text` silently drops the entity — and, worse here, the second
+    /// text event overwrites the first, so the name loses everything before
+    /// the `&`.
+    #[test]
+    fn an_entity_does_not_truncate_a_waypoint_name() {
+        let gpx = br#"<?xml version="1.0"?>
+<gpx version="1.1">
+  <wpt lat="1.0" lon="2.0">
+    <name>Tom &amp; Jerry</name>
+  </wpt>
+</gpx>"#;
+        let parsed = parse_gpx(gpx).expect("le GPX doit être lu");
+        assert_eq!(parsed.waypoints.len(), 1);
+        assert_eq!(parsed.waypoints[0].name.as_deref(), Some("Tom & Jerry"));
+    }
 }
