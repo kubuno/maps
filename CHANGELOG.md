@@ -11,6 +11,18 @@ number at release time, and CI publishes that section as the GitHub Release note
 
 ### Security
 
+- **GPX import can no longer be stalled or starved by a crafted file.** The XML
+  parser used to read uploaded `.gpx` tracks could be pushed into minutes or
+  hours of pure CPU work by a single tag carrying a very large number of
+  attributes, and into unbounded memory growth by a tag repeating namespace
+  declarations. Either one, sent by anyone able to submit a track, could pin a
+  worker thread or drive the module into an out-of-memory kill; no request
+  timeout could interrupt it. The parser now bounds both.
+- **GeoIP database reader updated past an unsound memory-mapping API.** The
+  previous library exposed memory-mapped database access as safe even though a
+  `.mmdb` modified on disk while in use could corrupt memory. Maps reads the
+  database into memory rather than mapping it, so no instance was exposed, but
+  the vulnerable code no longer ships at all.
 - **Input validation library updated.** The version in use carried
   RUSTSEC-2024-0421 through its domain-name parser, which accepted Punycode
   labels that decode to plain ASCII — a mismatch an attacker can use to make two

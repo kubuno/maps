@@ -39,17 +39,20 @@ impl GeoResolver {
     /// Country record. Returns an empty location if the IP isn't found.
     pub fn locate(&self, ip: &str) -> Option<GeoLocation> {
         let ip: std::net::IpAddr = ip.parse().ok()?;
-        if let Ok(city) = self.reader.lookup::<geoip2::City>(ip) {
+        // A lookup now yields a handle; the record is decoded from it, and an
+        // IP absent from the database decodes to `None` instead of erroring.
+        let found = self.reader.lookup(ip).ok()?;
+        if let Ok(Some(city)) = found.decode::<geoip2::City>() {
             return Some(GeoLocation {
-                country: city.country.and_then(|c| c.iso_code).map(str::to_string),
-                city:    city.city.and_then(|c| c.names).and_then(|n| n.get("en").map(|s| s.to_string())),
-                lat:     city.location.as_ref().and_then(|l| l.latitude),
-                lng:     city.location.as_ref().and_then(|l| l.longitude),
+                country: city.country.iso_code.map(str::to_string),
+                city:    city.city.names.english.map(str::to_string),
+                lat:     city.location.latitude,
+                lng:     city.location.longitude,
             });
         }
-        let country: geoip2::Country = self.reader.lookup(ip).ok()?;
+        let country = found.decode::<geoip2::Country>().ok()??;
         Some(GeoLocation {
-            country: country.country.and_then(|c| c.iso_code).map(str::to_string),
+            country: country.country.iso_code.map(str::to_string),
             ..Default::default()
         })
     }

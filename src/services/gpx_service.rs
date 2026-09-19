@@ -106,7 +106,17 @@ pub fn parse_gpx(content: &[u8]) -> Result<GpxFile> {
                 }
             }
             Ok(Event::Text(ref e)) => {
-                let text = e.unescape().unwrap_or_default().to_string();
+                // quick-xml no longer offers a single `unescape()`: decode the
+                // bytes (and normalize line endings) first, then turn XML
+                // entities back into characters. GPX text nodes are content,
+                // so the caller wants the unescaped form.
+                let decoded = e.xml10_content().unwrap_or_default();
+                let unescaped = quick_xml::escape::unescape(&decoded);
+                let text = match &unescaped {
+                    Ok(s)   => s.as_ref(),
+                    Err(_)  => decoded.as_ref(),
+                }
+                .to_string();
                 if in_ele {
                     if let (Some(pt), Ok(elev)) = (current_point.as_mut(), text.trim().parse::<f64>()) {
                         pt.elevation = Some(elev);
