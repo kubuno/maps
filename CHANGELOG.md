@@ -19,7 +19,8 @@ number at release time, and CI publishes that section as the GitHub Release note
   pulled in an RSA implementation vulnerable to a timing side-channel
   (RUSTSEC-2023-0071) for which no fix will ever exist. The new line does not
   depend on it at all, and it refuses any SQL string built at run time unless it
-  has been audited — the queries here were checked and marked.
+  has been audited — every such query here was checked and is now assembled
+  at compile time, so none is built at run time at all.
 
 ## [0.1.8] - 2026-09-18
 
