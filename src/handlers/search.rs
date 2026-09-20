@@ -2,8 +2,12 @@ use axum::{
     extract::{Extension, State},
     Json,
 };
+use chrono::{DateTime, Utc};
+use kubuno_db::dialect::SqlType;
+use kubuno_db::params;
+use serde::Serialize;
 use serde_json::{json, Value};
-use sqlx::Row;
+use uuid::Uuid;
 
 use crate::{
     errors::Result,
@@ -11,34 +15,38 @@ use crate::{
     state::AppState,
 };
 
+/// One search-history row, serialised straight to the response.
+///
+/// `result_lat`/`result_lng` are stored as DECIMAL on PostgreSQL, which sqlx
+/// cannot decode as `f64` without the bigdecimal feature, so they are cast to a
+/// double in the query (a no-op on MySQL's DOUBLE / SQLite's REAL columns).
+#[derive(Debug, Serialize, sqlx::FromRow)]
+struct HistoryRow {
+    id:              Uuid,
+    query:           String,
+    result_name:     Option<String>,
+    result_lat:      Option<f64>,
+    result_lng:      Option<f64>,
+    result_osm_type: Option<String>,
+    result_osm_id:   Option<i64>,
+    searched_at:     DateTime<Utc>,
+}
+
 pub async fn history(
     State(state): State<AppState>,
     Extension(user): Extension<MapsUser>,
 ) -> Result<Json<Value>> {
-    let rows = sqlx::query(
-        // NUMERIC columns cannot be decoded as f64 by sqlx (BigDecimal only):
-        // without the cast, `try_get::<Option<f64>>` fails and the coordinates
-        // were silently reported as null.
+    let b = state.db.backend();
+    let sql = format!(
         "SELECT id, query, result_name,
-                result_lat::float8 AS result_lat, result_lng::float8 AS result_lng,
+                {lat} AS result_lat, {lng} AS result_lng,
                 result_osm_type, result_osm_id, searched_at
          FROM maps.search_history WHERE owner_id = $1
-         ORDER BY searched_at DESC LIMIT 50"
-    )
-    .bind(user.id)
-    .fetch_all(&state.db)
-    .await?;
-
-    let entries: Vec<Value> = rows.iter().map(|row| json!({
-        "id":              row.try_get::<uuid::Uuid, _>("id").unwrap_or_default(),
-        "query":           row.try_get::<String, _>("query").unwrap_or_default(),
-        "result_name":     row.try_get::<Option<String>, _>("result_name").unwrap_or(None),
-        "result_lat":      row.try_get::<Option<f64>, _>("result_lat").unwrap_or(None),
-        "result_lng":      row.try_get::<Option<f64>, _>("result_lng").unwrap_or(None),
-        "result_osm_type": row.try_get::<Option<String>, _>("result_osm_type").unwrap_or(None),
-        "result_osm_id":   row.try_get::<Option<i64>, _>("result_osm_id").unwrap_or(None),
-        "searched_at":     row.try_get::<chrono::DateTime<chrono::Utc>, _>("searched_at").unwrap_or_default(),
-    })).collect();
+         ORDER BY searched_at DESC LIMIT 50",
+        lat = b.cast("result_lat", SqlType::Double),
+        lng = b.cast("result_lng", SqlType::Double),
+    );
+    let entries: Vec<HistoryRow> = state.db.fetch_all_as(&sql, params![user.id]).await?;
 
     Ok(Json(json!({ "history": entries })))
 }
@@ -47,9 +55,9 @@ pub async fn clear_history(
     State(state): State<AppState>,
     Extension(user): Extension<MapsUser>,
 ) -> Result<Json<Value>> {
-    sqlx::query("DELETE FROM maps.search_history WHERE owner_id = $1")
-        .bind(user.id)
-        .execute(&state.db)
+    state
+        .db
+        .execute("DELETE FROM maps.search_history WHERE owner_id = $1", params![user.id])
         .await?;
     Ok(Json(json!({ "cleared": true })))
 }

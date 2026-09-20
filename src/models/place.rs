@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
 pub struct SavedPlace {
     pub id:             Uuid,
     pub owner_id:       Uuid,
@@ -17,6 +17,9 @@ pub struct SavedPlace {
     pub lng:            f64,
     pub nominatim_data: serde_json::Value,
     pub user_note:      Option<String>,
+    // Stored as a JSON array on all three engines (TEXT[] on legacy PostgreSQL,
+    // migrated to jsonb): `#[sqlx(json)]` decodes it back into a `Vec<String>`.
+    #[sqlx(json)]
     pub user_tags:      Vec<String>,
     pub icon:           String,
     pub created_at:     DateTime<Utc>,
@@ -37,7 +40,7 @@ pub struct PlaceCollection {
     pub updated_at:  DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
 pub struct UserReview {
     pub id:         Uuid,
     pub owner_id:   Uuid,
@@ -46,6 +49,7 @@ pub struct UserReview {
     pub place_name: Option<String>,
     pub rating:     i16,
     pub comment:    Option<String>,
+    #[sqlx(json)]
     pub tags:       Vec<String>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,

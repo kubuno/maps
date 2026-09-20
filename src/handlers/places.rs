@@ -45,16 +45,20 @@ pub async fn create(
     // and an unconfigured instance pays nothing for the feature.
     let quota = state.instance().max_places_per_user;
     if quota > 0 {
-        let count: i64 = sqlx::query_scalar(
-            "SELECT COUNT(*) FROM maps.saved_places WHERE owner_id = $1",
-        )
-        .bind(user.id)
-        .fetch_one(&state.db)
-        .await
-        .map_err(|e| {
-            tracing::error!(error = %e, user_id = %user.id, "Comptage des lieux enregistrés");
-            MapsError::Database(e)
-        })?;
+        let count: i64 = state
+            .db
+            .fetch_scalar(
+                &format!(
+                    "SELECT {} FROM maps.saved_places WHERE owner_id = $1",
+                    state.db.backend().count_bigint("*")
+                ),
+                kubuno_db::params![user.id],
+            )
+            .await
+            .map_err(|e| {
+                tracing::error!(error = %e, user_id = %user.id, "Comptage des lieux enregistrés");
+                MapsError::Database(e)
+            })?;
 
         if count as u64 >= quota {
             return Err(MapsError::Validation(format!(

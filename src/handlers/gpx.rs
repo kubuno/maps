@@ -5,14 +5,16 @@ use axum::{
     response::{IntoResponse, Response},
     Json,
 };
+use kubuno_db::dialect::SqlType;
+use kubuno_db::{params, DbPool};
 use serde::Deserialize;
 use serde_json::{json, Value};
-use sqlx::Row;
 use uuid::Uuid;
 
 use crate::{
     errors::{MapsError, Result},
     middleware::MapsUser,
+    models::gpx::GpxTrace,
     services::gpx_service,
     state::AppState,
 };
@@ -22,6 +24,31 @@ pub struct UploadQuery {
     pub name:          Option<String>,
     pub description:   Option<String>,
     pub activity_type: Option<String>,
+}
+
+/// The column list for a `GpxTrace`, with the DECIMAL distance/elevation columns
+/// cast to a double so sqlx decodes them as `f64` (the cast is a no-op on MySQL's
+/// DOUBLE and SQLite's REAL columns). Followed by a `WHERE ...` at the call site.
+fn trace_select(db: &DbPool) -> String {
+    let b = db.backend();
+    format!(
+        "SELECT id, owner_id, name, description, storage_path,
+                {dm} AS distance_meters,
+                {eg} AS elevation_gain,
+                {el} AS elevation_loss,
+                duration_secs, point_count, activity_type, recorded_at, is_public, created_at
+         FROM maps.gpx_traces",
+        dm = b.cast("distance_meters", SqlType::Double),
+        eg = b.cast("elevation_gain", SqlType::Double),
+        el = b.cast("elevation_loss", SqlType::Double),
+    )
+}
+
+async fn fetch_trace(db: &DbPool, id: Uuid, owner_id: Uuid) -> Result<GpxTrace> {
+    let sql = format!("{} WHERE id = $1 AND owner_id = $2", trace_select(db));
+    db.fetch_optional_as::<GpxTrace>(&sql, params![id, owner_id])
+        .await?
+        .ok_or_else(|| MapsError::NotFound(format!("GPX trace {id}")))
 }
 
 pub async fn upload(
@@ -49,16 +76,20 @@ pub async fn upload(
     // `0` means "no limit", the shipped behaviour.
     let max_traces = cfg.max_gpx_per_user;
     if max_traces > 0 {
-        let count: i64 = sqlx::query_scalar(
-            "SELECT COUNT(*) FROM maps.gpx_traces WHERE owner_id = $1",
-        )
-        .bind(user.id)
-        .fetch_one(&state.db)
-        .await
-        .map_err(|e| {
-            tracing::error!(error = %e, user_id = %user.id, "Comptage des traces GPX");
-            MapsError::Database(e)
-        })?;
+        let count: i64 = state
+            .db
+            .fetch_scalar(
+                &format!(
+                    "SELECT {} FROM maps.gpx_traces WHERE owner_id = $1",
+                    state.db.backend().count_bigint("*")
+                ),
+                params![user.id],
+            )
+            .await
+            .map_err(|e| {
+                tracing::error!(error = %e, user_id = %user.id, "Comptage des traces GPX");
+                MapsError::Database(e)
+            })?;
 
         if count as u64 >= max_traces {
             return Err(MapsError::Validation(format!(
@@ -94,58 +125,48 @@ pub async fn upload(
         (None, None, None, None)
     };
 
-    let row = sqlx::query(
-        "INSERT INTO maps.gpx_traces
-            (id, owner_id, name, description, storage_path, distance_meters,
-             elevation_gain, elevation_loss, point_count,
-             bbox_min_lat, bbox_min_lng, bbox_max_lat, bbox_max_lng,
-             activity_type, recorded_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
-         RETURNING id, owner_id, name, description, storage_path,
-                   CAST(distance_meters AS FLOAT8) AS distance_meters,
-                   CAST(elevation_gain AS FLOAT8)  AS elevation_gain,
-                   CAST(elevation_loss AS FLOAT8)  AS elevation_loss,
-                   duration_secs, point_count, activity_type, recorded_at, is_public, created_at"
-    )
-    .bind(trace_id)
-    .bind(user.id)
-    .bind(&name)
-    .bind(&q.description)
-    .bind(&store_path)
-    .bind(stats.distance_meters)
-    .bind(stats.elevation_gain)
-    .bind(stats.elevation_loss)
-    .bind(stats.point_count as i32)
-    .bind(bbox_min_lat)
-    .bind(bbox_min_lng)
-    .bind(bbox_max_lat)
-    .bind(bbox_max_lng)
-    .bind(activity_type)
-    .bind(recorded_at)
-    .fetch_one(&state.db)
-    .await?;
+    // The key is generated here and bound, then the row is read back by that key:
+    // MySQL has no RETURNING, so this replaces the INSERT ... RETURNING.
+    state
+        .db
+        .execute(
+            "INSERT INTO maps.gpx_traces
+                (id, owner_id, name, description, storage_path, distance_meters,
+                 elevation_gain, elevation_loss, point_count,
+                 bbox_min_lat, bbox_min_lng, bbox_max_lat, bbox_max_lng,
+                 activity_type, recorded_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)",
+            params![
+                trace_id,
+                user.id,
+                &name,
+                q.description.clone(),
+                &store_path,
+                stats.distance_meters,
+                stats.elevation_gain,
+                stats.elevation_loss,
+                stats.point_count as i32,
+                bbox_min_lat,
+                bbox_min_lng,
+                bbox_max_lat,
+                bbox_max_lng,
+                activity_type,
+                recorded_at,
+            ],
+        )
+        .await?;
 
-    Ok(Json(json!({ "trace": row_to_trace(&row)? })))
+    let trace = fetch_trace(&state.db, trace_id, user.id).await?;
+    Ok(Json(json!({ "trace": trace })))
 }
 
 pub async fn list(
     State(state): State<AppState>,
     Extension(user): Extension<MapsUser>,
 ) -> Result<Json<Value>> {
-    let rows = sqlx::query(
-        "SELECT id, owner_id, name, description, storage_path,
-                CAST(distance_meters AS FLOAT8) AS distance_meters,
-                CAST(elevation_gain  AS FLOAT8) AS elevation_gain,
-                CAST(elevation_loss  AS FLOAT8) AS elevation_loss,
-                duration_secs, point_count, activity_type, recorded_at, is_public, created_at
-         FROM maps.gpx_traces WHERE owner_id = $1 ORDER BY created_at DESC"
-    )
-    .bind(user.id)
-    .fetch_all(&state.db)
-    .await?;
-
-    let traces: Result<Vec<_>> = rows.iter().map(row_to_trace).collect();
-    Ok(Json(json!({ "traces": traces? })))
+    let sql = format!("{} WHERE owner_id = $1 ORDER BY created_at DESC", trace_select(&state.db));
+    let traces: Vec<GpxTrace> = state.db.fetch_all_as(&sql, params![user.id]).await?;
+    Ok(Json(json!({ "traces": traces })))
 }
 
 pub async fn get(
@@ -153,8 +174,8 @@ pub async fn get(
     Extension(user): Extension<MapsUser>,
     Path(id): Path<Uuid>,
 ) -> Result<Json<Value>> {
-    let row = fetch_trace_row(&state.db, id, user.id).await?;
-    Ok(Json(json!({ "trace": row_to_trace(&row)? })))
+    let trace = fetch_trace(&state.db, id, user.id).await?;
+    Ok(Json(json!({ "trace": trace })))
 }
 
 pub async fn download(
@@ -162,12 +183,10 @@ pub async fn download(
     Extension(user): Extension<MapsUser>,
     Path(id): Path<Uuid>,
 ) -> Result<Response> {
-    let row = fetch_trace_row(&state.db, id, user.id).await?;
-    let storage_path: String = row.try_get("storage_path").map_err(MapsError::Database)?;
-    let name: String = row.try_get("name").map_err(MapsError::Database)?;
+    let trace = fetch_trace(&state.db, id, user.id).await?;
 
-    let bytes = state.storage.get(&storage_path).await?;
-    let filename = format!("{}.gpx", name.replace(['/', '\\', '"'], "_"));
+    let bytes = state.storage.get(&trace.storage_path).await?;
+    let filename = format!("{}.gpx", trace.name.replace(['/', '\\', '"'], "_"));
 
     Ok((
         axum::http::StatusCode::OK,
@@ -186,9 +205,8 @@ pub async fn track(
     Extension(user): Extension<MapsUser>,
     Path(id): Path<Uuid>,
 ) -> Result<Json<Value>> {
-    let row = fetch_trace_row(&state.db, id, user.id).await?;
-    let storage_path: String = row.try_get("storage_path").map_err(MapsError::Database)?;
-    let bytes = state.storage.get(&storage_path).await?;
+    let trace = fetch_trace(&state.db, id, user.id).await?;
+    let bytes = state.storage.get(&trace.storage_path).await?;
     let file = crate::services::gpx_service::parse_gpx(bytes.as_ref())?;
     let data = crate::services::gpx_service::track_data(&file, 600);
     Ok(Json(json!({ "track": data })))
@@ -199,56 +217,27 @@ pub async fn delete(
     Extension(user): Extension<MapsUser>,
     Path(id): Path<Uuid>,
 ) -> Result<Json<Value>> {
-    let row = sqlx::query(
-        "DELETE FROM maps.gpx_traces WHERE id = $1 AND owner_id = $2 RETURNING storage_path"
-    )
-    .bind(id)
-    .bind(user.id)
-    .fetch_optional(&state.db)
-    .await?
-    .ok_or_else(|| MapsError::NotFound(format!("GPX trace {id}")))?;
+    // MySQL has no DELETE ... RETURNING, so the storage path is read first and
+    // the row deleted second. A missing path means the trace is absent (or not
+    // this user's).
+    let path: String = state
+        .db
+        .fetch_optional_scalar(
+            "SELECT storage_path FROM maps.gpx_traces WHERE id = $1 AND owner_id = $2",
+            params![id, user.id],
+        )
+        .await?
+        .ok_or_else(|| MapsError::NotFound(format!("GPX trace {id}")))?;
 
-    let path: String = row.try_get("storage_path").map_err(MapsError::Database)?;
+    state
+        .db
+        .execute(
+            "DELETE FROM maps.gpx_traces WHERE id = $1 AND owner_id = $2",
+            params![id, user.id],
+        )
+        .await?;
+
     let _ = state.storage.delete(&path).await;
 
     Ok(Json(json!({ "deleted": true })))
-}
-
-async fn fetch_trace_row(
-    db:       &sqlx::PgPool,
-    id:       Uuid,
-    owner_id: Uuid,
-) -> Result<sqlx::postgres::PgRow> {
-    sqlx::query(
-        "SELECT id, owner_id, name, description, storage_path,
-                CAST(distance_meters AS FLOAT8) AS distance_meters,
-                CAST(elevation_gain  AS FLOAT8) AS elevation_gain,
-                CAST(elevation_loss  AS FLOAT8) AS elevation_loss,
-                duration_secs, point_count, activity_type, recorded_at, is_public, created_at
-         FROM maps.gpx_traces WHERE id = $1 AND owner_id = $2"
-    )
-    .bind(id)
-    .bind(owner_id)
-    .fetch_optional(db)
-    .await?
-    .ok_or_else(|| MapsError::NotFound(format!("GPX trace {id}")))
-}
-
-fn row_to_trace(row: &sqlx::postgres::PgRow) -> Result<Value> {
-    Ok(json!({
-        "id":               row.try_get::<Uuid, _>("id").map_err(MapsError::Database)?,
-        "owner_id":         row.try_get::<Uuid, _>("owner_id").map_err(MapsError::Database)?,
-        "name":             row.try_get::<String, _>("name").map_err(MapsError::Database)?,
-        "description":      row.try_get::<Option<String>, _>("description").unwrap_or(None),
-        "storage_path":     row.try_get::<String, _>("storage_path").map_err(MapsError::Database)?,
-        "distance_meters":  row.try_get::<Option<f64>, _>("distance_meters").unwrap_or(None),
-        "elevation_gain":   row.try_get::<Option<f64>, _>("elevation_gain").unwrap_or(None),
-        "elevation_loss":   row.try_get::<Option<f64>, _>("elevation_loss").unwrap_or(None),
-        "duration_secs":    row.try_get::<Option<i32>, _>("duration_secs").unwrap_or(None),
-        "point_count":      row.try_get::<i32, _>("point_count").map_err(MapsError::Database)?,
-        "activity_type":    row.try_get::<String, _>("activity_type").map_err(MapsError::Database)?,
-        "recorded_at":      row.try_get::<Option<chrono::DateTime<chrono::Utc>>, _>("recorded_at").unwrap_or(None),
-        "is_public":        row.try_get::<bool, _>("is_public").unwrap_or(false),
-        "created_at":       row.try_get::<chrono::DateTime<chrono::Utc>, _>("created_at").map_err(MapsError::Database)?,
-    }))
 }

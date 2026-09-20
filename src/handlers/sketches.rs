@@ -6,9 +6,10 @@ use axum::{
     extract::{Extension, Path, State},
     Json,
 };
+use chrono::{DateTime, Utc};
+use kubuno_db::{params, DbPool};
 use serde::Deserialize;
 use serde_json::{json, Value};
-use sqlx::Row;
 use uuid::Uuid;
 
 use crate::{
@@ -34,34 +35,67 @@ pub struct ShareDto {
     pub public: bool,
 }
 
+/// A full sketch row. `data` decodes as `serde_json::Value` on the three engines
+/// (JSONB / JSON / TEXT).
+#[derive(Debug, sqlx::FromRow)]
+struct SketchRow {
+    id:          Uuid,
+    name:        String,
+    data:        Value,
+    is_public:   bool,
+    share_token: Option<String>,
+    created_at:  DateTime<Utc>,
+    updated_at:  DateTime<Utc>,
+}
+
+/// The public read surface: only the name and the drawing.
+#[derive(Debug, sqlx::FromRow)]
+struct PublicSketch {
+    name: String,
+    data: Value,
+}
+
+const SKETCH_COLS: &str = "id, name, data, is_public, share_token, created_at, updated_at";
+
 /// Nombre de features dans une FeatureCollection (pour la liste). Tolérant.
 fn feature_count(data: &Value) -> usize {
     data.get("features").and_then(|f| f.as_array()).map(|a| a.len()).unwrap_or(0)
+}
+
+async fn fetch_sketch(db: &DbPool, id: Uuid, owner_id: Uuid) -> Result<SketchRow> {
+    db.fetch_optional_as::<SketchRow>(
+        &format!("SELECT {SKETCH_COLS} FROM maps.sketches WHERE id = $1 AND owner_id = $2"),
+        params![id, owner_id],
+    )
+    .await?
+    .ok_or_else(|| MapsError::NotFound(format!("Croquis {id}")))
 }
 
 pub async fn list(
     State(state): State<AppState>,
     Extension(user): Extension<MapsUser>,
 ) -> Result<Json<Value>> {
-    let rows = sqlx::query(
-        "SELECT id, name, data, is_public, share_token, updated_at
-         FROM maps.sketches WHERE owner_id = $1 ORDER BY updated_at DESC LIMIT 100",
-    )
-    .bind(user.id)
-    .fetch_all(&state.db)
-    .await?;
+    let rows: Vec<SketchRow> = state
+        .db
+        .fetch_all_as(
+            &format!(
+                "SELECT {SKETCH_COLS} FROM maps.sketches
+                 WHERE owner_id = $1 ORDER BY updated_at DESC LIMIT 100"
+            ),
+            params![user.id],
+        )
+        .await?;
 
     let sketches: Vec<Value> = rows
         .iter()
         .map(|row| {
-            let data: Value = row.try_get("data").unwrap_or_else(|_| json!({}));
             json!({
-                "id":            row.try_get::<Uuid, _>("id").unwrap_or_default(),
-                "name":          row.try_get::<String, _>("name").unwrap_or_default(),
-                "feature_count": feature_count(&data),
-                "is_public":     row.try_get::<bool, _>("is_public").unwrap_or(false),
-                "share_token":   row.try_get::<Option<String>, _>("share_token").unwrap_or(None),
-                "updated_at":    row.try_get::<chrono::DateTime<chrono::Utc>, _>("updated_at").unwrap_or_default(),
+                "id":            row.id,
+                "name":          row.name,
+                "feature_count": feature_count(&row.data),
+                "is_public":     row.is_public,
+                "share_token":   row.share_token,
+                "updated_at":    row.updated_at,
             })
         })
         .collect();
@@ -74,16 +108,7 @@ pub async fn get(
     Extension(user): Extension<MapsUser>,
     Path(id): Path<Uuid>,
 ) -> Result<Json<Value>> {
-    let row = sqlx::query(
-        "SELECT id, name, data, is_public, share_token, created_at, updated_at
-         FROM maps.sketches WHERE id = $1 AND owner_id = $2",
-    )
-    .bind(id)
-    .bind(user.id)
-    .fetch_optional(&state.db)
-    .await?
-    .ok_or_else(|| MapsError::NotFound(format!("Croquis {id}")))?;
-
+    let row = fetch_sketch(&state.db, id, user.id).await?;
     Ok(Json(sketch_json(&row)))
 }
 
@@ -101,17 +126,17 @@ pub async fn create(
         .data
         .unwrap_or_else(|| json!({ "type": "FeatureCollection", "features": [] }));
 
-    let row = sqlx::query(
-        "INSERT INTO maps.sketches (owner_id, name, data)
-         VALUES ($1, $2, $3)
-         RETURNING id, name, data, is_public, share_token, created_at, updated_at",
-    )
-    .bind(user.id)
-    .bind(&name)
-    .bind(&data)
-    .fetch_one(&state.db)
-    .await?;
+    // Key generated in Rust, then the row is read back by it (no RETURNING).
+    let id = kubuno_db::new_id();
+    state
+        .db
+        .execute(
+            "INSERT INTO maps.sketches (id, owner_id, name, data) VALUES ($1, $2, $3, $4)",
+            params![id, user.id, &name, data],
+        )
+        .await?;
 
+    let row = fetch_sketch(&state.db, id, user.id).await?;
     Ok(Json(sketch_json(&row)))
 }
 
@@ -121,23 +146,26 @@ pub async fn update(
     Path(id): Path<Uuid>,
     Json(dto): Json<UpdateSketchDto>,
 ) -> Result<Json<Value>> {
-    // COALESCE : seuls les champs fournis sont modifiés.
-    let row = sqlx::query(
-        "UPDATE maps.sketches
-            SET name = COALESCE($3, name),
-                data = COALESCE($4, data),
-                updated_at = NOW()
-          WHERE id = $1 AND owner_id = $2
-          RETURNING id, name, data, is_public, share_token, created_at, updated_at",
-    )
-    .bind(id)
-    .bind(user.id)
-    .bind(dto.name.as_ref().map(|s| s.trim().to_string()).filter(|s| !s.is_empty()))
-    .bind(&dto.data)
-    .fetch_optional(&state.db)
-    .await?
-    .ok_or_else(|| MapsError::NotFound(format!("Croquis {id}")))?;
+    // COALESCE: only the supplied fields change. Placeholders are numbered in the
+    // order they appear in the text (kubuno-db requires 1..n, once each), and
+    // NOW() is bound from Rust.
+    let name = dto.name.as_ref().map(|s| s.trim().to_string()).filter(|s| !s.is_empty());
+    // A missing row (wrong id or owner) is NotFound. `rows_affected` is not used
+    // to decide that — a no-op COALESCE update reports 0 on MySQL — so the row is
+    // read back instead (below).
+    state
+        .db
+        .execute(
+            "UPDATE maps.sketches
+                SET name = COALESCE($1, name),
+                    data = COALESCE($2, data),
+                    updated_at = $3
+              WHERE id = $4 AND owner_id = $5",
+            params![name, dto.data.clone(), Utc::now(), id, user.id],
+        )
+        .await?;
 
+    let row = fetch_sketch(&state.db, id, user.id).await?;
     Ok(Json(sketch_json(&row)))
 }
 
@@ -146,12 +174,14 @@ pub async fn delete(
     Extension(user): Extension<MapsUser>,
     Path(id): Path<Uuid>,
 ) -> Result<Json<Value>> {
-    let r = sqlx::query("DELETE FROM maps.sketches WHERE id = $1 AND owner_id = $2")
-        .bind(id)
-        .bind(user.id)
-        .execute(&state.db)
+    let affected = state
+        .db
+        .execute(
+            "DELETE FROM maps.sketches WHERE id = $1 AND owner_id = $2",
+            params![id, user.id],
+        )
         .await?;
-    if r.rows_affected() == 0 {
+    if affected == 0 {
         return Err(MapsError::NotFound(format!("Croquis {id}")));
     }
     Ok(Json(json!({ "deleted": true })))
@@ -179,23 +209,22 @@ pub async fn share(
         None
     };
 
-    let row = sqlx::query(
-        "UPDATE maps.sketches
-            SET is_public = $3,
-                -- conserve un jeton existant si déjà public, sinon en (re)génère un
-                share_token = CASE WHEN $3 THEN COALESCE(share_token, $4) ELSE NULL END,
-                updated_at = NOW()
-          WHERE id = $1 AND owner_id = $2
-          RETURNING id, name, data, is_public, share_token, created_at, updated_at",
-    )
-    .bind(id)
-    .bind(user.id)
-    .bind(dto.public)
-    .bind(&token)
-    .fetch_optional(&state.db)
-    .await?
-    .ok_or_else(|| MapsError::NotFound(format!("Croquis {id}")))?;
+    // is_public is used twice; kubuno-db forbids reusing a placeholder, so the
+    // value is bound twice under numbers in text order. NOW() is bound.
+    state
+        .db
+        .execute(
+            "UPDATE maps.sketches
+                SET is_public = $1,
+                    -- keep an existing token if already public, otherwise (re)generate one
+                    share_token = CASE WHEN $2 THEN COALESCE(share_token, $3) ELSE NULL END,
+                    updated_at = $4
+              WHERE id = $5 AND owner_id = $6",
+            params![dto.public, dto.public, token, Utc::now(), id, user.id],
+        )
+        .await?;
 
+    let row = fetch_sketch(&state.db, id, user.id).await?;
     Ok(Json(sketch_json(&row)))
 }
 
@@ -213,31 +242,30 @@ pub async fn get_public(
         return Err(MapsError::NotFound("Croquis partagé".into()));
     }
 
-    let row = sqlx::query(
-        "SELECT name, data FROM maps.sketches WHERE share_token = $1 AND is_public = TRUE",
-    )
-    .bind(&token)
-    .fetch_optional(&state.db)
-    .await?
-    .ok_or_else(|| MapsError::NotFound("Croquis partagé".into()))?;
+    let row = state
+        .db
+        .fetch_optional_as::<PublicSketch>(
+            "SELECT name, data FROM maps.sketches WHERE share_token = $1 AND is_public = TRUE",
+            params![&token],
+        )
+        .await?
+        .ok_or_else(|| MapsError::NotFound("Croquis partagé".into()))?;
 
-    let data: Value = row.try_get("data").unwrap_or_else(|_| json!({}));
     Ok(Json(json!({
-        "name": row.try_get::<String, _>("name").unwrap_or_default(),
-        "data": data,
+        "name": row.name,
+        "data": row.data,
     })))
 }
 
 /// Sérialise une ligne complète de croquis en JSON.
-fn sketch_json(row: &sqlx::postgres::PgRow) -> Value {
-    let data: Value = row.try_get("data").unwrap_or_else(|_| json!({}));
+fn sketch_json(row: &SketchRow) -> Value {
     json!({
-        "id":          row.try_get::<Uuid, _>("id").unwrap_or_default(),
-        "name":        row.try_get::<String, _>("name").unwrap_or_default(),
-        "data":        data,
-        "is_public":   row.try_get::<bool, _>("is_public").unwrap_or(false),
-        "share_token": row.try_get::<Option<String>, _>("share_token").unwrap_or(None),
-        "created_at":  row.try_get::<chrono::DateTime<chrono::Utc>, _>("created_at").unwrap_or_default(),
-        "updated_at":  row.try_get::<chrono::DateTime<chrono::Utc>, _>("updated_at").unwrap_or_default(),
+        "id":          row.id,
+        "name":        row.name,
+        "data":        row.data,
+        "is_public":   row.is_public,
+        "share_token": row.share_token,
+        "created_at":  row.created_at,
+        "updated_at":  row.updated_at,
     })
 }

@@ -2,8 +2,9 @@ use axum::{
     extract::{Extension, Path, State},
     Json,
 };
+use chrono::{DateTime, Utc};
+use kubuno_db::params;
 use serde_json::{json, Value};
-use sqlx::Row;
 use uuid::Uuid;
 
 use crate::{
@@ -13,6 +14,22 @@ use crate::{
     services::osrm_service::OsrmService,
     state::AppState,
 };
+
+/// The subset of `saved_routes` returned to the client (the geometry and OSRM
+/// payload are intentionally left out of the list/save responses).
+#[derive(Debug, sqlx::FromRow)]
+struct RouteBrief {
+    id:              Uuid,
+    owner_id:        Uuid,
+    name:            Option<String>,
+    transport_mode:  String,
+    distance_meters: Option<i32>,
+    duration_secs:   Option<i32>,
+    created_at:      DateTime<Utc>,
+}
+
+const ROUTE_BRIEF_COLS: &str =
+    "id, owner_id, name, transport_mode, distance_meters, duration_secs, created_at";
 
 pub async fn calculate(
     State(state): State<AppState>,
@@ -84,30 +101,35 @@ pub async fn save_route(
     let duration = body["duration_secs"].as_f64().map(|v| v as i32);
     let osrm_data = body["osrm_data"].clone();
 
-    let row = sqlx::query(
-        "INSERT INTO maps.saved_routes
-            (owner_id, name, transport_mode, waypoints, distance_meters, duration_secs, osrm_data)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)
-         RETURNING id, owner_id, name, transport_mode, waypoints, distance_meters, duration_secs, osrm_data, created_at"
-    )
-    .bind(user.id)
-    .bind(&name)
-    .bind(mode)
-    .bind(&waypts)
-    .bind(distance)
-    .bind(duration)
-    .bind(&osrm_data)
-    .fetch_one(&state.db)
-    .await?;
+    // Generate the key in Rust and read the row back by it: MySQL has no
+    // RETURNING, and the DEFAULT gen_random_uuid() has no equivalent there.
+    let route_id = kubuno_db::new_id();
+    state
+        .db
+        .execute(
+            "INSERT INTO maps.saved_routes
+                (id, owner_id, name, transport_mode, waypoints, distance_meters, duration_secs, osrm_data)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+            params![route_id, user.id, name, mode, waypts, distance, duration, osrm_data],
+        )
+        .await?;
+
+    let r: RouteBrief = state
+        .db
+        .fetch_one_as(
+            &format!("SELECT {ROUTE_BRIEF_COLS} FROM maps.saved_routes WHERE id = $1"),
+            params![route_id],
+        )
+        .await?;
 
     let route = json!({
-        "id":               row.try_get::<Uuid, _>("id").unwrap_or_default(),
-        "owner_id":         row.try_get::<Uuid, _>("owner_id").unwrap_or_default(),
-        "name":             row.try_get::<Option<String>, _>("name").unwrap_or(None),
-        "transport_mode":   row.try_get::<String, _>("transport_mode").unwrap_or_default(),
-        "distance_meters":  row.try_get::<Option<i32>, _>("distance_meters").unwrap_or(None),
-        "duration_secs":    row.try_get::<Option<i32>, _>("duration_secs").unwrap_or(None),
-        "created_at":       row.try_get::<chrono::DateTime<chrono::Utc>, _>("created_at").unwrap_or_default(),
+        "id":               r.id,
+        "owner_id":         r.owner_id,
+        "name":             r.name,
+        "transport_mode":   r.transport_mode,
+        "distance_meters":  r.distance_meters,
+        "duration_secs":    r.duration_secs,
+        "created_at":       r.created_at,
     });
 
     Ok(Json(json!({ "route": route })))
@@ -117,21 +139,24 @@ pub async fn list_routes(
     State(state): State<AppState>,
     Extension(user): Extension<MapsUser>,
 ) -> Result<Json<Value>> {
-    let rows = sqlx::query(
-        "SELECT id, owner_id, name, transport_mode, waypoints, distance_meters, duration_secs, created_at
-         FROM maps.saved_routes WHERE owner_id = $1 ORDER BY created_at DESC LIMIT 50"
-    )
-    .bind(user.id)
-    .fetch_all(&state.db)
-    .await?;
+    let rows: Vec<RouteBrief> = state
+        .db
+        .fetch_all_as(
+            &format!(
+                "SELECT {ROUTE_BRIEF_COLS} FROM maps.saved_routes
+                 WHERE owner_id = $1 ORDER BY created_at DESC LIMIT 50"
+            ),
+            params![user.id],
+        )
+        .await?;
 
-    let routes: Vec<Value> = rows.iter().map(|row| json!({
-        "id":             row.try_get::<Uuid, _>("id").unwrap_or_default(),
-        "name":           row.try_get::<Option<String>, _>("name").unwrap_or(None),
-        "transport_mode": row.try_get::<String, _>("transport_mode").unwrap_or_default(),
-        "distance_meters":row.try_get::<Option<i32>, _>("distance_meters").unwrap_or(None),
-        "duration_secs":  row.try_get::<Option<i32>, _>("duration_secs").unwrap_or(None),
-        "created_at":     row.try_get::<chrono::DateTime<chrono::Utc>, _>("created_at").unwrap_or_default(),
+    let routes: Vec<Value> = rows.iter().map(|r| json!({
+        "id":             r.id,
+        "name":           r.name,
+        "transport_mode": r.transport_mode,
+        "distance_meters":r.distance_meters,
+        "duration_secs":  r.duration_secs,
+        "created_at":     r.created_at,
     })).collect();
 
     Ok(Json(json!({ "routes": routes })))
@@ -142,13 +167,15 @@ pub async fn delete_route(
     Extension(user): Extension<MapsUser>,
     Path(id): Path<Uuid>,
 ) -> Result<Json<Value>> {
-    let r = sqlx::query("DELETE FROM maps.saved_routes WHERE id = $1 AND owner_id = $2")
-        .bind(id)
-        .bind(user.id)
-        .execute(&state.db)
+    let affected = state
+        .db
+        .execute(
+            "DELETE FROM maps.saved_routes WHERE id = $1 AND owner_id = $2",
+            params![id, user.id],
+        )
         .await?;
 
-    if r.rows_affected() == 0 {
+    if affected == 0 {
         return Err(MapsError::NotFound(format!("Route {id}")));
     }
     Ok(Json(json!({ "deleted": true })))

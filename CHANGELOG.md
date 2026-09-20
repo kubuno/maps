@@ -9,6 +9,22 @@ number at release time, and CI publishes that section as the GitHub Release note
 
 ## [Unreleased]
 
+### Added
+
+- **Choice of database engine.** Maps now runs on PostgreSQL, MySQL/MariaDB or
+  SQLite, selected by the administrator at run time (`[database] engine`) from a
+  single build — there is no separate binary per engine, and all three drivers
+  ship in the one `.kbpkg`. SQLite makes a self-contained, server-less install
+  possible.
+
+### Changed
+
+- **Saved-place and review tags are stored as a portable JSON array.** They were
+  held in a PostgreSQL-only array column; the same tags, tag filtering and
+  behaviour now work identically on the three engines. Existing PostgreSQL
+  instances are converted automatically on upgrade — the column is migrated in
+  place and its index rebuilt — so no action is required and no data is lost.
+
 ### Security
 
 - **GPX import can no longer be stalled or starved by a crafted file.** The XML

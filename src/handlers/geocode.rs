@@ -64,23 +64,27 @@ pub async fn search(
 
     let results = nominatim.search(&q.q, q.limit, bounds, q.lang.as_deref()).await?;
 
-    // Persist to search history (best-effort)
+    // Persist to search history (best-effort). The id is generated here rather
+    // than by the database: MySQL and SQLite have no UUID default, and the
+    // process never reads this row back, so no RETURNING is involved.
     if let Some(first) = results.first() {
         let lat = first.lat.parse::<f64>().ok();
         let lng = first.lon.parse::<f64>().ok();
-        let _ = sqlx::query(
+        let _ = state.db.execute(
             "INSERT INTO maps.search_history
-                (owner_id, query, result_name, result_lat, result_lng, result_osm_type, result_osm_id)
-             VALUES ($1, $2, $3, $4, $5, $6, $7)"
+                (id, owner_id, query, result_name, result_lat, result_lng, result_osm_type, result_osm_id)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+            kubuno_db::params![
+                kubuno_db::new_id(),
+                user.id,
+                &q.q,
+                &first.display_name,
+                lat,
+                lng,
+                first.osm_type.clone(),
+                first.osm_id.map(|v| v as i64),
+            ],
         )
-        .bind(user.id)
-        .bind(&q.q)
-        .bind(&first.display_name)
-        .bind(lat)
-        .bind(lng)
-        .bind(&first.osm_type)
-        .bind(first.osm_id.map(|v| v as i64))
-        .execute(&state.db)
         .await;
     }
 
