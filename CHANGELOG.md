@@ -27,6 +27,10 @@ number at release time, and CI publishes that section as the GitHub Release note
 
 ### Security
 
+- **Security fixes from the shared database layer (kubuno-db 0.9.0).** The
+  database password can no longer appear in a log through the debug output of
+  the database settings.
+
 - **GPX import can no longer be stalled or starved by a crafted file.** The XML
   parser used to read uploaded `.gpx` tracks could be pushed into minutes or
   hours of pure CPU work by a single tag carrying a very large number of
