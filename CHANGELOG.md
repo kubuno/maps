@@ -54,6 +54,14 @@ number at release time, and CI publishes that section as the GitHub Release note
   has been audited — every such query here was checked and is now assembled
   at compile time, so none is built at run time at all.
 
+### Fixed
+
+- **Database migrations keep the same checksum on every OS.** The repository now
+  pins line endings to LF (`.gitattributes`), so a checkout on Windows no longer
+  turns SQL migrations, scripts, manifests or sources into CRLF. A database
+  migrated by a Linux build is therefore no longer refused by a Windows or macOS
+  build of the same version because its migration checksums differ.
+
 ## [0.1.8] - 2026-09-18
 
 ### Security
