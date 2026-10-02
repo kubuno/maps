@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { X, Telescope, MapPin } from 'lucide-react'
-import { api } from '@kubuno/sdk'
+import { api, signedUrl } from '@kubuno/sdk'
 import { worldById, type World } from './worlds'
 
 // Faithful port of the standalone PHP "Système Solaire 3D" (Three.js) into the
@@ -182,8 +182,8 @@ export function MapsCosmos3D({
       // The texture manifest (filename → native width) gates each map's LOD.
       let manifest: Record<string, number> = {}
       try {
-        const res = await fetch(`${COSMOS}/manifest`, { credentials: 'include' })
-        if (res.ok) manifest = await res.json()
+        const res = await api.get<Record<string, number>>('/maps/cosmos/manifest')
+        manifest = res.data
       } catch { /* keep empty: LOD ceilings default low */ }
       if (cancelled || !mountRef.current) return
       dispose = build(manifest)
@@ -225,7 +225,21 @@ export function MapsCosmos3D({
 
       /* --------------------------------------------------- texture loader (LOD) */
       const texLoader = new THREE.TextureLoader()
-      texLoader.setWithCredentials(true)
+      // The texture route is authenticated and image loads cannot carry the
+      // Authorization header, so the URL is signed first. The returned texture is
+      // an empty placeholder that is filled in once the image has loaded.
+      const loadSigned = (url: string, onLoad?: (t: THREE.Texture) => void): THREE.Texture => {
+        const tex = new THREE.Texture()
+        void signedUrl(url).then(u => {
+          texLoader.load(u, loaded => {
+            tex.image = loaded.image
+            tex.format = loaded.format
+            tex.needsUpdate = true
+            onLoad?.(tex)
+          })
+        }).catch(() => { /* texture stays empty */ })
+        return tex
+      }
       const MAX_ANISO = renderer.capabilities.getMaxAnisotropy()
       const configureTex = (t: THREE.Texture, { srgb = true, wrapX = false } = {}) => {
         if (srgb) t.colorSpace = THREE.SRGBColorSpace
@@ -233,7 +247,7 @@ export function MapsCosmos3D({
         if (wrapX) t.wrapS = THREE.RepeatWrapping
         return t
       }
-      const loadMap = (path: string, opts = {}) => configureTex(texLoader.load(path), opts)
+      const loadMap = (path: string, opts = {}) => configureTex(loadSigned(path), opts)
 
       // Each body starts at 512 px and climbs/falls (up to 8K) with its apparent
       // on-screen size, sampled twice a second; unused high resolutions are freed
@@ -246,7 +260,7 @@ export function MapsCosmos3D({
       const lodTexture = (file: string, opts: Record<string, unknown>, apply: (t: THREE.Texture) => void): LodEntry => {
         const entry: LodEntry = { file, opts, apply, maxW: TEXTURE_MANIFEST[file] || 2048, current: 0, loading: 0, tex: null }
         const size = Math.min(LOD_SIZES[0], entry.maxW)
-        entry.tex = configureTex(texLoader.load(texUrl(file, size)), opts)
+        entry.tex = configureTex(loadSigned(texUrl(file, size)), opts)
         entry.current = size
         apply(entry.tex)
         return entry
@@ -255,7 +269,7 @@ export function MapsCosmos3D({
         size = Math.min(size, entry.maxW)
         if (entry.current === size || entry.loading === size) return
         entry.loading = size
-        texLoader.load(texUrl(entry.file, size), t => {
+        loadSigned(texUrl(entry.file, size), t => {
           if (entry.loading !== size) { t.dispose(); return }
           configureTex(t, entry.opts)
           const old = entry.tex
@@ -315,7 +329,7 @@ export function MapsCosmos3D({
           void main(){ float d = length(gl_PointCoord - 0.5) * 2.0; float a = smoothstep(1.0, 0.0, d); gl_FragColor = vec4(vColor, a * a); }`,
         transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, vertexColors: true,
       })
-      fetch(`${COSMOS}/data/stars.6.json`, { credentials: 'include' }).then(r => r.json()).then(cat => {
+      api.get('/maps/cosmos/data/stars.6.json').then(r => r.data).then(cat => {
         const feats = cat.features, N = feats.length
         const pos = new Float32Array(N * 3), col = new Float32Array(N * 3), size = new Float32Array(N)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -337,7 +351,7 @@ export function MapsCosmos3D({
       }).catch(() => {})
 
       let constellationLines: THREE.LineSegments | null = null
-      fetch(`${COSMOS}/data/constellations.lines.json`, { credentials: 'include' }).then(r => r.json()).then(cat => {
+      api.get('/maps/cosmos/data/constellations.lines.json').then(r => r.data).then(cat => {
         const pts: THREE.Vector3[] = []
         for (const f of cat.features)
           for (const line of f.geometry.coordinates)
