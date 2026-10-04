@@ -34,6 +34,12 @@ number at release time, and CI publishes that section as the GitHub Release note
 
 ### Security
 
+- **The signed-in user is now taken from the core's signed identity token only.** The module used to trust the
+  plain `X-Kubuno-User-Id` / `-Role` / `-Email` headers, so any process able to reach its local port could
+  act as any user, administrators included. It now accepts a request only with a valid `X-Kubuno-Auth` token
+  signed by the core with this module's own secret, for this module, and not expired (`kubuno-modauth`); the
+  plain headers are ignored. With no internal secret configured, every user request is refused. The `/ipc/*` guard now compares `X-Internal-Secret` in constant time and refuses every request when no secret is configured (an empty header used to match an empty secret).
+
 - **The 3D sky view (textures, star catalogue, constellations) no longer relies on the access-token cookie
   the web client used to keep readable by page scripts**: textures load with signed tickets, data files
   with your session. Requires a Kubuno core that issues signed tickets (`POST /api/v1/auth/tickets`) and `@kubuno/sdk` with the signed-URL helpers.
