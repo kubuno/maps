@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "Maps (Kubuno Core + browser)",
+    "Projects": [
+      {
+        "Path": "Kubuno.Maps.Server.rsproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "frontend\\Kubuno.Maps.Web.esproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]
