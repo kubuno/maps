@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The launcher icon mirrors the web mark (maps/frontend/src/MapsLogo.tsx):
+         a full-bleed folded-map illustration whose white base card sits on this
+         background; the launcher supplies the rounded/circular mask. -->
+    <color name="ic_launcher_background">#FFFFFF</color>
+</resources>
