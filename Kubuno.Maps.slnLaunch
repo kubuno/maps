@@ -3,11 +3,11 @@
     "Name": "Maps (Kubuno Core + browser)",
     "Projects": [
       {
-        "Path": "Kubuno.Maps.Server.rsproj",
+        "Path": "server\\Kubuno.Maps.Server.rsproj",
         "Action": "Start"
       },
       {
-        "Path": "frontend\\Kubuno.Maps.Web.esproj",
+        "Path": "web\\Kubuno.Maps.Web.esproj",
         "Action": "Start"
       }
     ]

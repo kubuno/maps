@@ -43,8 +43,9 @@ A module for [Kubuno](https://github.com/kubuno/core), the self-hosted, libre (A
 
 Maps is a **separate process** (a standalone Rust binary listening on port **3115**) that registers with the [core](https://github.com/kubuno/core) at startup. The core proxies its routes (`/api/v1/maps/*`), distributes platform events to it and manages its lifecycle; it also serves the module's runtime-loaded React frontend bundle through the host import map.
 
-- **Backend** — `src/`: Axum + SQLx (PostgreSQL, dedicated schema `maps`); migrations in `migrations/`.
-- **Frontend** — `frontend/`: a React bundle built to `entry.js`, consuming `@kubuno/sdk`, `@kubuno/ui` (`@ui`) and `@kubuno/drive` from npm — resolved by the host at runtime via the import map, never re-bundled.
+- **Server** — `server/`: Axum + SQLx (PostgreSQL, dedicated schema `maps`); migrations in `server/migrations/`.
+- **Web** — `web/`: a React bundle built to `entry.js`, consuming `@kubuno/sdk`, `@kubuno/ui` (`@ui`) and `@kubuno/drive` from npm — resolved by the host at runtime via the import map, never re-bundled.
+- **Mobile** — `mobile/`: the mobile apps (see `mobile/README.md`).
 
 ## 📥 Install
 
@@ -62,15 +63,15 @@ sudo systemctl restart kubuno            # the core loads the module on (re)star
 **Requirements:** Rust ≥ 1.82, Node.js ≥ 24, PostgreSQL 16.
 
 ```bash
-cargo build --release                      # → target/release/kubuno-maps
-cd frontend && npm ci && npm run build     # → dist/{entry.js, entry.css}
+cd server && cargo build --release         # → server/target/release/kubuno-maps
+cd web && npm ci && npm run build          # → web/dist/{entry.js, entry.css}
 bash build_kbpkg.sh                         # → dist/maps-<version>-<os>-<arch>.kbpkg
 bash build_kbpkg.sh --install              # build, install into the module store and restart
 ```
 
 ### Cosmos assets
 
-The planet texture packs for the 3D solar-system view are large binaries and are **not versioned** in this repository — only the small star/constellation catalogues (`cosmos/data/`) are. To ship textures, drop equirectangular maps (JPEG/PNG, up to 8K) into `cosmos/textures/` before packaging. At runtime the backend probes the installed module directory (override with the `[cosmos]` section of `config.toml`) and serves each map at the requested resolution, caching the downscaled tiers on disk. When no textures are found, the view degrades gracefully.
+The planet texture packs for the 3D solar-system view are large binaries and are **not versioned** in this repository — only the small star/constellation catalogues (`server/cosmos/data/`) are. To ship textures, drop equirectangular maps (JPEG/PNG, up to 8K) into `server/cosmos/textures/` before packaging. At runtime the backend probes the installed module directory (override with the `[cosmos]` section of `config.toml`) and serves each map at the requested resolution, caching the downscaled tiers on disk. When no textures are found, the view degrades gracefully.
 
 > Shared dependencies come from Kubuno — no `kubuno/core` checkout required:
 > - **Rust** — shared crates via tagged git dependencies on `kubuno/core`.

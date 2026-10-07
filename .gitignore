@@ -12,8 +12,8 @@ node_modules/
 **/node_modules/
 
 # Frontend — sorties de build
-/frontend/dist/
-/frontend/dist-modules/
+/web/dist/
+/web/dist-modules/
 
 # Paquets Debian générés
 /dist/
@@ -54,9 +54,12 @@ node_modules
 # Cosmos (3D solar system) — planet texture packs are large third-party
 # binaries (~85 MB), provisioned locally / at packaging time (see README).
 # Only the small JSON star/constellation catalogs (cosmos/data/) are versioned.
-/cosmos/textures/
+/server/cosmos/textures/
 
 # Claude Code working files (agent instructions & memory) — never published
 CLAUDE.md
 AGENTS.md
 .claude/
+
+# Visual Studio per-machine state
+.vs/
