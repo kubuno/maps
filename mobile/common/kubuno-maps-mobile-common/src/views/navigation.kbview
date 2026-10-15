@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Maps · Navigation — the turn-by-turn HUD (NavOverlay.kt): a blue maneuver banner at the top (maneuver icon +
+  distance + instruction) and a bottom bar with the remaining time/distance and the Quitter button. Light
+  theme, logical px. Map is a native control (placeholder).
+-->
+<Panel xmlns="https://kubuno.com/views" xmlns:x="https://kubuno.com/views/x"
+       Layout="Dock" BackColor="#E6EAE3">
+
+  <Stack Dock="Top" Padding="12, 12, 12, 0">
+    <Stack Direction="LeftToRight" CrossAlign="Center" Gap="16" BackColor="#1A73E8" CornerRadius="16" Elevation="Lg" Padding="16, 16, 16, 16">
+      <Icon Name="CornerUpRight" Size="40" ForeColor="#FFFFFF"/>
+      <Stack Stack.Fill="true" Gap="2">
+        <Label Text="400 m" Role="Title" FontWeight="SemiBold" ForeColor="#FFFFFF"/>
+        <Label Text="Tournez à droite sur le quai de la Rapée" Role="Body" ForeColor="#FFFFFF" Overflow="Wrap"/>
+      </Stack>
+    </Stack>
+  </Stack>
+
+  <Stack Dock="Bottom" Direction="LeftToRight" CrossAlign="Center" Gap="12" BackColor="#FFFFFF" CornerRadius="20" Elevation="Lg" Padding="20, 16, 20, 16">
+    <Stack Stack.Fill="true" Gap="2">
+      <Label Text="12 min" Role="Title" FontWeight="SemiBold" ForeColor="#202124"/>
+      <Label Text="6,2 km restants" Role="Meta" ForeColor="#5F6368"/>
+    </Stack>
+    <Stack CrossAlign="Center" Justify="Center" BackColor="#FCE8E6" CornerRadius="8" Padding="20, 10, 20, 10">
+      <Label Text="Quitter" Role="Body" FontWeight="SemiBold" ForeColor="#D93025"/>
+    </Stack>
+  </Stack>
+
+  <MapView Dock="Fill" Route="true"/>
+
+</Panel>

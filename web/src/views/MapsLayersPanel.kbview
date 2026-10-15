@@ -1,0 +1,108 @@
+<!-- MapsLayersPanel — converted from MapsLayersPanel.tsx (partial). ReactHost parts: per-tile glyph
+     (dynamic icon), the offline progress bar (dynamic inline width) and the GeoJSON/KML file picker.
+     The overlay/basemap tile grids and the imports list are Repeaters (per-row via args.row). -->
+<Stack x:Props="MapsLayersPanelProps" Gap="0" Class="w-[340px] bg-surface-0 rounded-2xl shadow-2xl border border-border overflow-hidden flex flex-col max-h-[calc(100vh-120px)]">
+  <Stack Direction="LeftToRight" CrossAlign="Center" Justify="SpaceBetween" Class="px-4 py-3 border-b border-border">
+    <Label HtmlTag="H3" Text="{Binding title_label}" FontWeight="SemiBold" ForeColor="TextPrimary" Class="text-base"/>
+    <Panel AccessibleRole="PushButton" Class="text-text-tertiary hover:text-text-primary" OnClick="close"><Icon Name="X" Size="18"/></Panel>
+  </Stack>
+
+  <Panel Class="p-4 overflow-y-auto">
+    <!-- Overlays -->
+    <Label HtmlTag="P" Text="{Binding overlays_label}" FontWeight="Medium" ForeColor="TextPrimary" Class="text-sm mb-3"/>
+    <Stack Direction="LeftToRight" Class="flex flex-wrap gap-3">
+      <Repeater ItemKey="key" ItemsSource="{Binding rows_overlays}">
+        <Stack CrossAlign="Center" AccessibleRole="PushButton" Class="group gap-1.5 w-[88px]" OnClick="toggle_overlay">
+          <Panel Class="{Binding tile_class}">
+            <ReactHost Component="{Binding TileIcon}" Props="{Binding icon_props}"/>
+            <Panel Visible="{Binding active}" Class="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-primary flex items-center justify-center"><Icon Name="Check" Size="11" Class="text-white"/></Panel>
+          </Panel>
+          <Label HtmlTag="Span" Text="{Binding label}" TextAlign="TopCenter" Overflow="Wrap" Class="{Binding tile_label_class}"/>
+        </Stack>
+      </Repeater>
+    </Stack>
+
+    <!-- Basemap -->
+    <Panel Class="mt-5">
+      <Label HtmlTag="P" Text="{Binding basemap_label}" FontWeight="Medium" ForeColor="TextPrimary" Class="text-sm mb-3"/>
+      <Stack Direction="LeftToRight" Class="flex flex-wrap gap-3">
+        <Repeater ItemKey="key" ItemsSource="{Binding rows_basemaps}">
+          <Stack CrossAlign="Center" AccessibleRole="PushButton" Class="group gap-1.5 w-[88px]" OnClick="pick_base">
+            <Panel Class="{Binding tile_class}">
+              <ReactHost Component="{Binding TileIcon}" Props="{Binding icon_props}"/>
+              <Panel Visible="{Binding active}" Class="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-primary flex items-center justify-center"><Icon Name="Check" Size="11" Class="text-white"/></Panel>
+            </Panel>
+            <Label HtmlTag="Span" Text="{Binding label}" TextAlign="TopCenter" Overflow="Wrap" Class="{Binding tile_label_class}"/>
+          </Stack>
+        </Repeater>
+      </Stack>
+    </Panel>
+
+    <!-- Offline -->
+    <Panel Class="mt-5 pt-4 border-t border-border">
+      <Stack Direction="LeftToRight" CrossAlign="Center" Justify="SpaceBetween" Class="mb-2">
+        <Stack Direction="LeftToRight" CrossAlign="Center" Class="text-sm font-medium text-text-primary gap-1.5">
+          <Icon Name="HardDrive" Size="14"/>
+          <Label HtmlTag="P" Text="{Binding offline_title}" InheritFontSize="true"/>
+        </Stack>
+        <Stack Direction="LeftToRight" CrossAlign="Center" Visible="{Binding show_offline_badge}" Class="gap-1 text-[10px] text-amber-600 bg-amber-100 rounded-full px-2 py-0.5">
+          <Icon Name="WifiOff" Size="11"/>
+          <Label HtmlTag="Span" Text="{Binding offline_status}" InheritFontSize="true"/>
+        </Stack>
+      </Stack>
+      <Label HtmlTag="P" Text="{Binding cached_label}" ForeColor="TextTertiary" Class="text-[11px] mb-2"/>
+      <ReactHost Component="{Binding ProgressBar}" Props="{Binding progress_props}" Visible="{Binding show_progress}"/>
+      <Stack Direction="LeftToRight" Visible="{Binding show_offline_actions}" Class="gap-2">
+        <Panel AccessibleRole="PushButton" Class="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-surface-2 text-text-secondary text-xs hover:bg-surface-3 transition-colors" OnClick="download_area">
+          <Icon Name="Download" Size="13"/>
+          <Label HtmlTag="Span" Text="{Binding download_label}" InheritFontSize="true"/>
+        </Panel>
+        <Panel AccessibleRole="PushButton" Visible="{Binding show_clear}" ToolTip="{Binding clear_label}" AccessibleName="{Binding clear_label}" Class="px-2.5 py-1.5 rounded-lg border border-border text-text-tertiary hover:text-danger hover:bg-surface-1" OnClick="clear_tiles">
+          <Icon Name="Trash2" Size="14"/>
+        </Panel>
+      </Stack>
+    </Panel>
+
+    <!-- Imported layers -->
+    <Panel Class="mt-5 pt-4 border-t border-border">
+      <Stack Direction="LeftToRight" CrossAlign="Center" Justify="SpaceBetween" Class="mb-2">
+        <Label HtmlTag="P" Text="{Binding import_label}" FontWeight="Medium" ForeColor="TextPrimary" Class="text-sm"/>
+        <ReactHost Component="{Binding LayerImport}" Props="{Binding import_props}"/>
+      </Stack>
+      <Label HtmlTag="P" Text="{Binding import_hint}" Visible="{Binding show_import_hint}" Overflow="Wrap" ForeColor="TextTertiary" Class="text-[11px]"/>
+      <Stack Gap="0" Visible="{Binding show_imports}" Class="flex flex-col gap-1">
+        <Repeater ItemKey="key" ItemsSource="{Binding rows_imports}">
+          <Stack Direction="LeftToRight" CrossAlign="Center" Class="group gap-2 px-2 py-1.5 rounded-lg bg-surface-1">
+            <Icon Name="FileJson" Size="13" Class="text-text-tertiary flex-shrink-0"/>
+            <Label HtmlTag="Span" Text="{Binding name}" Overflow="Ellipsis" ForeColor="TextSecondary" Class="flex-1 min-w-0 text-xs"/>
+            <Panel AccessibleRole="PushButton" Class="text-text-tertiary hover:text-danger opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" OnClick="remove_import">
+              <Icon Name="Trash2" Size="13"/>
+            </Panel>
+          </Stack>
+        </Repeater>
+      </Stack>
+    </Panel>
+
+    <!-- Toggles -->
+    <Stack Gap="12" Class="mt-5 pt-4 border-t border-border flex flex-col gap-3">
+      <Stack Direction="LeftToRight" CrossAlign="Center" Justify="SpaceBetween">
+        <Stack Direction="LeftToRight" CrossAlign="Center" AccessibleRole="CheckButton" Class="gap-2 text-sm text-text-primary" OnClick="toggle_globe">
+          <Panel Class="{Binding globe_box_class}"><Icon Name="Check" Size="13" Class="text-white" Visible="{Binding globe}"/></Panel>
+          <Label HtmlTag="Span" Text="{Binding globe_label}" InheritFontSize="true"/>
+        </Stack>
+        <Stack Direction="LeftToRight" CrossAlign="Center" AccessibleRole="CheckButton" Class="gap-2 text-sm text-text-primary" OnClick="toggle_labels">
+          <Panel Class="{Binding labels_box_class}"><Icon Name="Check" Size="13" Class="text-white" Visible="{Binding showLabels}"/></Panel>
+          <Stack Direction="LeftToRight" CrossAlign="Center" Class="gap-1"><Icon Name="Tag" Size="13"/><Label HtmlTag="Span" Text="{Binding labels_label}" InheritFontSize="true"/></Stack>
+        </Stack>
+      </Stack>
+      <Stack Direction="LeftToRight" CrossAlign="Center" AccessibleRole="CheckButton" Class="gap-2 text-sm text-text-primary" OnClick="toggle_terrain3d">
+        <Panel Class="{Binding terrain_box_class}"><Icon Name="Check" Size="13" Class="text-white" Visible="{Binding terrain3d}"/></Panel>
+        <Stack Direction="LeftToRight" CrossAlign="Center" Class="gap-1"><Icon Name="Box" Size="13"/><Label HtmlTag="Span" Text="{Binding terrain_label}" InheritFontSize="true"/></Stack>
+      </Stack>
+      <Stack Direction="LeftToRight" CrossAlign="Center" AccessibleRole="CheckButton" Class="gap-2 text-sm text-text-primary" OnClick="toggle_contrast">
+        <Panel Class="{Binding contrast_box_class}"><Icon Name="Check" Size="13" Class="text-white" Visible="{Binding highContrast}"/></Panel>
+        <Stack Direction="LeftToRight" CrossAlign="Center" Class="gap-1"><Icon Name="Contrast" Size="13"/><Label HtmlTag="Span" Text="{Binding contrast_label}" InheritFontSize="true"/></Stack>
+      </Stack>
+    </Stack>
+  </Panel>
+</Stack>

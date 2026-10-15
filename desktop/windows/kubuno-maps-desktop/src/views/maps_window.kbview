@@ -1,0 +1,68 @@
+<!--
+  Kubuno Maps' window, laid out like the web (MapsPage.tsx): the Kubuno shell chrome with a tall title bar, a
+  navigation toolbar matching the web's top bar (the module name, a wide search field, a status read-out and a
+  « Layers » toggle), a layers panel on the right (the web's MapsLayersPanel: base-map choices, overlay switches
+  and the labels switch) wired to the core basemap/overlay catalogue and the shared MapView, a places panel on the
+  left (search results and saved places), and the live map surface, drawn natively, in the body.
+-->
+<Panel xmlns="https://kubuno.com/views" xmlns:x="https://kubuno.com/views/x"
+       DesignWidth="1200" DesignHeight="800" Title="{Res app_title}"
+       TitleBarStyle="Tall" ShowWaffle="false" ShowAccount="false"
+       OnLoad="maps_window_load">
+
+  <!-- The navigation toolbar (web MapsPage top bar). -->
+  <Panel x:Name="toolbar" Dock="Top" Height="56" BackColor="Surface">
+    <Panel Dock="Bottom" Height="1" BackColor="Border"/>
+    <Label Text="{Res app_title}" Role="Title" ForeColor="TextPrimary" TextAlign="MiddleLeft" X="16" Y="12" Width="176" Height="32"/>
+    <SearchField x:Name="search_box" Placeholder="{Res search_ph}" X="200" Y="12" Width="440" Height="32" OnTextChanged="search_changed"/>
+    <Label x:Name="status_label" Role="Caption" ForeColor="TextSecondary" TextAlign="MiddleRight" X="656" Y="12" Width="180" Height="32" Anchor="Top, Right"/>
+    <Button x:Name="places_toggle" Text="{Res places_toggle}" Icon="Star" Variant="Secondary" X="848" Y="12" Width="144" Height="32" Anchor="Top, Right" OnClick="places_toggle_click"/>
+    <Button x:Name="layers_toggle" Text="{Res layers}" Icon="Layers" Variant="Secondary" X="1000" Y="12" Width="144" Height="32" Anchor="Top, Right" OnClick="layers_toggle_click"/>
+  </Panel>
+
+  <!-- The layers panel (web MapsLayersPanel): base map, overlays and labels. -->
+  <Panel x:Name="layers_panel" Dock="Right" Width="268" BackColor="Surface">
+    <Panel Dock="Left" Width="1" BackColor="Border"/>
+
+    <Label Text="{Res hdr_basemaps}" Role="Caption" ForeColor="TextSecondary" X="16" Y="16" Width="236" Height="18"/>
+    <Button x:Name="bm_default" Text="{Res bm_default}" Variant="Ghost" X="14" Y="40" Width="240" Height="34" OnClick="basemap_default_click"/>
+    <Button x:Name="bm_light" Text="{Res bm_light}" Variant="Ghost" X="14" Y="78" Width="240" Height="34" OnClick="basemap_light_click"/>
+    <Button x:Name="bm_terrain" Text="{Res bm_terrain}" Variant="Ghost" X="14" Y="116" Width="240" Height="34" OnClick="basemap_terrain_click"/>
+    <Button x:Name="bm_satellite" Text="{Res bm_satellite}" Variant="Ghost" X="14" Y="154" Width="240" Height="34" OnClick="basemap_satellite_click"/>
+    <Button x:Name="bm_offline" Text="{Res bm_offline}" Variant="Ghost" X="14" Y="192" Width="240" Height="34" OnClick="basemap_offline_click"/>
+
+    <Panel X="14" Y="240" Width="240" Height="1" BackColor="Border"/>
+    <Label Text="{Res hdr_overlays}" Role="Caption" ForeColor="TextSecondary" X="16" Y="252" Width="236" Height="18"/>
+
+    <Label Text="{Res ov_cycle}" ForeColor="TextPrimary" TextAlign="MiddleLeft" X="16" Y="280" Width="190" Height="28"/>
+    <Switch x:Name="ov_cycle" X="214" Y="282" Width="40" Height="24" Anchor="Top, Right" OnCheckedChanged="overlay_cycle_changed"/>
+    <Label Text="{Res ov_relief}" ForeColor="TextPrimary" TextAlign="MiddleLeft" X="16" Y="314" Width="190" Height="28"/>
+    <Switch x:Name="ov_relief" X="214" Y="316" Width="40" Height="24" Anchor="Top, Right" OnCheckedChanged="overlay_relief_changed"/>
+    <Label Text="{Res ov_terrain3d}" ForeColor="TextPrimary" TextAlign="MiddleLeft" X="16" Y="348" Width="190" Height="28"/>
+    <Switch x:Name="ov_terrain3d" X="214" Y="350" Width="40" Height="24" Anchor="Top, Right" OnCheckedChanged="overlay_terrain3d_changed"/>
+    <Label Text="{Res ov_transit}" ForeColor="TextPrimary" TextAlign="MiddleLeft" X="16" Y="382" Width="190" Height="28"/>
+    <Switch x:Name="ov_transit" X="214" Y="384" Width="40" Height="24" Anchor="Top, Right" OnCheckedChanged="overlay_transit_changed"/>
+    <Label Text="{Res ov_precip}" ForeColor="TextPrimary" TextAlign="MiddleLeft" X="16" Y="416" Width="190" Height="28"/>
+    <Switch x:Name="ov_precip" X="214" Y="418" Width="40" Height="24" Anchor="Top, Right" OnCheckedChanged="overlay_precip_changed"/>
+
+    <Panel X="14" Y="460" Width="240" Height="1" BackColor="Border"/>
+    <Label Text="{Res labels}" ForeColor="TextPrimary" TextAlign="MiddleLeft" X="16" Y="476" Width="190" Height="28"/>
+    <Switch x:Name="labels_switch" X="214" Y="478" Width="40" Height="24" Anchor="Top, Right" OnCheckedChanged="labels_changed"/>
+  </Panel>
+
+  <!-- The places panel (web MapsSearchBar suggestions + saved places): the search results while a query is typed,
+       the saved places otherwise; « Save » keeps the picked result. -->
+  <Panel x:Name="places_panel" Dock="Left" Width="340" BackColor="Surface">
+    <Panel Dock="Right" Width="1" BackColor="Border"/>
+    <Panel Dock="Top" Height="56" BackColor="Surface">
+      <Panel Dock="Bottom" Height="1" BackColor="Border"/>
+      <Label x:Name="places_title" ForeColor="TextPrimary" TextAlign="MiddleLeft" X="16" Y="12" Width="140" Height="32"/>
+      <Button x:Name="save_button" Text="{Res save}" Icon="Star" Variant="Secondary" X="160" Y="12" Width="136" Height="32" Anchor="Top, Right" OnClick="save_click"/>
+      <Button x:Name="places_close" Icon="X" Variant="Ghost" AccessibleName="{Res close}" X="300" Y="12" Width="32" Height="32" Anchor="Top, Right" OnClick="places_toggle_click"/>
+    </Panel>
+    <ResultList x:Name="results" Dock="Fill" OnItemPicked="result_picked"/>
+  </Panel>
+
+  <!-- The live map surface, drawn natively. -->
+  <MapCanvas x:Name="canvas" Dock="Fill"/>
+</Panel>

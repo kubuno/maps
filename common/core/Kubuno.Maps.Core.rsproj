@@ -1,0 +1,10 @@
+<Project Sdk="Kubuno.Rust.Sdk/1.1.1">
+
+  <!-- The shared core of every Maps client (common/core): kubuno-maps-core, sans-IO — the Web Mercator tile
+       math, the geodesic geometry, the basemap/overlay catalogue, the theme palette and the formatters. This
+       file is yours: it is never overwritten by a later run of the solution generator - edit it freely. -->
+  <PropertyGroup>
+    <CargoPackage>kubuno-maps-core</CargoPackage>
+  </PropertyGroup>
+
+</Project>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Maps · Track — an opened GPX track (TrackCard.kt): a bottom card with the track name, the stats row and the
+  elevation profile. The ElevationChart is a native canvas (placeholder here). Light theme, logical px.
+-->
+<Panel xmlns="https://kubuno.com/views" xmlns:x="https://kubuno.com/views/x"
+       Layout="Dock" BackColor="#E6EAE3">
+
+  <Stack Dock="Bottom" BackColor="#FFFFFF" CornerRadius="20" Elevation="Lg" Padding="20, 10, 12, 16" CrossAlign="Stretch" Gap="0">
+    <Stack CrossAlign="Center">
+      <Stack Width="32" Height="4" BackColor="#DADCE0" CornerRadius="9999"/>
+    </Stack>
+
+    <Stack Direction="LeftToRight" CrossAlign="Center" Padding="0, 6, 0, 0">
+      <Label Stack.Fill="true" Text="Boucle du Mont Aigu" Role="Title" FontWeight="SemiBold" ForeColor="#202124" Overflow="Ellipsis"/>
+      <IconButton Icon="X" Diameter="40" IconSize="20" IconColor="#5F6368"/>
+    </Stack>
+
+    <Stack Direction="LeftToRight" Gap="24" Padding="0, 2, 0, 12">
+      <Stack Gap="1">
+        <Label Text="12,4 km" Role="Subtitle" FontWeight="SemiBold" ForeColor="#202124"/>
+        <Label Text="Distance" Role="Caption" ForeColor="#5F6368"/>
+      </Stack>
+      <Stack Gap="1">
+        <Label Text="620 m" Role="Subtitle" FontWeight="SemiBold" ForeColor="#202124"/>
+        <Label Text="Dénivelé +" Role="Caption" ForeColor="#5F6368"/>
+      </Stack>
+      <Stack Gap="1">
+        <Label Text="3 h 10" Role="Subtitle" FontWeight="SemiBold" ForeColor="#202124"/>
+        <Label Text="Durée" Role="Caption" ForeColor="#5F6368"/>
+      </Stack>
+    </Stack>
+
+    <!-- Elevation profile (native canvas) -->
+    <Stack Height="120" BackColor="#EAF2FB" CornerRadius="8" CrossAlign="Center" Justify="Center">
+      <Icon Name="Mountain" Size="40" ForeColor="#9DBBDD"/>
+    </Stack>
+  </Stack>
+
+  <MapView Dock="Fill" Route="true"/>
+
+</Panel>

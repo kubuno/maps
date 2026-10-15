@@ -1,0 +1,33 @@
+<!-- MapsRoutePanel — converted from MapsRoutePanel.tsx using the container pattern. The converted children
+     (the mode row, the results and their actions) are embedded as native typed `.kbview` elements; the fields,
+     options and the suggestions stay React <ReactHost> parts (imperative / multi-arg callback). This view holds
+     their orchestration (focus/typing/schedule/details state, units preference, print). -->
+<Stack x:Props="MapsRoutePanelProps" Gap="0" Class="flex flex-col">
+  <MapsRouteModes Mode="{Binding props.route.mode}" OnSetMode="modes_set_mode" OnClose="panel_close"/>
+  <ReactHost Component="{Binding Fields}" Props="{Binding fields_props}"/>
+  <ReactHost Component="{Binding Options}" Props="{Binding options_props}" Visible="{Binding show_options}"/>
+  <Panel Class="border-t border-border mt-3"/>
+
+  <ReactHost Component="{Binding Suggestions}" Props="{Binding suggestions_props}" Visible="{Binding show_suggestions}"/>
+
+  <Label HtmlTag="P" Text="{Binding transit_note}" Visible="{Binding show_transit_note}" Overflow="Wrap" ForeColor="TextSecondary" Class="px-6 py-5 text-sm"/>
+  <!-- A native view element takes Visible as a child prop, not as the framework's render gate; the
+       transparent (display: contents) Panel wrappers keep the original conditional rendering and layout. -->
+  <Panel Class="contents" Visible="{Binding show_actions}">
+    <MapsRouteActions Waypoints="{Binding props.waypoints}" Mode="{Binding props.route.effectiveMode}" Summary="{Binding summary}" OnPrint="actions_print"/>
+  </Panel>
+  <Panel Class="contents" Visible="{Binding show_results}">
+    <MapsRouteResults Mode="{Binding props.route.mode}" Results="{Binding props.route.results}" ResultModes="{Binding props.route.resultModes}"
+                      Selected="{Binding props.route.selected}" OnSetSelected="results_set_selected"
+                      Loading="{Binding props.route.loading}" Error="{Binding props.route.error}"
+                      Units="{Binding units}" Schedule="{Binding schedule}"
+                      DetailsOpen="{Binding detailsOpen}" OnSetDetailsOpen="results_set_details"
+                      OnStartNav="results_start_nav" OnSimulateNav="results_simulate_nav"/>
+  </Panel>
+
+  <Stack Direction="LeftToRight" CrossAlign="Center" AccessibleRole="PushButton" Visible="{Binding has_any}"
+         Class="self-start flex items-center gap-1.5 mx-4 my-3 text-sm text-text-secondary hover:text-danger transition-colors no-print" OnClick="clear_all">
+    <Icon Name="X" Size="16"/>
+    <Label HtmlTag="Span" Text="{Binding clear_label}" InheritFontSize="true"/>
+  </Stack>
+</Stack>

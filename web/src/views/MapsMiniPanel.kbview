@@ -1,0 +1,29 @@
+<!-- MapsMiniPanel — converted from MapsMiniPanel.tsx. Fully converted (the saved-places query runs in
+     useHooks; the list is a Repeater, with per-row navigation reading args.row). -->
+<Stack x:Props="MapsMiniPanelProps" Gap="0" Class="flex min-h-0 flex-1 flex-col">
+  <Label Text="{Binding title_label}" ForeColor="TextTertiary" Class="px-4 pt-3 pb-1 uppercase tracking-wide [font-size:var(--kb-text-meta)]"/>
+  <Panel Class="min-h-0 flex-1 overflow-y-auto px-2 pb-3">
+    <Stack Direction="LeftToRight" Justify="Center" Visible="{Binding isLoading}" Class="py-6">
+      <Spinner/>
+    </Stack>
+    <Label HtmlTag="P" Text="{Binding empty_label}" Visible="{Binding show_empty}" Overflow="Wrap" ForeColor="TextTertiary" Class="px-2 py-4 [font-size:var(--kb-text-meta)]"/>
+    <Repeater ItemKey="key" ItemsSource="{Binding rows_places}" Visible="{Binding show_list}">
+      <Stack Direction="LeftToRight" CrossAlign="Center" Class="group gap-2 rounded-lg px-2 py-1.5 hover:bg-surface-1">
+        <Panel AccessibleRole="PushButton" Class="flex min-w-0 flex-1 items-center gap-2 text-left" OnClick="open">
+          <Icon Name="MapPin" Size="15" Class="flex-shrink-0 text-text-tertiary"/>
+          <Stack Gap="0" Class="min-w-0 flex-1">
+            <Label Text="{Binding name}" Overflow="Ellipsis" ForeColor="TextPrimary" Class="[font-size:var(--kb-text-body)]"/>
+            <Label Text="{Binding address}" Visible="{Binding show_address}" Overflow="Ellipsis" ForeColor="TextTertiary" Class="[font-size:var(--kb-text-meta)]"/>
+          </Stack>
+        </Panel>
+        <Panel AccessibleRole="PushButton"
+               ToolTip="{Binding directions_label}"
+               AccessibleName="{Binding directions_label}"
+               Class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md text-text-tertiary opacity-0 transition-opacity hover:bg-surface-2 hover:text-text-primary group-hover:opacity-100 group-focus-within:opacity-100"
+               OnClick="route">
+          <Icon Name="Navigation" Size="14"/>
+        </Panel>
+      </Stack>
+    </Repeater>
+  </Panel>
+</Stack>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Maps · Layers — the base-map picker expanded (LayersButton.kt): the layers button with its popup panel
+  (Plan / Satellite / Relief; Plan selected). Light theme, logical px. Map is a native control (placeholder).
+-->
+<Panel xmlns="https://kubuno.com/views" xmlns:x="https://kubuno.com/views/x"
+       Layout="Dock" BackColor="#E6EAE3">
+
+  <Stack Dock="Bottom" Direction="LeftToRight" Padding="16, 0, 16, 16">
+    <Stack Gap="8">
+      <!-- Popup panel -->
+      <Stack BackColor="#FFFFFF" CornerRadius="12" Elevation="Md" Padding="4, 4, 4, 4" CrossAlign="Stretch" Gap="2" Width="180">
+        <Stack Direction="LeftToRight" CrossAlign="Center" Gap="12" BackColor="#D3E3FD" CornerRadius="8" Padding="12, 10, 12, 10">
+          <Icon Name="Map" Size="20" ForeColor="#1A73E8"/>
+          <Label Text="Plan" Role="Body" FontWeight="SemiBold" ForeColor="#1A73E8"/>
+        </Stack>
+        <Stack Direction="LeftToRight" CrossAlign="Center" Gap="12" Padding="12, 10, 12, 10">
+          <Icon Name="Satellite" Size="20" ForeColor="#5F6368"/>
+          <Label Text="Satellite" Role="Body" ForeColor="#202124"/>
+        </Stack>
+        <Stack Direction="LeftToRight" CrossAlign="Center" Gap="12" Padding="12, 10, 12, 10">
+          <Icon Name="Mountain" Size="20" ForeColor="#5F6368"/>
+          <Label Text="Relief" Role="Body" ForeColor="#202124"/>
+        </Stack>
+      </Stack>
+      <!-- Layers button -->
+      <Stack x:Name="layers_close" OnClick="close" CrossAlign="Center" Justify="Center" BackColor="#FFFFFF" CornerRadius="12" Elevation="Md" Width="44" Height="44">
+        <Icon Name="Layers" Size="22" ForeColor="#1A73E8"/>
+      </Stack>
+    </Stack>
+  </Stack>
+
+  <MapView Dock="Fill"/>
+
+</Panel>

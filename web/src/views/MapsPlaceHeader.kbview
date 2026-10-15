@@ -1,0 +1,53 @@
+<!-- MapsPlaceHeader — converted from MapsPlaceHeader.tsx (partial). The hero photo uses the <Image> control
+     (OnError → the parent's imgFailed). The star row (Stars) and the prop-driven Tabs strip stay React
+     <ReactHost> parts; the category stars are a small Repeater. -->
+<Stack x:Props="MapsPlaceHeaderProps" Gap="0">
+  <!-- Hero -->
+  <Panel Class="{Binding hero_class}">
+    <Image Visible="{Binding show_photo}" Src="{Binding photo_src}" Alt="{Binding props.d.title}" Fit="Cover" OnError="img_error" Class="w-full h-full object-cover"/>
+    <Panel Visible="{Binding loading}" Class="absolute inset-0 animate-pulse bg-surface-3"/>
+    <Label HtmlTag="Span" Text="{Binding credit}" Visible="{Binding show_credit}" Class="absolute bottom-1.5 right-2 text-[10px] text-white/90 bg-black/35 rounded px-1.5 py-0.5"/>
+    <Panel AccessibleRole="PushButton" ToolTip="{Binding close_label}" AccessibleName="{Binding close_label}" Class="absolute right-3 top-[72px] w-9 h-9 rounded-full bg-white text-text-secondary shadow-md flex items-center justify-center" OnClick="close">
+      <Icon Name="X" Size="18"/>
+    </Panel>
+  </Panel>
+
+  <!-- Title block -->
+  <Panel Class="px-4 pt-3 pb-1">
+    <Label HtmlTag="H2" Text="{Binding props.d.title}" Overflow="Wrap" Class="text-[22px] font-normal leading-7 break-words text-[#202124]"/>
+
+    <!-- Rating line -->
+    <Stack Direction="LeftToRight" CrossAlign="Center" Visible="{Binding show_rated}" Class="gap-1.5 mt-1 text-sm">
+      <Label HtmlTag="Span" Text="{Binding avg_text}" Class="text-[#202124]"/>
+      <ReactHost Component="{Binding Stars}" Props="{Binding avg_stars_props}"/>
+      <Stack Direction="LeftToRight" CrossAlign="Center" AccessibleRole="PushButton" Class="text-text-secondary hover:underline" OnClick="reviews_click">
+        <Label HtmlTag="Span" Text="{Binding count_text}" InheritFontSize="true"/>
+      </Stack>
+      <Icon Name="Info" Size="14" ToolTip="{Binding rating_hint}" Class="text-text-tertiary"/>
+    </Stack>
+    <Stack Direction="LeftToRight" CrossAlign="Center" Visible="{Binding show_unrated}" Class="gap-1.5 mt-1 text-sm">
+      <Label HtmlTag="Span" Text="{Binding no_reviews_label}" ForeColor="TextSecondary"/>
+      <Label HtmlTag="Span" Text="·" ForeColor="TextTertiary"/>
+      <Stack Direction="LeftToRight" CrossAlign="Center" AccessibleRole="PushButton" Class="text-primary hover:underline" OnClick="add_review">
+        <Label HtmlTag="Span" Text="{Binding add_review_label}" InheritFontSize="true"/>
+      </Stack>
+    </Stack>
+
+    <!-- Category line -->
+    <Stack Direction="LeftToRight" CrossAlign="Center" Class="gap-1.5 mt-0.5 text-sm text-text-secondary flex-wrap">
+      <Label HtmlTag="Span" Text="{Binding props.d.categoryLabel}" Overflow="Wrap"/>
+      <Stack Direction="LeftToRight" CrossAlign="Center" Visible="{Binding show_class_stars}" Class="gap-0.5 text-[#fbbc04]">
+        <Repeater ItemKey="key" ItemsSource="{Binding rows_class_stars}">
+          <Icon Name="Star" Size="12"/>
+        </Repeater>
+      </Stack>
+      <Stack Direction="LeftToRight" CrossAlign="Center" Visible="{Binding show_wheelchair}" Class="gap-1.5">
+        <Label HtmlTag="Span" Text="·" ForeColor="TextTertiary"/>
+        <Icon Name="Accessibility" Size="16" ToolTip="{Binding access_label}" Class="text-text-secondary"/>
+      </Stack>
+    </Stack>
+  </Panel>
+
+  <!-- Tabs -->
+  <ReactHost Component="{Binding Tabs}" Props="{Binding tabs_props}"/>
+</Stack>

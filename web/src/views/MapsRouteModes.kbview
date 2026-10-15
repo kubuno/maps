@@ -1,0 +1,19 @@
+<!-- MapsRouteModes — converted from MapsRouteModes.tsx (partial). Notes:
+     - the per-mode glyph is dynamic (one is a custom SVG), so it stays a React <ReactHost> part;
+     - there is no `Tooltip` element in the registry, so the hover tip uses the plain `ToolTip` property
+       (a small fidelity change vs the @ui styled Tooltip; see WEB-KBVIEW-CONVERSION.md). -->
+<Stack x:Props="MapsRouteModesProps" Direction="LeftToRight" CrossAlign="Center" Class="gap-1 pl-4 pr-2 pt-3 pb-1 no-print">
+  <Stack Direction="LeftToRight" CrossAlign="Center" Justify="Center" Class="flex-1 gap-3">
+    <Repeater ItemKey="key" ItemsSource="{Binding rows_modes}">
+      <Panel AccessibleRole="PushButton" ToolTip="{Binding tip}" Class="{Binding btn_class}" OnClick="pick">
+        <ReactHost Component="{Binding ModeIcon}" Props="{Binding icon_props}"/>
+      </Panel>
+    </Repeater>
+  </Stack>
+  <Panel AccessibleRole="PushButton"
+         ToolTip="{Binding close_label}"
+         Class="w-10 h-10 rounded-full flex items-center justify-center text-text-secondary flex-shrink-0 hover:bg-surface-2"
+         OnClick="close">
+    <Icon Name="X" Size="22"/>
+  </Panel>
+</Stack>

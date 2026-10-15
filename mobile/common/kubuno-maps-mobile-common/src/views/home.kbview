@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Maps · Home — the idle map state (MapsApp.kt): the MapLibre map (a native control, shown here as a neutral
+  placeholder) with the floating SearchPill + CategoryChips on top, the Layers / locate buttons band, and the
+  HomeSheet at the bottom (handle, favourite chips, the "Aller quelque part" button and a nearby list). Shared
+  vocabulary, light theme, logical px (~390 wide). Screen root is a Panel; the map colour is the root backdrop
+  so the floating pills read as hovering over the map.
+-->
+<Panel xmlns="https://kubuno.com/views" xmlns:x="https://kubuno.com/views/x"
+       Layout="Dock" BackColor="#E6EAE3">
+
+  <!-- Floating search pill + category chips -->
+  <Stack Dock="Top" Gap="8" Padding="12, 12, 12, 0">
+    <Stack x:Name="search_pill" OnClick="open_search" Direction="LeftToRight" CrossAlign="Center" Gap="12" BackColor="#FFFFFF" CornerRadius="9999"
+           Elevation="Lg" Padding="14, 12, 14, 12">
+      <Icon x:Name="menu" OnClick="open_library" Name="Menu" Size="22" ForeColor="#5F6368"/>
+      <Icon Name="Search" Size="20" ForeColor="#5F6368"/>
+      <Label Stack.Fill="true" Text="Rechercher ici" Role="Body" ForeColor="#5F6368"/>
+      <Avatar DisplayName="Camille Martin" AvatarSize="30" Tint="Accent"/>
+    </Stack>
+    <Stack Direction="LeftToRight" Gap="8">
+      <Stack Direction="LeftToRight" CrossAlign="Center" Gap="6" BackColor="#FFFFFF" CornerRadius="9999" Elevation="Sm" Padding="12, 7, 12, 7">
+        <Icon Name="Utensils" Size="16" ForeColor="#1A73E8"/>
+        <Label Text="Restaurants" Role="Caption" ForeColor="#202124"/>
+      </Stack>
+      <Stack Direction="LeftToRight" CrossAlign="Center" Gap="6" BackColor="#FFFFFF" CornerRadius="9999" Elevation="Sm" Padding="12, 7, 12, 7">
+        <Icon Name="Coffee" Size="16" ForeColor="#1A73E8"/>
+        <Label Text="Cafés" Role="Caption" ForeColor="#202124"/>
+      </Stack>
+      <Stack Direction="LeftToRight" CrossAlign="Center" Gap="6" BackColor="#FFFFFF" CornerRadius="9999" Elevation="Sm" Padding="12, 7, 12, 7">
+        <Icon Name="Fuel" Size="16" ForeColor="#1A73E8"/>
+        <Label Text="Essence" Role="Caption" ForeColor="#202124"/>
+      </Stack>
+    </Stack>
+  </Stack>
+
+  <!-- Home sheet -->
+  <Stack Dock="Bottom" BackColor="#FFFFFF" CornerRadius="16" Elevation="Lg" Padding="16, 10, 16, 16" CrossAlign="Stretch" Gap="10">
+    <Stack CrossAlign="Center">
+      <Stack Width="36" Height="4" BackColor="#DADCE0" CornerRadius="9999"/>
+    </Stack>
+    <Stack Direction="LeftToRight" Gap="10">
+      <Stack Stack.Fill="true" Direction="LeftToRight" CrossAlign="Center" Gap="10" BackColor="#F1F3F4" CornerRadius="9999" Padding="10, 10, 10, 10">
+        <Stack CrossAlign="Center" Justify="Center" BackColor="#00C2A8" CornerRadius="9999" Width="32" Height="32">
+          <Icon Name="House" Size="18" ForeColor="#FFFFFF"/>
+        </Stack>
+        <Label Text="Maison" Role="Body" FontWeight="SemiBold" ForeColor="#202124"/>
+      </Stack>
+      <Stack Stack.Fill="true" Direction="LeftToRight" CrossAlign="Center" Gap="10" BackColor="#F1F3F4" CornerRadius="9999" Padding="10, 10, 10, 10">
+        <Stack CrossAlign="Center" Justify="Center" BackColor="#7B61FF" CornerRadius="9999" Width="32" Height="32">
+          <Icon Name="Briefcase" Size="18" ForeColor="#FFFFFF"/>
+        </Stack>
+        <Label Text="Travail" Role="Body" FontWeight="SemiBold" ForeColor="#202124"/>
+      </Stack>
+    </Stack>
+    <Stack x:Name="go_btn" OnClick="open_search" Direction="LeftToRight" CrossAlign="Center" Justify="Center" Gap="10" BackColor="#2B7FFF" CornerRadius="8" Height="54">
+      <Icon Name="Search" Size="22" ForeColor="#FFFFFF"/>
+      <Label Text="Aller quelque part" Role="Subtitle" FontWeight="SemiBold" ForeColor="#FFFFFF"/>
+    </Stack>
+    <Label Text="À PROXIMITÉ" Role="Meta" FontWeight="SemiBold" ForeColor="#5F6368" Padding="0, 6, 0, 0"/>
+    <Stack Direction="LeftToRight" CrossAlign="Center" Gap="12" Padding="0, 2, 0, 2">
+      <Stack CrossAlign="Center" Justify="Center" BackColor="#FF375F" CornerRadius="9999" Width="36" Height="36">
+        <Icon Name="Bookmark" Size="18" ForeColor="#FFFFFF"/>
+      </Stack>
+      <Stack Stack.Fill="true" Gap="1">
+        <Label Text="Boulangerie du Centre" Role="Body" FontWeight="SemiBold" ForeColor="#202124" Overflow="Ellipsis"/>
+        <Label Text="12 rue des Lilas · 400 m" Role="Meta" ForeColor="#5F6368" Overflow="Ellipsis"/>
+      </Stack>
+    </Stack>
+  </Stack>
+
+  <!-- Layers (left) + locate (right) floating band, above the sheet -->
+  <Stack Dock="Bottom" Direction="LeftToRight" CrossAlign="Center" Justify="SpaceBetween" Padding="16, 0, 16, 10">
+    <Stack x:Name="layers_btn" OnClick="open_layers" CrossAlign="Center" Justify="Center" BackColor="#FFFFFF" CornerRadius="12" Elevation="Md" Width="44" Height="44">
+      <Icon Name="Layers" Size="22" ForeColor="#1A73E8"/>
+    </Stack>
+    <Stack CrossAlign="Center" Justify="Center" BackColor="#FFFFFF" CornerRadius="9999" Elevation="Md" Width="48" Height="48">
+      <Icon Name="LocateFixed" Size="22" ForeColor="#1A73E8"/>
+    </Stack>
+  </Stack>
+
+  <!-- Map surface (native MapLibre control on device; stylised street map in the preview renderer) -->
+  <MapView Dock="Fill"/>
+
+</Panel>

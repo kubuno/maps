@@ -1,0 +1,63 @@
+<!-- MapsPlacesPanel — converted from MapsPlacesPanel.tsx (partial). The outer structure, the filter chips,
+     the places list and the recents list are the view (Repeaters); the per-row editor (PlaceRow), the "new
+     list" form, the coloured chip dot and the GeoJSON import stay React <ReactHost> parts. -->
+<Stack x:Props="MapsPlacesPanelProps" Gap="0" Class="flex flex-col gap-2.5">
+  <!-- List filter chips -->
+  <Stack Direction="LeftToRight" Class="flex gap-1.5 overflow-x-auto pb-0.5">
+    <Repeater ItemKey="key" ItemsSource="{Binding rows_chips}">
+      <Panel Class="group/chip relative flex-shrink-0">
+        <Stack Direction="LeftToRight" CrossAlign="Center" AccessibleRole="PushButton" Class="{Binding chip_class}" OnClick="set_filter">
+          <ReactHost Component="{Binding ChipDot}" Props="{Binding dot_props}" Visible="{Binding has_color}"/>
+          <Label HtmlTag="Span" Text="{Binding label}" InheritFontSize="true"/>
+          <Label HtmlTag="Span" Text="{Binding count}" Visible="{Binding show_count}" Class="opacity-70" InheritFontSize="true"/>
+        </Stack>
+        <Panel AccessibleRole="PushButton" Visible="{Binding deletable}" ToolTip="{Binding delete_label}" Class="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-danger text-white items-center justify-center hidden group-hover/chip:flex" OnClick="delete_collection">
+          <Icon Name="X" Size="9"/>
+        </Panel>
+      </Panel>
+    </Repeater>
+    <Panel AccessibleRole="PushButton" ToolTip="{Binding new_list_label}" Class="flex items-center justify-center w-7 h-7 rounded-full border border-border text-text-secondary hover:bg-surface-1 flex-shrink-0" OnClick="toggle_creating">
+      <Icon Name="FolderPlus" Size="13"/>
+    </Panel>
+  </Stack>
+
+  <!-- New list form -->
+  <ReactHost Component="{Binding CreateListForm}" Props="{Binding create_props}" Visible="{Binding creating}"/>
+
+  <!-- Search + import/export -->
+  <Stack Direction="LeftToRight" CrossAlign="Center" Class="gap-1.5">
+    <TextField Text="{Binding q, Mode=TwoWay}" InputType="Search" LeftIcon="Search" Placeholder="{Binding search_placeholder}" Class="flex-1"/>
+    <Panel AccessibleRole="PushButton" ToolTip="{Binding export_label}" Class="p-1.5 rounded-lg border border-border text-text-secondary hover:bg-surface-1" OnClick="export_places"><Icon Name="Download" Size="14"/></Panel>
+    <ReactHost Component="{Binding PlacesImport}" Props="{Binding import_props}"/>
+  </Stack>
+
+  <!-- Places list -->
+  <Stack CrossAlign="Center" Visible="{Binding show_empty}" Class="flex flex-col items-center justify-center py-8 gap-2 text-text-tertiary">
+    <Icon Name="Star" Size="22" Class="opacity-30"/>
+    <Label HtmlTag="P" Text="{Binding empty_label}" TextAlign="TopCenter" Overflow="Wrap" Class="text-xs"/>
+  </Stack>
+  <Stack Gap="0" Visible="{Binding show_list}" Class="flex flex-col gap-0.5">
+    <Repeater ItemKey="key" ItemsSource="{Binding rows_places}">
+      <ReactHost Component="{Binding PlaceRow}" Props="{Binding row_props}"/>
+    </Repeater>
+  </Stack>
+
+  <!-- Recents -->
+  <Panel Visible="{Binding show_recents}" Class="border-t border-border pt-2">
+    <Stack Direction="LeftToRight" CrossAlign="Center" Justify="SpaceBetween" Class="mb-1 px-1">
+      <Stack Direction="LeftToRight" CrossAlign="Center" Class="text-[10px] uppercase tracking-wide text-text-tertiary gap-1">
+        <Icon Name="Clock" Size="11"/>
+        <Label HtmlTag="P" Text="{Binding recent_label}" InheritFontSize="true"/>
+      </Stack>
+      <Panel AccessibleRole="PushButton" Class="text-[10px] text-text-tertiary hover:text-danger" OnClick="clear_history"><Label HtmlTag="Span" Text="{Binding recent_clear_label}" InheritFontSize="true"/></Panel>
+    </Stack>
+    <Stack Gap="0" Class="flex flex-col gap-0.5">
+      <Repeater ItemKey="key" ItemsSource="{Binding rows_recents}">
+        <Stack Direction="LeftToRight" CrossAlign="Center" AccessibleRole="PushButton" Class="gap-2 px-2 py-1.5 rounded-lg hover:bg-surface-1 text-left" OnClick="fly_recent">
+          <Icon Name="Clock" Size="12" Class="text-text-tertiary flex-shrink-0"/>
+          <Label HtmlTag="Span" Text="{Binding label}" Overflow="Ellipsis" ForeColor="TextSecondary" Class="flex-1 min-w-0 text-xs"/>
+        </Stack>
+      </Repeater>
+    </Stack>
+  </Panel>
+</Stack>

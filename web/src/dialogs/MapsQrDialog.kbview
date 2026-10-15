@@ -1,0 +1,22 @@
+<!-- MapsQrDialog — converted from MapsQrDialog.tsx (partial: the inline <svg> QR code is not a .kbview element, so it stays a React <ReactHost> part). -->
+<FloatingWindow x:Props="MapsQrDialogProps"
+                Title="{Binding window_title}"
+                Icon="Smartphone"
+                IconSize="16"
+                Width="360"
+                MinimumSize="300, 0"
+                Resizable="false"
+                Modal="true"
+                ConfirmText="{Binding copy_label}"
+                CancelText="{Binding close_label}"
+                OnConfirm="confirm"
+                OnCancel="cancel"
+                OnClose="cancel">
+  <Stack CrossAlign="Center" Class="gap-3 text-center p-5">
+    <!-- TODO(views-migrate): inline <svg> QR code is not a .kbview element -->
+    <ReactHost Component="{Binding QrImage}" Props="{Binding qr_props}"/>
+    <Label HtmlTag="P" Text="{Binding props.title}" Overflow="Wrap" ForeColor="#202124" Class="text-sm"/>
+    <Label HtmlTag="P" Text="{Binding props.hint}" Overflow="Wrap" ForeColor="TextSecondary" Class="text-sm"/>
+    <Label HtmlTag="P" Text="{Binding props.url}" Overflow="Wrap" ForeColor="TextTertiary" Class="text-xs break-all select-all"/>
+  </Stack>
+</FloatingWindow>

@@ -22,14 +22,14 @@ import {
 } from '@kubuno/sdk'
 import './index.css'
 import './i18n'
-import MapsLogo from './MapsLogo'
-import MapsMiniPanel from './MapsMiniPanel'
-import MapsSidebarBody from './MapsSidebarBody'
-import { geoipLookup } from './geoipService'
-import MiniMap from './MiniMap'
-import MapsLocationPicker from './MapsLocationPicker'
-import MapsDataCard from './MapsDataCard'
-import { registerDataCardRenderer } from './kubunoData'
+import MapsLogo from './pages/MapsLogo'
+import MapsMiniPanel from './views/MapsMiniPanel'
+import MapsSidebarBody from './views/MapsSidebarBody'
+import { geoipLookup } from './services/geoipService'
+import MiniMap from './maps-app/MiniMap'
+import MapsLocationPicker from './maps-app/MapsLocationPicker'
+import MapsDataCard from './views/MapsDataCard'
+import { registerDataCardRenderer } from './services/kubunoData'
 
 export const sdkVersion = SDK_VERSION
 
@@ -104,9 +104,9 @@ export function register() {
   })
 
   // Routes
-  const MapsPage          = lazy(() => import('./MapsPage'))
-  const MapsSettingsPage  = lazy(() => import('./MapsSettingsPage'))
-  const MapsPublicSketch  = lazy(() => import('./MapsPublicSketch'))
+  const MapsPage          = lazy(() => import('./views/MapsPage'))
+  const MapsSettingsPage  = lazy(() => import('./views/MapsSettingsPage'))
+  const MapsPublicSketch  = lazy(() => import('./views/MapsPublicSketch'))
 
   RouteRegistry.register('maps', MapsPage)
   RouteRegistry.register('maps/settings', MapsSettingsPage)

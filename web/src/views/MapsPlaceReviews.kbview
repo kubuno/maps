@@ -1,0 +1,61 @@
+<!-- MapsPlaceReviews — converted from MapsPlaceReviews.tsx (partial: the star rows are a dynamic React
+     <ReactHost> part; the review list is a Repeater). -->
+<Panel x:Props="MapsPlaceReviewsProps" Class="contents">
+  <Label HtmlTag="P"
+         Text="{Binding unavailable_label}"
+         Visible="{Binding show_unavailable}"
+         TextAlign="TopCenter"
+         Overflow="Wrap"
+         ForeColor="TextTertiary"
+         Class="px-4 py-6 text-sm"/>
+  <Panel Visible="{Binding show_body}" Class="px-4 py-3">
+    <Button Visible="{Binding show_add_button}"
+            Variant="Secondary"
+            Size="Sm"
+            Icon="MessageSquarePlus"
+            Text="{Binding add_label}"
+            Class="w-full"
+            OnClick="start_add"/>
+    <Stack Gap="8" Visible="{Binding adding}" Class="p-3 rounded-xl bg-surface-2">
+      <ReactHost Component="{Binding Stars}" Props="{Binding rating_stars_props}"/>
+      <TextArea Text="{Binding comment, Mode=TwoWay}" Placeholder="{Binding comment_placeholder}" Class="min-h-[72px]"/>
+      <Stack Direction="LeftToRight" Justify="End" Class="gap-2">
+        <Button Variant="Ghost" Size="Sm" Text="{Binding cancel_label}" OnClick="cancel_add"/>
+        <Button Variant="Primary" Size="Sm" Text="{Binding publish_label}" OnClick="submit"/>
+      </Stack>
+    </Stack>
+    <Stack Gap="0" Class="mt-2">
+      <Repeater ItemKey="key" ItemsSource="{Binding rows_reviews}">
+        <Stack Direction="LeftToRight" CrossAlign="Start" Class="group gap-3 py-3 border-t border-border first:border-t-0">
+          <Stack Gap="0" Class="flex-1 min-w-0">
+            <Stack Direction="LeftToRight" CrossAlign="Center" Class="gap-2">
+              <ReactHost Component="{Binding Stars}" Props="{Binding stars_props}"/>
+              <Label HtmlTag="Span" Text="{Binding date}" ForeColor="TextTertiary" Class="text-xs"/>
+            </Stack>
+            <Label HtmlTag="P"
+                   Text="{Binding comment}"
+                   Visible="{Binding show_comment}"
+                   Overflow="Wrap"
+                   ForeColor="TextPrimary"
+                   Class="text-sm leading-snug mt-1 whitespace-pre-wrap break-words"/>
+          </Stack>
+          <Panel AccessibleRole="PushButton"
+                 Visible="{Binding can_delete}"
+                 ToolTip="{Binding delete_label}"
+                 AccessibleName="{Binding delete_label}"
+                 Class="text-text-tertiary flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center hover:text-danger"
+                 OnClick="remove">
+            <Icon Name="Trash2" Size="15"/>
+          </Panel>
+        </Stack>
+      </Repeater>
+      <Label HtmlTag="P"
+             Text="{Binding empty_label}"
+             Visible="{Binding show_empty}"
+             TextAlign="TopCenter"
+             Overflow="Wrap"
+             ForeColor="TextTertiary"
+             Class="text-sm py-4"/>
+    </Stack>
+  </Panel>
+</Panel>

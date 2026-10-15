@@ -1,0 +1,16 @@
+[package]
+name        = "kubuno-maps-core"
+version     = "0.1.0"
+edition     = "2021"
+description = "Kubuno Maps shared core (sans-IO): the platform-neutral map model and the pure algorithms ported from the web app — Web Mercator slippy-map tile math, geodesic distance / area / bearing / great-circle geometry, the basemap and overlay catalogue, the Kubuno map theme palette, and the distance / area / duration formatters. Used by the server-coupled desktop app and held together with the web and mobile clients."
+license     = "AGPL-3.0-or-later"
+repository  = "https://github.com/kubuno/maps"
+
+# Sans-IO (vskubuno docs/SHARED-CORES.md §6.1): no network, database, file system, clock, async runtime, UI or
+# C library. Data in, data out; it builds for every target (wasm32 for the web, native for desktop, UniFFI for
+# mobile). The map *rendering* (MapLibre on the web, the native surface on desktop) is NOT here — only the pure
+# maths and descriptors every client shares. Styling the actual tiles is the renderer's job; this crate ports
+# the palette and the style transform *inputs* the web computes (mapsTheme.ts, mapsLayers.ts, mapOffline.ts).
+[dependencies]
+serde      = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["float_roundtrip"] }

@@ -1,0 +1,11 @@
+{
+  "target": "web",
+  "hostRegistry": "node_modules/@kubuno/ui/kbview-registry.web.json",
+  "registries": ["src/controls/kbview-controls.json"],
+  "sources": [
+    "src"
+  ],
+  "design": {
+    "setup": ["src/index.css", "src/i18n.ts"]
+  }
+}

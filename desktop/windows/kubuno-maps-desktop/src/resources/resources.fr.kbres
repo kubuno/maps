@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Resources Version="1">
+  <String Name="app_title">Kubuno Maps</String>
+  <String Name="search_ph">Rechercher dans Kubuno Maps</String>
+  <String Name="layers">Calques</String>
+  <String Name="hdr_basemaps">Fond de carte</String>
+  <String Name="hdr_overlays">Calques superposés</String>
+  <String Name="bm_default">Plan</String>
+  <String Name="bm_light">Clair</String>
+  <String Name="bm_terrain">Relief</String>
+  <String Name="bm_satellite">Satellite</String>
+  <String Name="bm_offline">Hors ligne</String>
+  <String Name="ov_cycle">Vélo</String>
+  <String Name="ov_relief">Ombrage</String>
+  <String Name="ov_terrain3d">Relief 3D</String>
+  <String Name="ov_transit">Transports</String>
+  <String Name="ov_precip">Précipitations</String>
+  <String Name="labels">Libellés</String>
+  <String Name="offline_hint">Hors ligne : seules les zones déjà visitées sont affichées.</String>
+  <String Name="places_toggle">Mes lieux</String>
+  <String Name="results_title">Résultats</String>
+  <String Name="saved_title">Mes lieux</String>
+  <String Name="save">Enregistrer</String>
+  <String Name="saved_already">Enregistré</String>
+  <String Name="saved_ok">ajouté à Mes lieux</String>
+  <String Name="save_failed">Le lieu n’a pas pu être enregistré.</String>
+  <String Name="no_results">Aucun lieu trouvé. Vérifiez l’orthographe ou déplacez la carte.</String>
+  <String Name="no_saved">Aucun lieu enregistré : recherchez un lieu, choisissez-le, puis « Enregistrer ».</String>
+  <String Name="pick_hint">Cliquez sur un lieu pour l’afficher sur la carte</String>
+  <String Name="search_failed">La recherche est indisponible (pas de connexion au serveur).</String>
+  <String Name="saved_failed">Les lieux enregistrés n’ont pas pu être chargés.</String>
+  <String Name="close">Fermer</String>
+</Resources>

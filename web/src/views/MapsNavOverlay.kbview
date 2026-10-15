@@ -1,0 +1,53 @@
+<!-- MapsNavOverlay — converted from MapsNavOverlay.tsx (partial: the maneuver glyph is chosen dynamically
+     from iconKey, so it stays a React <ReactHost> part). -->
+<Panel x:Props="MapsNavOverlayProps" Class="contents">
+  <!-- Maneuver banner (top) -->
+  <Panel Class="absolute top-3 left-1/2 -translate-x-1/2 z-[1200] w-[min(440px,calc(100vw-24px))] no-print">
+    <Stack Direction="LeftToRight" CrossAlign="Center" Class="gap-3 bg-primary text-white rounded-2xl shadow-2xl px-4 py-3">
+      <Panel Class="flex-shrink-0">
+        <ReactHost Component="{Binding ManeuverIcon}" Props="{Binding maneuver_props}"/>
+      </Panel>
+      <Stack Gap="0" Class="min-w-0">
+        <Label HtmlTag="P" Text="{Binding dist_to_maneuver}" Class="text-2xl font-bold leading-none text-white"/>
+        <Label HtmlTag="P" Text="{Binding instruction}" Overflow="Ellipsis" Class="text-sm opacity-95 mt-0.5 text-white"/>
+      </Stack>
+    </Stack>
+    <Stack Direction="LeftToRight" CrossAlign="Center" Justify="Center" Visible="{Binding props.state.offRoute}"
+           Class="gap-1.5 mt-1.5 text-xs text-amber-700 bg-amber-100 rounded-full px-3 py-1 shadow">
+      <Icon Name="AlertTriangle" Size="13"/>
+      <Label HtmlTag="Span" Text="{Binding rerouting_label}" InheritFontSize="true"/>
+    </Stack>
+    <Panel Visible="{Binding props.simulating}"
+           Class="mt-1.5 flex items-center justify-center text-[11px] text-primary bg-surface-0 rounded-full px-3 py-0.5 shadow border border-border w-max mx-auto">
+      <Label HtmlTag="Span" Text="{Binding sim_label}" InheritFontSize="true"/>
+    </Panel>
+  </Panel>
+
+  <!-- Bottom bar: remaining + ETA + stop -->
+  <Panel Class="absolute bottom-6 left-1/2 -translate-x-1/2 z-[1200] no-print">
+    <Stack Direction="LeftToRight" CrossAlign="Center" Class="gap-4 bg-surface-0 rounded-2xl shadow-2xl border border-border px-4 py-2.5">
+      <Stack Gap="0" CrossAlign="Center">
+        <Label HtmlTag="P" Text="{Binding remaining_time}" Class="text-lg font-bold text-text-primary leading-none"/>
+        <Label HtmlTag="P" Text="{Binding eta_label}" Class="text-[10px] text-text-tertiary"/>
+      </Stack>
+      <Panel Class="w-px h-8 bg-border"/>
+      <Stack Gap="0" CrossAlign="Center">
+        <Label HtmlTag="P" Text="{Binding remaining_dist}" Class="text-lg font-bold text-text-primary leading-none"/>
+        <Label HtmlTag="P" Text="{Binding dist_label}" Class="text-[10px] text-text-tertiary"/>
+      </Stack>
+      <Panel AccessibleRole="PushButton"
+             Class="ml-2 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-danger/10 text-danger text-sm font-medium hover:bg-danger/20 transition-colors"
+             OnClick="stop">
+        <Icon Name="X" Size="15"/>
+        <Label HtmlTag="Span" Text="{Binding stop_label}" InheritFontSize="true"/>
+      </Panel>
+    </Stack>
+  </Panel>
+
+  <!-- "Navigation active" pill (corner) -->
+  <Stack Direction="LeftToRight" CrossAlign="Center"
+         Class="absolute top-3 left-3 z-[1190] gap-1.5 bg-primary text-white rounded-full px-2.5 py-1 text-xs font-medium shadow no-print">
+    <Icon Name="Navigation2" Size="13"/>
+    <Label HtmlTag="Span" Text="{Binding active_label}" InheritFontSize="true" Class="text-white"/>
+  </Stack>
+</Panel>

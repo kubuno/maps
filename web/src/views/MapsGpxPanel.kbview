@@ -1,0 +1,63 @@
+<!-- MapsGpxPanel — converted from MapsGpxPanel.tsx (partial: the .gpx file picker is a React <ReactHost>
+     part; the saved-traces list is a Repeater, per-row show/delete read args.row). -->
+<Stack x:Props="MapsGpxPanelProps" Gap="8" Class="flex flex-col gap-2">
+  <!-- Live GPS recording -->
+  <Stack Gap="8" Visible="{Binding props.recording}" Class="p-3 rounded-lg bg-danger/5 border border-danger/30">
+    <Stack Direction="LeftToRight" CrossAlign="Center" Justify="SpaceBetween">
+      <Stack Direction="LeftToRight" CrossAlign="Center" Class="gap-1.5 text-xs font-semibold text-danger">
+        <Panel Class="w-2 h-2 rounded-full bg-danger animate-pulse"/>
+        <Label HtmlTag="Span" Text="{Binding rec_active_label}" InheritFontSize="true"/>
+      </Stack>
+      <Label HtmlTag="Span" Text="{Binding rec_elapsed}" ForeColor="TextSecondary" Class="text-xs font-mono"/>
+    </Stack>
+    <Stack Direction="LeftToRight" CrossAlign="Center" Class="gap-4 text-[11px] text-text-secondary">
+      <Label HtmlTag="Span" Text="{Binding rec_dist}" InheritFontSize="true"/>
+      <Label HtmlTag="Span" Text="{Binding rec_points}" InheritFontSize="true"/>
+    </Stack>
+    <Stack Direction="LeftToRight" Class="gap-2">
+      <Panel AccessibleRole="PushButton"
+             Class="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-primary text-white text-xs font-medium hover:bg-primary-hover"
+             OnClick="stop_save">
+        <Icon Name="Check" Size="13"/>
+        <Label HtmlTag="Span" Text="{Binding rec_save_label}" InheritFontSize="true"/>
+      </Panel>
+      <Panel AccessibleRole="PushButton"
+             ToolTip="{Binding rec_discard_label}"
+             AccessibleName="{Binding rec_discard_label}"
+             Class="px-2.5 py-1.5 rounded-lg border border-border text-text-tertiary hover:text-danger hover:bg-surface-1"
+             OnClick="stop_discard">
+        <Icon Name="X" Size="14"/>
+      </Panel>
+    </Stack>
+  </Stack>
+  <Panel AccessibleRole="PushButton"
+         Visible="{Binding show_start}"
+         Class="flex items-center justify-center gap-2 py-2 rounded-lg bg-danger/10 text-danger text-xs font-medium hover:bg-danger/20 transition-colors"
+         OnClick="start_rec">
+    <Icon Name="Circle" Size="11"/>
+    <Label HtmlTag="Span" Text="{Binding rec_start_label}" InheritFontSize="true"/>
+  </Panel>
+
+  <ReactHost Component="{Binding GpxImport}" Props="{Binding import_props}"/>
+
+  <Stack CrossAlign="Center" Visible="{Binding show_empty}" Class="flex flex-col items-center py-8 gap-2 text-text-tertiary">
+    <Icon Name="Activity" Size="24" Class="opacity-30"/>
+    <Label HtmlTag="P" Text="{Binding empty_label}" TextAlign="TopCenter" Overflow="Wrap" Class="text-xs"/>
+  </Stack>
+  <Stack Gap="0" Visible="{Binding show_list}" Class="flex flex-col gap-0.5">
+    <Repeater ItemKey="key" ItemsSource="{Binding rows_traces}">
+      <Stack Direction="LeftToRight" CrossAlign="Start" Class="group gap-2 px-2 py-2 rounded-lg hover:bg-surface-1">
+        <Icon Name="Activity" Size="14" Class="text-text-tertiary mt-0.5 flex-shrink-0"/>
+        <Stack Gap="0" Class="flex-1 min-w-0 cursor-pointer" OnClick="show">
+          <Label HtmlTag="P" Text="{Binding name}" Overflow="Ellipsis" FontWeight="Medium" ForeColor="TextPrimary" Class="text-xs"/>
+          <Label HtmlTag="P" Text="{Binding meta}" Overflow="Ellipsis" ForeColor="TextTertiary" Class="text-[10px]"/>
+        </Stack>
+        <Panel AccessibleRole="PushButton"
+               Class="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-danger/10 hover:text-danger text-text-tertiary transition-opacity"
+               OnClick="del">
+          <Icon Name="Trash2" Size="12"/>
+        </Panel>
+      </Stack>
+    </Repeater>
+  </Stack>
+</Stack>

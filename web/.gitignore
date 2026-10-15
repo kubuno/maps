@@ -1,0 +1,6 @@
+# Build output
+dist/
+
+# Generated `.kbview` declarations and dev design-server marker (never committed).
+.kubuno/views/
+.kubuno/design-server.json

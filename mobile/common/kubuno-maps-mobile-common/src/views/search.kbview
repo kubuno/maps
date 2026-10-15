@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Maps · Search — the full-screen search overlay (SearchOverlay.kt): back + field, recent searches (clock) and
+  place results (map pin). Light theme, logical px. Screen root is a Panel.
+-->
+<Panel xmlns="https://kubuno.com/views" xmlns:x="https://kubuno.com/views/x"
+       Layout="Dock" BackColor="#FFFFFF">
+
+  <Stack Dock="Top">
+    <Stack Direction="LeftToRight" CrossAlign="Center" Gap="4" Height="56" Padding="8, 0, 12, 0" BackColor="#FFFFFF">
+      <IconButton x:Name="back" OnClick="close" Icon="ArrowLeft" Diameter="40" IconSize="22" IconColor="#5F6368"/>
+      <SearchField Stack.Fill="true" Placeholder="Rechercher un lieu, une adresse" Text="musée"/>
+    </Stack>
+    <Separator/>
+  </Stack>
+
+  <!-- Results — one row per `results` item of the app's data context, each tappable (OnClick → pick_result). -->
+  <ScrollArea Dock="Fill">
+    <Repeater Items="results" Padding="0, 4, 0, 24">
+      <Stack x:Name="result" OnClick="pick_result" Direction="LeftToRight" CrossAlign="Center" Gap="16" Padding="16, 12, 16, 12">
+        <Icon Name="MapPin" Size="22" ForeColor="#1A73E8"/>
+        <Stack Stack.Fill="true" Gap="1">
+          <Label Text="{Bind name}" Role="Body" ForeColor="#202124" Overflow="Ellipsis"/>
+          <Label Text="{Bind detail}" Role="Meta" ForeColor="#5F6368" Overflow="Ellipsis"/>
+        </Stack>
+      </Stack>
+    </Repeater>
+  </ScrollArea>
+
+</Panel>

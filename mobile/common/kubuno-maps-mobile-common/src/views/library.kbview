@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Maps · Library — the saved-places modal sheet (SavedPlacesSheet.kt): handle, the Lieux / Traces tabs and the
+  list rows (saved places with a bookmark, GPX tracks with a route icon + delete). Shown here on the Lieux tab.
+  Light theme, logical px. Root is a Panel; the dimmed map is the backdrop.
+-->
+<Panel xmlns="https://kubuno.com/views" xmlns:x="https://kubuno.com/views/x"
+       Layout="Dock" BackColor="#5F6368">
+
+  <Stack Dock="Bottom" BackColor="#FFFFFF" CornerRadius="16" Elevation="Lg" Padding="0, 10, 0, 16" CrossAlign="Stretch" Gap="0">
+    <Stack x:Name="library_close" OnClick="close" CrossAlign="Center" Padding="0, 10, 0, 10">
+      <Stack Width="36" Height="4" BackColor="#DADCE0" CornerRadius="9999"/>
+    </Stack>
+
+    <Stack Direction="LeftToRight">
+      <Stack Stack.Fill="true" CrossAlign="Center" Gap="6" Padding="0, 8, 0, 0">
+        <Label Text="Lieux" Role="Body" FontWeight="SemiBold" ForeColor="#1A73E8"/>
+        <Stack Height="3" BackColor="#1A73E8"/>
+      </Stack>
+      <Stack Stack.Fill="true" CrossAlign="Center" Gap="6" Padding="0, 8, 0, 0">
+        <Label Text="Traces" Role="Body" ForeColor="#5F6368"/>
+        <Stack Height="3" BackColor="#FFFFFF"/>
+      </Stack>
+    </Stack>
+    <Separator/>
+
+    <Stack Direction="LeftToRight" CrossAlign="Center" Gap="16" Padding="20, 12, 12, 12">
+      <Icon Name="Bookmark" Size="22" ForeColor="#1A73E8"/>
+      <Stack Stack.Fill="true" Gap="1">
+        <Label Text="Maison" Role="Body" ForeColor="#202124" Overflow="Ellipsis"/>
+        <Label Text="8 rue des Lilas, 75011 Paris" Role="Meta" ForeColor="#5F6368" Overflow="Ellipsis"/>
+      </Stack>
+    </Stack>
+    <Separator/>
+    <Stack Direction="LeftToRight" CrossAlign="Center" Gap="16" Padding="20, 12, 12, 12">
+      <Icon Name="Bookmark" Size="22" ForeColor="#1A73E8"/>
+      <Stack Stack.Fill="true" Gap="1">
+        <Label Text="Travail" Role="Body" ForeColor="#202124" Overflow="Ellipsis"/>
+        <Label Text="Tour Kubuno, La Défense" Role="Meta" ForeColor="#5F6368" Overflow="Ellipsis"/>
+      </Stack>
+    </Stack>
+    <Separator/>
+    <Stack Direction="LeftToRight" CrossAlign="Center" Gap="16" Padding="20, 12, 12, 12">
+      <Icon Name="Bookmark" Size="22" ForeColor="#1A73E8"/>
+      <Stack Stack.Fill="true" Gap="1">
+        <Label Text="Musée d'Art Moderne" Role="Body" ForeColor="#202124" Overflow="Ellipsis"/>
+        <Label Text="5 avenue des Arts, 75012 Paris" Role="Meta" ForeColor="#5F6368" Overflow="Ellipsis"/>
+      </Stack>
+    </Stack>
+  </Stack>
+
+  <Stack Dock="Fill" BackColor="#5F6368"/>
+
+</Panel>

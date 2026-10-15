@@ -1,0 +1,23 @@
+<!-- MapsPublicSketch — converted from MapsPublicSketch.tsx (partial). The full-screen sketch map stays a host
+     map in a <ReactHost> (it renders a sketch, not markers, so <MapView> does not fit); the title banner and
+     the loading/error states are the view. NOTE: the original root carried data-module="maps" for the module
+     CSS accent on this out-of-shell route — no .kbview attribute expresses a data-* attribute, so the accent
+     relies on the host route wrapper (documented in WEB-KBVIEW-CONVERSION.md). -->
+<Panel x:Props="MapsPublicSketchProps" Class="relative w-full h-screen bg-[#e8eaed]">
+  <ReactHost Component="{Binding SketchMap}" Props="{Binding map_props}"/>
+
+  <!-- Title banner -->
+  <Stack Direction="LeftToRight" CrossAlign="Center" Class="absolute top-3 left-3 z-[10] gap-2 bg-white/95 rounded-xl shadow-lg border border-black/5 px-3 py-2">
+    <Icon Name="MapPinned" Size="16" Class="text-[#1a73e8]"/>
+    <Label HtmlTag="Span" Text="{Binding title}" FontWeight="SemiBold" Class="text-sm text-slate-800"/>
+    <Label HtmlTag="Span" Text="· Kubuno Maps" Class="text-[11px] text-slate-400"/>
+  </Stack>
+
+  <Panel Visible="{Binding show_loading}" Class="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">
+    <Label HtmlTag="Span" Text="Chargement…"/>
+  </Panel>
+  <Stack CrossAlign="Center" Visible="{Binding show_error}" Class="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center text-slate-500">
+    <Label HtmlTag="P" Text="Croquis introuvable" Class="text-lg font-medium"/>
+    <Label HtmlTag="P" Text="Ce lien est invalide ou le partage a été désactivé." Overflow="Wrap" Class="text-sm text-slate-400"/>
+  </Stack>
+</Panel>

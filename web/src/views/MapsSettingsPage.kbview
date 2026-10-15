@@ -1,0 +1,78 @@
+<!-- MapsSettingsPage — converted from MapsSettingsPage.tsx (partial: the traffic switch is a React
+     <ReactHost> part — no Toggle element). Radio groups use <RadioButton> (Repeaters); the two tabs are
+     toggled by Visible. -->
+<Stack x:Props="MapsSettingsPageProps" Gap="0" Class="flex flex-col h-full bg-white overflow-hidden">
+  <!-- Breadcrumb header -->
+  <Stack Direction="LeftToRight" CrossAlign="Center" Class="gap-2 px-6 py-2.5 border-b border-[#e8eaed] flex-shrink-0 bg-[#f8f9fa]">
+    <Stack Direction="LeftToRight" CrossAlign="Center" AccessibleRole="Link" Class="gap-1.5 text-sm text-[#1a73e8] hover:underline cursor-pointer" OnClick="go_maps">
+      <Icon Name="ArrowLeft" Size="14"/>
+      <Label HtmlTag="Span" Text="Maps" InheritFontSize="true"/>
+    </Stack>
+    <Label HtmlTag="Span" Text="/" ForeColor="TextTertiary" Class="text-sm"/>
+    <Stack Direction="LeftToRight" CrossAlign="Center" Class="gap-1.5">
+      <Icon Name="MapPin" Size="15" Class="text-text-secondary"/>
+      <Label HtmlTag="Span" Text="{Binding title_label}" ForeColor="TextPrimary" Class="text-sm"/>
+    </Stack>
+  </Stack>
+
+  <!-- Tab bar -->
+  <Stack Direction="LeftToRight" Class="flex items-end border-b border-[#e8eaed] px-4 flex-shrink-0 overflow-x-auto bg-white">
+    <Panel AccessibleRole="PushButton" Class="{Binding tab_pref_class}" OnClick="tab_preferences"><Label HtmlTag="Span" Text="{Binding tab_preferences_label}" InheritFontSize="true"/></Panel>
+    <Panel AccessibleRole="PushButton" Class="{Binding tab_about_class}" OnClick="tab_about"><Label HtmlTag="Span" Text="{Binding tab_about_label}" InheritFontSize="true"/></Panel>
+  </Stack>
+
+  <!-- Content -->
+  <Panel Class="flex-1 overflow-y-auto">
+    <Panel Class="max-w-3xl mx-auto px-8 py-6">
+      <!-- Preferences tab -->
+      <Panel Visible="{Binding is_preferences}">
+        <Repeater ItemKey="key" ItemsSource="{Binding rows_groups}">
+          <Stack Direction="LeftToRight" CrossAlign="Start" Class="gap-8 py-4 border-b border-[#e8eaed] last:border-0">
+            <Stack Gap="0" Class="w-60 flex-shrink-0">
+              <Label HtmlTag="P" Text="{Binding label}" Overflow="Wrap" Class="text-sm text-[#202124] font-normal"/>
+              <Label HtmlTag="P" Text="{Binding description}" Visible="{Binding has_description}" Overflow="Wrap" ForeColor="TextTertiary" Class="text-xs mt-0.5 leading-relaxed"/>
+            </Stack>
+            <Stack Gap="8" CrossAlign="Start" Class="flex-1 flex flex-col items-start gap-2">
+              <Repeater ItemKey="key" ItemsSource="{Binding options}">
+                <RadioButton SelectedValue="{Binding selected}" Value="{Binding value}" Group="{Binding group}" Text="{Binding label}" OnCheckedChanged="radio_changed"/>
+              </Repeater>
+            </Stack>
+          </Stack>
+        </Repeater>
+
+        <!-- Traffic toggle row -->
+        <Stack Direction="LeftToRight" CrossAlign="Start" Class="gap-8 py-4 border-b border-[#e8eaed] last:border-0">
+          <Stack Gap="0" Class="w-60 flex-shrink-0">
+            <Label HtmlTag="P" Text="{Binding traffic_label}" Overflow="Wrap" Class="text-sm text-[#202124] font-normal"/>
+          </Stack>
+          <Panel Class="flex-1">
+            <ReactHost Component="{Binding TrafficToggle}" Props="{Binding traffic_props}"/>
+          </Panel>
+        </Stack>
+
+        <Stack Direction="LeftToRight" CrossAlign="Center" Class="pt-5 gap-3">
+          <Button Text="{Binding save_button_label}" Icon="{Binding save_button_icon}" Loading="{Binding busy}" OnClick="save"/>
+          <Button Variant="Ghost" Text="{Binding cancel_label}" OnClick="cancel"/>
+        </Stack>
+      </Panel>
+
+      <!-- About tab -->
+      <Panel Visible="{Binding is_about}" Class="rounded-xl border border-border overflow-hidden">
+        <Stack Direction="LeftToRight" CrossAlign="Center" Class="gap-3 px-5 py-4 border-b border-border bg-surface-1">
+          <Panel Class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center shrink-0"><Icon Name="MapPin" Size="20" Class="text-emerald-600"/></Panel>
+          <Stack Gap="0">
+            <Label HtmlTag="P" Text="Kubuno Maps" FontWeight="SemiBold" ForeColor="TextPrimary" Class="text-sm"/>
+            <Label HtmlTag="P" Text="{Binding about_version}" ForeColor="TextTertiary" Class="text-xs"/>
+          </Stack>
+          <Label HtmlTag="Span" Text="Rust" Class="ml-auto text-xs font-medium px-2 py-0.5 rounded-full bg-orange-100 text-orange-700"/>
+        </Stack>
+        <Panel Class="px-5 py-4">
+          <Stack Direction="LeftToRight" CrossAlign="Center" AccessibleRole="Link" Class="gap-1.5 text-sm text-primary hover:underline cursor-pointer" OnClick="open_repo">
+            <Icon Name="ExternalLink" Size="13"/>
+            <Label HtmlTag="Span" Text="github.com/kubuno/maps" InheritFontSize="true"/>
+          </Stack>
+        </Panel>
+      </Panel>
+    </Panel>
+  </Panel>
+</Stack>

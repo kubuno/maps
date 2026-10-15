@@ -1,0 +1,47 @@
+# Kubuno Maps — the native desktop app. ONE Cargo workspace for every operating system, independent of the
+# module server's (../server/Cargo.toml):
+#
+#   common/   the complete app, portable: the launch options, the map view state (centre / zoom / basemap /
+#             overlays), the offline sample dataset and the platform extension points (traits with portable
+#             defaults). The server REST path (the token broker, saved places / routes / sketches) is added in a
+#             later increment; the first increment renders from a seeded/fixture dataset.
+#   windows/  only what Windows does differently: the Win32 window and the native map surface (see
+#             DESKTOP-CONVERSION.md for the renderer decision) and the `kubuno-maps.exe` entry point.
+#   linux/, macos/  thin entry points running the common app with the portable defaults (no OS override yet).
+#
+# The map engine is the module's shared core (../common/core, kubuno-maps-core: the Mercator tile math, the
+# geodesic geometry, the basemap/overlay catalogue, the theme palette and the formatters). The Kubuno desktop
+# framework (kubuno-desktop and the layers it re-exports) comes from the core repository by git tag, never by
+# path, and is linked statically. The Windows-only crate is built on Windows only (CI selects packages per OS).
+[workspace]
+resolver = "2"
+members  = [
+    "common/kubuno-maps-desktop-common",
+    "windows/kubuno-maps-desktop",
+    "linux/kubuno-maps-desktop-linux",
+    "macos/kubuno-maps-desktop-macos",
+]
+
+[workspace.package]
+version    = "0.1.0"   # Kubuno Maps desktop's own version
+edition    = "2021"
+license    = "AGPL-3.0-or-later"
+repository = "https://github.com/kubuno/maps"
+
+[workspace.dependencies]
+# The map engine every Kubuno Maps client shares.
+kubuno-maps-core           = { path = "../common/core" }
+# The portable app: launch options, map view state, sample data, platform extension points.
+kubuno-maps-desktop-common = { path = "common/kubuno-maps-desktop-common" }
+
+# One tag of the core repository pins every framework crate (core desktop/README.md, "Versions and tags").
+# Bump them together. Built on desktop-v0.1.2-alpha for now (the pending ribbon-colour alpha is not required here).
+kubuno-desktop                = { git = "https://github.com/kubuno/core", tag = "desktop-v0.1.2-alpha" }
+kubuno-desktop-shell-controls = { git = "https://github.com/kubuno/core", tag = "desktop-v0.1.2-alpha" }
+kubuno-desktop-header-data    = { git = "https://github.com/kubuno/core", tag = "desktop-v0.1.2-alpha" }
+# The HTTP client to the Kubuno core through the shell's token broker (the live REST path).
+kubuno-desktop-sync           = { git = "https://github.com/kubuno/core", tag = "desktop-v0.1.2-alpha" }
+
+serde      = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["raw_value", "float_roundtrip"] }
+tracing    = "0.1"

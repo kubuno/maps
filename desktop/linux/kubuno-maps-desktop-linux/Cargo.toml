@@ -1,0 +1,16 @@
+[package]
+name        = "kubuno-maps-desktop-linux"
+description = "Kubuno Maps for Linux: the entry point running the app of desktop/common with the portable platform (no Linux-specific override yet)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+# The Linux/macOS binaries share a name distinct from the Windows `kubuno-maps`, so `--bin kubuno-maps` stays
+# unambiguous (the Windows exe) and VS/CI build each one per package, like Drive's `kubuno-drive-desktop`.
+[[bin]]
+name = "kubuno-maps-desktop"
+path = "src/main.rs"
+
+[dependencies]
+# The portable app: launch options, map view state, sample data, platform extension points.
+kubuno-maps-desktop-common.workspace = true

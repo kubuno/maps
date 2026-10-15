@@ -1,0 +1,31 @@
+<!-- MapsDataCard — converted from MapsDataCard.tsx. The map preview uses the project <MapView> host control
+     (src/kbview-controls.json): the map stays native WebGL, the card around it is this view. Fully converted. -->
+<Panel x:Props="MapsDataCardProps"
+       AccessibleRole="PushButton"
+       ToolTip="{Binding open_tip}"
+       Class="w-72 max-w-full rounded-xl border border-border bg-surface-0 overflow-hidden cursor-pointer hover:border-strong transition-colors"
+       OnClick="open">
+  <!-- Static pointer events on the preview: the card itself is the click target. -->
+  <Panel Class="pointer-events-none">
+    <MapView Markers="{Binding markers}" Interactive="false" Class="w-full h-[140px]"/>
+  </Panel>
+  <Stack Direction="LeftToRight" CrossAlign="Start" Class="px-3 py-2 gap-2">
+    <Icon Name="Navigation" Size="15" Visible="{Binding is_route}" Class="text-primary mt-0.5 flex-shrink-0"/>
+    <Icon Name="MapPin" Size="15" Visible="{Binding is_place}" Class="text-primary mt-0.5 flex-shrink-0"/>
+    <Stack Gap="0" Class="min-w-0 flex-1">
+      <Label HtmlTag="P"
+             Text="{Binding props.envelope.title}"
+             Overflow="Ellipsis"
+             FontWeight="SemiBold"
+             ForeColor="TextPrimary"
+             Class="text-xs"/>
+      <Label HtmlTag="P"
+             Text="{Binding subtitle}"
+             Overflow="Ellipsis"
+             ForeColor="TextSecondary"
+             Visible="{Binding show_subtitle}"
+             Class="text-[11px]"/>
+    </Stack>
+    <Icon Name="ExternalLink" Size="13" Class="text-text-tertiary mt-0.5 flex-shrink-0"/>
+  </Stack>
+</Panel>

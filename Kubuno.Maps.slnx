@@ -2,6 +2,9 @@
   <Configurations>
     <Platform Name="x64" />
   </Configurations>
+  <Folder Name="/Common/">
+    <Project Path="common/core/Kubuno.Maps.Core.rsproj" Type="6c7c4cb5-6e36-4c6f-9c6f-9c6e9b4d4c13" />
+  </Folder>
   <Folder Name="/Server/">
     <Project Path="server/Kubuno.Maps.Server.rsproj" Type="6c7c4cb5-6e36-4c6f-9c6f-9c6e9b4d4c13">
       <BuildDependency Project="web/Kubuno.Maps.Web.esproj" />
@@ -13,7 +16,29 @@
       <Build />
     </Project>
   </Folder>
+  <Folder Name="/Desktop/" />
+  <Folder Name="/Desktop/Common/">
+    <Project Path="desktop/common/kubuno-maps-desktop-common/Kubuno.Maps.Desktop.Common.rsproj" Type="6c7c4cb5-6e36-4c6f-9c6f-9c6e9b4d4c13" />
+  </Folder>
+  <Folder Name="/Desktop/Windows/">
+    <Project Path="desktop/windows/kubuno-maps-desktop/Kubuno.Maps.Desktop.rsproj" Type="6c7c4cb5-6e36-4c6f-9c6f-9c6e9b4d4c13" />
+  </Folder>
+  <Folder Name="/Desktop/Linux/">
+    <Project Path="desktop/linux/kubuno-maps-desktop-linux/Kubuno.Maps.Desktop.Linux.rsproj" Type="6c7c4cb5-6e36-4c6f-9c6f-9c6e9b4d4c13" />
+  </Folder>
+  <Folder Name="/Desktop/macOS/">
+    <Project Path="desktop/macos/kubuno-maps-desktop-macos/Kubuno.Maps.Desktop.Macos.rsproj" Type="6c7c4cb5-6e36-4c6f-9c6f-9c6e9b4d4c13" />
+  </Folder>
   <Folder Name="/Mobile/">
     <File Path="mobile/README.md" />
+  </Folder>
+  <Folder Name="/Mobile/Common/">
+    <Project Path="mobile/common/kubuno-maps-mobile-common/Kubuno.Maps.Mobile.Common.rsproj" Type="6c7c4cb5-6e36-4c6f-9c6f-9c6e9b4d4c13" />
+  </Folder>
+  <Folder Name="/Mobile/Android/">
+    <Project Path="mobile/android/kubuno-maps-mobile-android/Kubuno.Maps.Mobile.Android.rsproj" Type="6c7c4cb5-6e36-4c6f-9c6f-9c6e9b4d4c13" />
+  </Folder>
+  <Folder Name="/Mobile/iOS/">
+    <Project Path="mobile/ios/kubuno-maps-mobile-ios/Kubuno.Maps.Mobile.Ios.rsproj" Type="6c7c4cb5-6e36-4c6f-9c6f-9c6e9b4d4c13" />
   </Folder>
 </Solution>

@@ -1,0 +1,33 @@
+<!-- MapsPoiResultsPanel — converted from MapsPoiResultsPanel.tsx. Fully converted (the list is a Repeater;
+     per-row selection reads args.row). -->
+<Stack x:Props="MapsPoiResultsPanelProps" Gap="0" Class="bg-surface-0 rounded-2xl shadow-xl border border-border overflow-hidden h-full min-h-0">
+  <Stack Direction="LeftToRight" CrossAlign="Center" Class="gap-2 px-4 py-3 border-b border-border flex-shrink-0">
+    <Label HtmlTag="Span" Text="{Binding props.emoji}" Class="text-lg"/>
+    <Stack Gap="0" Class="flex-1 min-w-0">
+      <Label HtmlTag="H2" Text="{Binding props.title}" FontWeight="SemiBold" Overflow="Ellipsis" ForeColor="TextPrimary" Class="text-sm leading-tight"/>
+      <Label HtmlTag="P" Text="{Binding count_label}" Visible="{Binding show_meta}" ForeColor="TextTertiary" Class="text-[11px]"/>
+    </Stack>
+    <Panel AccessibleRole="PushButton" Class="text-text-tertiary hover:text-text-primary flex-shrink-0" OnClick="close">
+      <Icon Name="X" Size="18"/>
+    </Panel>
+  </Stack>
+  <Panel Class="overflow-y-auto flex-1 min-h-0">
+    <Stack Direction="LeftToRight" CrossAlign="Center" Visible="{Binding props.loading}" Class="gap-2 px-4 py-6 text-xs text-text-tertiary">
+      <Icon Name="RefreshCw" Size="13" Class="animate-spin"/>
+      <Label HtmlTag="Span" Text="{Binding searching_label}" InheritFontSize="true"/>
+    </Stack>
+    <Label HtmlTag="P" Text="{Binding props.error}" Visible="{Binding show_error}" Overflow="Wrap" ForeColor="TextTertiary" Class="px-4 py-6 text-xs"/>
+    <Repeater ItemKey="key" ItemsSource="{Binding rows_pois}" Visible="{Binding show_meta}">
+      <Panel AccessibleRole="PushButton"
+             Class="w-full flex items-start gap-2.5 px-4 py-2.5 text-left border-t border-border first:border-t-0 hover:bg-surface-1 transition-colors"
+             OnClick="select">
+        <Label HtmlTag="Span" Text="{Binding icon}" Class="text-base mt-0.5 flex-shrink-0"/>
+        <Stack Gap="0" Class="flex-1 min-w-0">
+          <Label HtmlTag="P" Text="{Binding name}" Overflow="Ellipsis" FontWeight="Medium" ForeColor="TextPrimary" Class="text-xs leading-snug"/>
+          <Label HtmlTag="P" Text="{Binding category}" Overflow="Ellipsis" ForeColor="TextTertiary" Class="text-[11px] capitalize"/>
+        </Stack>
+        <Label HtmlTag="Span" Text="{Binding dist}" Visible="{Binding show_dist}" ForeColor="TextTertiary" Class="text-[11px] flex-shrink-0 mt-0.5"/>
+      </Panel>
+    </Repeater>
+  </Panel>
+</Stack>

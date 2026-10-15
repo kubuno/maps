@@ -9,15 +9,70 @@ number at release time, and CI publishes that section as the GitHub Release note
 
 ## [Unreleased]
 
+### Changed
+- **Cosmos view: the celestial bodies are now real asset files.** The 3D models of the Sun, the planets and the
+  moons, and their surface maps, were extracted from the code and the runtime CDN into a shared asset catalogue
+  (`common/assets/cosmos`): one Wavefront `.obj` model per body (plus a flat ring for Jupiter, Saturn and Uranus),
+  its `.mtl` material, and its texture maps (colour, relief, clouds, Saturn's ring) as separate files, with a
+  manifest (`cosmos.json`) and a generator for the geometry. The web app now loads the bundled textures instead of a
+  third-party CDN at runtime (no external dependency, no CORS), and the solar-system view now builds every body (the
+  Sun, the planets and the moons) from the shared sphere model file instead of a geometry rebuilt in code — so the
+  same model files are the single source of truth on the web and the native desktop renderer.
+
 ### Added
+- **Desktop app: the live map, drawn natively.** The Windows app now shows the real Kubuno basemap — the same
+  OpenFreeMap vector tiles as the web, in the Kubuno map theme — rendered by the app itself through the GPU (Direct2D),
+  with no web view: drag to move the map, use the wheel to zoom about the pointer, place names in the interface
+  language (never overlapping, never cut at the edge) and the OpenStreetMap / OpenMapTiles / OpenFreeMap attribution
+  always visible. Tiles download in the background and are kept in a per-user cache, so a place already visited opens
+  instantly, also offline; while a tile loads, a coarser one already cached stands in. The shared engine
+  `kubuno-maps-core` gains the vector-tile decoder and the native basemap style used for this (and reusable by the
+  mobile app), plus the inverse Web Mercator projection.
+- **Desktop app: every basemap of the layers panel.** « Clair » (a pale palette over the same vector tiles), « Relief »
+  (OpenTopoMap) and « Satellite » (Esri imagery, with Esri's place names when labels are on) are drawn natively too,
+  each with its own attribution. « Hors ligne » shows the vector map from the local cache only — the places already
+  visited — and never downloads anything (OpenStreetMap's tile servers are never used).
+- **Desktop app: search and saved places.** Typing in the search field searches places (after a short pause, without
+  freezing the window) through the Maps server of your account — the same geocoding service and search history as the
+  web — preferring the area on screen and naming places in the interface language. A « Mes lieux » panel lists the
+  results, each with an icon for its kind; clicking one flies the map there and drops a pin, and « Enregistrer » adds
+  it to your saved places (the button reads « Enregistré » for a place already saved). With an empty field the panel
+  lists your saved places, which the map marks with dots under the place names. The panel follows the light and dark
+  themes; `--sample` searches a small built-in list of real places without any server.
+- **Desktop app (started)**: the native Windows / Visual Studio (Rust) desktop client of Maps is bootstrapped, following the method used for Documents and Calendar. A new sans-IO shared engine `kubuno-maps-core` (`common/core`) ports the pure map algorithms from the web — Web Mercator slippy-map tile math, geodesic geometry (distance, polyline length, polygon area, bearing, circle ring, great-circle arc, flight time), the basemap/overlay catalogue, the Kubuno map theme palette and the distance/area/duration formatters — with unit tests. A new `desktop/` Cargo workspace holds the portable app (`kubuno-maps-desktop-common`: launch options, map view state, offline sample data, platform extension points) and the Windows entry point (`kubuno-maps.exe`). The conversion study and milestones, including the map-rendering decision (host MapLibre in a web surface first, converge on MapLibre Native later), are documented in `DESKTOP-CONVERSION.md`. The Windows front end now opens a real framework window (M1 — window shell): the Kubuno shell chrome, a navigation toolbar with the module name and a search field, and a layers panel (base-map choices, overlay switches and a labels switch) wired to the shared `kubuno-maps-core` basemap/overlay catalogue and the map view state — switching a base map or toggling a layer updates the state and repaints the map area, which shows a themed placeholder from the core map palette until the live map surface lands. No user-facing desktop app ships yet.
 - **Mobile app**: the Kubuno Maps Android app now lives in this repository under `mobile/` (moved from the `kubuno/mobile` repository with its history). It builds on its own against the shared Kubuno mobile libraries published from the core (`com.kubuno.mobile:*`), and a `mobile-v<version>` tag releases its APK (workflow `mobile.yml`).
 
 ### Changed
 
+- **The mobile app moves to Kubuno views (Rust), laid out like the desktop app.** `mobile/` is now a Cargo workspace:
+  `common/kubuno-maps-mobile-common` (the app's `.kbview` screens, edited in Visual Studio, and its interactive themed
+  map — the `MapView` control with the themed basemap snapshots and the demo route), `android/kubuno-maps-mobile-android`
+  (the APK — package `com.kubuno.maps`, launcher icon = the Maps web logo) and `ios/kubuno-maps-mobile-ios`, shown in
+  the Visual Studio solution under `Mobile/Common`, `Mobile/Android` and `Mobile/iOS`. The screens and the map used to
+  live inside the core's mobile renderer; they are now the module's own, rendered and run by the shared Kubuno mobile
+  renderer and Android / iOS shells of the core. The map projects with the module's shared engine, `kubuno-maps-core`,
+  which gains the normalised Web Mercator projection (`mercator_x` / `mercator_y`). The previous Kotlin/Jetpack Compose
+  app (MapLibre Native) is retired from `mobile/` — it stays in the git history as the functional reference for
+  migrating the app's behaviour (search, places, routing, navigation), which is still to come. The `mobile` workflow
+  builds the new APK with cargo-apk.
 - **The repository is organised by platform.** The server (its sources, migrations, tests and configuration
   example) moves to `server/` and the web frontend to `web/`, with their history. The `.kbpkg` is unchanged
   (same files, same contents); the build script, the CI workflows, the Makefile and the Visual Studio solution
   follow.
+- **The whole module is organised like every other Kubuno module** (Drive, Office, Core, per
+  `vskubuno/docs/SOLUTION-ALIGNMENT.md`), so one layout is learned once:
+  - The Visual Studio solution's folders map 1:1 to the disk folders: the shared engine is the project
+    `Kubuno.Maps.Core` under `/Common/`, the desktop projects are split into `/Desktop/Common/`
+    (`Kubuno.Maps.Desktop.Common`), `/Desktop/Windows/` (`Kubuno.Maps.Desktop`), `/Desktop/Linux/`
+    (`Kubuno.Maps.Desktop.Linux`) and `/Desktop/macOS/` (`Kubuno.Maps.Desktop.Macos`), with `/Server/`, `/Web/`
+    and `/Mobile/` as before.
+  - The desktop app gains thin **Linux and macOS** entry points (the portable app with the portable platform, no
+    OS-specific override yet), joining the Windows front end in the `desktop/` workspace.
+  - The Windows app crate is renamed `kubuno-maps` → `kubuno-maps-desktop` so its project name derives from its
+    folder (as Drive's `kubuno-drive-desktop`); the binary (`kubuno-maps.exe`), the crate APIs and the npm names
+    are unchanged.
+  - The web frontend's sources are sorted from a flat `src/` into the standard role folders
+    (`views/`, `dialogs/`, `controls/`, `pages/`, `model/`, `services/`, `maps-app/`), identical to Drive's.
 
 ## [0.1.9] - 2026-10-05
 

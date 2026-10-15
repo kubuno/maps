@@ -1,0 +1,22 @@
+<!-- MapsLayersButton — converted from MapsLayersButton.tsx. Fully converted: the basemap-thumbnail <img>
+     uses the project <Image> control (OnError → a grey placeholder); the centre tracking runs in useHooks. -->
+<Panel x:Props="MapsLayersButtonProps"
+       AccessibleRole="PushButton"
+       AccessibleName="{Binding label}"
+       ToolTip="{Binding label}"
+       Class="{Binding btn_class}"
+       OnClick="toggle">
+  <Image Visible="{Binding show_img}"
+         Src="{Binding url}"
+         Alt=""
+         Fit="Cover"
+         OnError="tile_failed"
+         Class="absolute inset-0 w-full h-full select-none"/>
+  <Panel Visible="{Binding show_placeholder}" Class="{Binding placeholder_class}"/>
+  <Panel Class="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-black/70 to-transparent"/>
+  <Stack Direction="LeftToRight" CrossAlign="Center" Justify="Center"
+         Class="absolute inset-x-0 bottom-1 gap-1 text-white text-xs font-medium leading-none [text-shadow:0_1px_2px_rgba(0,0,0,0.6)]">
+    <Icon Name="Layers" Size="13"/>
+    <Label HtmlTag="Span" Text="{Binding label}" InheritFontSize="true"/>
+  </Stack>
+</Panel>

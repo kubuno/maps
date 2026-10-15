@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Maps · Directions — the route planning flow (DirectionsPanel.kt): a blue top card (origin/destination with a
+  swap button and the travel-mode buttons) and a bottom sheet (route alternatives, the Démarrer button and the
+  turn-by-turn step list). Light theme, logical px. Map is a native control (placeholder).
+-->
+<Panel xmlns="https://kubuno.com/views" xmlns:x="https://kubuno.com/views/x"
+       Layout="Dock" BackColor="#E6EAE3">
+
+  <!-- Blue directions top card -->
+  <Stack Dock="Top" BackColor="#1A73E8" Elevation="Md" Padding="4, 4, 4, 8" CrossAlign="Stretch" Gap="0">
+    <Stack Direction="LeftToRight" CrossAlign="Center" Gap="4">
+      <IconButton Icon="ArrowLeft" Diameter="40" IconSize="22" IconColor="#FFFFFF"/>
+      <Stack Stack.Fill="true" Gap="0">
+        <Stack Direction="LeftToRight" CrossAlign="Center" Gap="8" Padding="0, 8, 0, 6">
+          <Icon Name="Circle" Size="16" ForeColor="#FFFFFF"/>
+          <Label Text="Ma position" Role="Body" ForeColor="#FFFFFF" Overflow="Ellipsis"/>
+        </Stack>
+        <Separator/>
+        <Stack Direction="LeftToRight" CrossAlign="Center" Gap="8" Padding="0, 6, 0, 8">
+          <Icon Name="MapPin" Size="16" ForeColor="#FFFFFF"/>
+          <Label Text="Musée d'Art Moderne" Role="Body" ForeColor="#FFFFFF" Overflow="Ellipsis"/>
+        </Stack>
+      </Stack>
+      <IconButton Icon="ArrowDownUp" Diameter="40" IconSize="20" IconColor="#FFFFFF"/>
+    </Stack>
+    <Stack Direction="LeftToRight" Gap="8" Padding="8, 4, 8, 0">
+      <Stack Stack.Fill="true" CrossAlign="Center" Justify="Center" BackColor="#FFFFFF" CornerRadius="8" Height="40">
+        <Icon Name="Car" Size="20" ForeColor="#1A73E8"/>
+      </Stack>
+      <Stack Stack.Fill="true" CrossAlign="Center" Justify="Center" BackColor="#3B8BF0" CornerRadius="8" Height="40">
+        <Icon Name="Bike" Size="20" ForeColor="#FFFFFF"/>
+      </Stack>
+      <Stack Stack.Fill="true" CrossAlign="Center" Justify="Center" BackColor="#3B8BF0" CornerRadius="8" Height="40">
+        <Icon Name="Footprints" Size="20" ForeColor="#FFFFFF"/>
+      </Stack>
+    </Stack>
+  </Stack>
+
+  <!-- Directions bottom sheet -->
+  <Stack Dock="Bottom" BackColor="#FFFFFF" CornerRadius="20" Elevation="Lg" Padding="16, 8, 16, 12" CrossAlign="Stretch" Gap="8">
+    <Stack CrossAlign="Center">
+      <Stack Width="32" Height="4" BackColor="#DADCE0" CornerRadius="9999"/>
+    </Stack>
+
+    <Stack Direction="LeftToRight" CrossAlign="Center" Gap="14" BackColor="#E8F1FE" BorderBrush="#1A73E8" BorderThickness="2" CornerRadius="8" Padding="14, 10, 14, 10">
+      <Stack CrossAlign="Center" Justify="Center" BackColor="#1A73E8" CornerRadius="9999" Width="44" Height="44">
+        <Icon Name="Car" Size="22" ForeColor="#FFFFFF"/>
+      </Stack>
+      <Stack Stack.Fill="true" Gap="1">
+        <Label Text="14 min" Role="Title" FontWeight="SemiBold" ForeColor="#1A73E8"/>
+        <Label Text="6,2 km · via A4" Role="Meta" ForeColor="#5F6368"/>
+      </Stack>
+    </Stack>
+    <Stack Direction="LeftToRight" CrossAlign="Center" Gap="14" BackColor="#F8F9FA" BorderBrush="#E8EAED" BorderThickness="1" CornerRadius="8" Padding="14, 10, 14, 10">
+      <Stack CrossAlign="Center" Justify="Center" BackColor="#9AA0A6" CornerRadius="9999" Width="44" Height="44">
+        <Icon Name="Car" Size="22" ForeColor="#FFFFFF"/>
+      </Stack>
+      <Stack Stack.Fill="true" Gap="1">
+        <Label Text="17 min" Role="Title" FontWeight="SemiBold" ForeColor="#202124"/>
+        <Label Text="7,0 km · via boulevards" Role="Meta" ForeColor="#5F6368"/>
+      </Stack>
+    </Stack>
+
+    <Stack Direction="LeftToRight" CrossAlign="Center" Justify="Center" Gap="10" BackColor="#2B7FFF" CornerRadius="8" Height="54">
+      <Icon Name="Navigation" Size="20" ForeColor="#FFFFFF"/>
+      <Label Text="Démarrer" Role="Subtitle" FontWeight="SemiBold" ForeColor="#FFFFFF"/>
+    </Stack>
+
+    <Stack Direction="LeftToRight" CrossAlign="Center" Gap="12" Padding="4, 6, 4, 6">
+      <Label Stack.Fill="true" Text="Prenez l'avenue des Arts vers l'est" Role="Body" ForeColor="#202124" Overflow="Ellipsis"/>
+      <Label Text="300 m" Role="Meta" ForeColor="#5F6368"/>
+    </Stack>
+    <Separator/>
+    <Stack Direction="LeftToRight" CrossAlign="Center" Gap="12" Padding="4, 6, 4, 6">
+      <Label Stack.Fill="true" Text="Tournez à droite sur le quai" Role="Body" ForeColor="#202124" Overflow="Ellipsis"/>
+      <Label Text="1,1 km" Role="Meta" ForeColor="#5F6368"/>
+    </Stack>
+  </Stack>
+
+  <MapView Dock="Fill" Route="true"/>
+
+</Panel>

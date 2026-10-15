@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Resources Version="1">
+  <String Name="app_title">Kubuno Maps</String>
+  <String Name="search_ph">Search Kubuno Maps</String>
+  <String Name="layers">Layers</String>
+  <String Name="hdr_basemaps">Base map</String>
+  <String Name="hdr_overlays">Overlays</String>
+  <String Name="bm_default">Map</String>
+  <String Name="bm_light">Light</String>
+  <String Name="bm_terrain">Terrain</String>
+  <String Name="bm_satellite">Satellite</String>
+  <String Name="bm_offline">Offline</String>
+  <String Name="ov_cycle">Cycling</String>
+  <String Name="ov_relief">Hillshade</String>
+  <String Name="ov_terrain3d">3D terrain</String>
+  <String Name="ov_transit">Transit</String>
+  <String Name="ov_precip">Precipitation</String>
+  <String Name="labels">Labels</String>
+  <String Name="offline_hint">Offline: only the places already visited are shown.</String>
+  <String Name="places_toggle">My places</String>
+  <String Name="results_title">Results</String>
+  <String Name="saved_title">My places</String>
+  <String Name="save">Save</String>
+  <String Name="saved_already">Saved</String>
+  <String Name="saved_ok">saved to My places</String>
+  <String Name="save_failed">The place could not be saved.</String>
+  <String Name="no_results">No place found. Check the spelling or move the map.</String>
+  <String Name="no_saved">No saved place yet: search a place, pick it, then “Save”.</String>
+  <String Name="pick_hint">Click a place to show it on the map</String>
+  <String Name="search_failed">The search is unavailable (no connection to the server).</String>
+  <String Name="saved_failed">The saved places could not be loaded.</String>
+  <String Name="close">Close</String>
+</Resources>

@@ -1,0 +1,38 @@
+<!-- MapsRouteOptions — converted from MapsRouteOptions.tsx (partial). The schedule menu uses the project
+     <MenuDropdown> control; the datetime-local field stays a React <ReactHost> part. -->
+<Panel x:Props="MapsRouteOptionsProps" Class="px-4 pt-2 no-print">
+  <Stack Direction="LeftToRight" CrossAlign="Center" Class="gap-2">
+    <MenuDropdown Items="{Binding schedule_items}" MinWidth="200" Class="flex items-center gap-1 h-9 px-3 rounded-full text-sm font-medium text-text-secondary hover:bg-surface-2 cursor-pointer">
+      <Stack Direction="LeftToRight" CrossAlign="Center" Class="gap-1">
+        <Icon Name="Clock" Size="16"/>
+        <Label HtmlTag="Span" Text="{Binding schedule_label}" InheritFontSize="true"/>
+        <Icon Name="ChevronDown" Size="16"/>
+      </Stack>
+    </MenuDropdown>
+    <ReactHost Component="{Binding ScheduleInput}" Props="{Binding schedule_input_props}" Visible="{Binding show_datetime}"/>
+    <Stack Direction="LeftToRight" CrossAlign="Center" AccessibleRole="PushButton" Class="flex items-center gap-1 h-9 px-3 rounded-full text-sm font-medium text-text-secondary hover:bg-surface-2 ml-auto" OnClick="toggle_open">
+      <Label HtmlTag="Span" Text="{Binding options_label}" InheritFontSize="true"/>
+      <Icon Name="ChevronUp" Size="16" Visible="{Binding open}"/>
+      <Icon Name="ChevronDown" Size="16" Visible="{Binding closed}"/>
+    </Stack>
+  </Stack>
+
+  <Stack Gap="8" Visible="{Binding open}" Class="flex flex-col gap-2 px-1 pt-2 pb-1">
+    <Stack Gap="6" Visible="{Binding showAvoid}" Class="flex flex-col gap-1.5">
+      <CheckBox Checked="{Binding avoid_motorway}" Text="{Binding avoid_motorway_label}" OnCheckedChanged="avoid_motorway_changed"/>
+      <CheckBox Checked="{Binding avoid_toll}" Text="{Binding avoid_toll_label}" OnCheckedChanged="avoid_toll_changed"/>
+      <CheckBox Checked="{Binding avoid_ferry}" Text="{Binding avoid_ferry_label}" OnCheckedChanged="avoid_ferry_changed"/>
+      <Stack Direction="LeftToRight" CrossAlign="Start" Visible="{Binding show_exclude}" Class="gap-1.5 pt-1 text-sm text-text-secondary">
+        <Icon Name="AlertCircle" Size="14" Class="mt-0.5 flex-shrink-0"/>
+        <Label HtmlTag="P" Text="{Binding exclude_label}" Overflow="Wrap" InheritFontSize="true"/>
+      </Stack>
+    </Stack>
+    <Stack Direction="LeftToRight" CrossAlign="Center" Class="gap-3 pt-1">
+      <Label HtmlTag="Span" Text="{Binding units_label}" ForeColor="TextSecondary" Class="text-sm"/>
+      <Stack Direction="LeftToRight" Class="flex rounded-full border border-border overflow-hidden">
+        <Panel AccessibleRole="PushButton" Class="{Binding km_class}" OnClick="pick_km"><Label HtmlTag="Span" Text="km" InheritFontSize="true"/></Panel>
+        <Panel AccessibleRole="PushButton" Class="{Binding mi_class}" OnClick="pick_miles"><Label HtmlTag="Span" Text="mi" InheritFontSize="true"/></Panel>
+      </Stack>
+    </Stack>
+  </Stack>
+</Panel>

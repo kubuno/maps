@@ -1,0 +1,11 @@
+<Project Sdk="Kubuno.Rust.Sdk/1.1.1">
+
+  <!-- Kubuno Maps for mobile, the complete app, portable: the .kbview screens (views/) and the MapView host control
+       (controls/). It belongs to the mobile workspace ..\..\Cargo.toml (mobile/); it is a portable library, so it
+       builds at package scope. This file is yours: it is never overwritten by a later run of the solution
+       generator - edit it freely. -->
+  <PropertyGroup>
+    <CargoPackage>kubuno-maps-mobile-common</CargoPackage>
+  </PropertyGroup>
+
+</Project>

@@ -1,0 +1,19 @@
+[package]
+name        = "kubuno-maps-mobile-common"
+description = "Kubuno Maps for mobile, the complete app, portable: its .kbview screens and the interactive themed MapView host control, rendered by the shared Kubuno mobile renderer (core repository) and run by the Android / iOS shells through ../android and ../ios."
+version.workspace    = true
+edition.workspace    = true
+license.workspace    = true
+repository.workspace = true
+publish              = false
+
+[dependencies]
+# The shared mobile renderer (core repository, core/mobile): lays out and paints the .kbview screens and hosts the
+# MapView control.
+kubuno-mobile-render = { workspace = true }
+# The module's shared engine (../../../common/core): the Web Mercator projection the map draws with.
+kubuno-maps-core     = { workspace = true }
+
+[dev-dependencies]
+# The examples write the rendered screens as PNG files (same tiny-skia as the renderer, plus its PNG encoder).
+tiny-skia = { workspace = true, features = ["png-format"] }

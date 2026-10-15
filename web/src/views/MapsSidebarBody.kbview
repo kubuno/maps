@@ -1,0 +1,33 @@
+<!-- MapsSidebarBody — converted from MapsSidebarBody.tsx. Expanded rows use the <SidebarNavItem> control and
+     the host slots use the <Slot> control; the collapsed "rail" keeps its custom vertical layout (icon above
+     label) with the glyph in a <ReactHost> part. -->
+<Stack x:Props="MapsSidebarBodyProps" Gap="0" Class="flex flex-col flex-1 overflow-hidden">
+  <Panel HtmlTag="Div" Class="{Binding nav_class}">
+    <!-- Collapsed rail -->
+    <Repeater ItemKey="key" ItemsSource="{Binding rows_nav}" Visible="{Binding collapsed}">
+      <Stack CrossAlign="Center" AccessibleRole="PushButton" Class="{Binding rail_class}" OnClick="nav_to">
+        <ReactHost Component="{Binding NavIcon}" Props="{Binding icon_props}"/>
+        <Label HtmlTag="Span" Text="{Binding label}" TextAlign="TopCenter" Overflow="Ellipsis" Class="text-[10px] leading-tight px-0.5 max-w-full"/>
+      </Stack>
+    </Repeater>
+    <!-- Expanded rows -->
+    <Repeater ItemKey="key" ItemsSource="{Binding rows_nav}" Visible="{Binding expanded}">
+      <SidebarNavItem Label="{Binding label}" IconName="{Binding iconName}" Active="{Binding active}" To="{Binding to}"/>
+    </Repeater>
+  </Panel>
+
+  <!-- "Get the app" -->
+  <Panel Class="{Binding getapp_wrap_class}">
+    <Stack CrossAlign="Center" AccessibleRole="PushButton" Visible="{Binding collapsed}" Class="{Binding getapp_rail_class}" OnClick="get_app">
+      <ReactHost Component="{Binding NavIcon}" Props="{Binding getapp_icon_props}"/>
+      <Label HtmlTag="Span" Text="{Binding get_app_label}" TextAlign="TopCenter" Overflow="Ellipsis" Class="text-[10px] leading-tight px-0.5 max-w-full"/>
+    </Stack>
+    <SidebarNavItem Visible="{Binding expanded}" Label="{Binding get_app_label}" IconName="Smartphone" OnClick="get_app"/>
+  </Panel>
+
+  <!-- Storage / footer slots (hidden when collapsed) -->
+  <Panel Visible="{Binding expanded}">
+    <Slot Name="sidebar-footer"/>
+    <Slot Name="sidebar-storage"/>
+  </Panel>
+</Stack>

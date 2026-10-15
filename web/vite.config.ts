@@ -1,6 +1,8 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+// The .kbview compiler (vskubuno docs/WEB-VIEWS.md): the module's views and their code-behinds (kubuno.views.json).
+import { kbview } from '@kubuno/views-compiler'
 import { fileURLToPath, URL } from 'node:url'
 
 /**
@@ -18,7 +20,7 @@ const SHARED = new Set([
   'react/jsx-runtime', 'react/jsx-dev-runtime',
   'react-router-dom', '@tanstack/react-query',
   'zustand', 'react-i18next', 'i18next',
-  '@ui', '@kubuno/sdk', '@kubuno/drive',
+  '@ui', '@kubuno/sdk', '@kubuno/drive', '@kubuno/views',
   '@radix-ui/react-dropdown-menu',
 ])
 const isExternal = (s: string) =>
@@ -31,7 +33,10 @@ const isExternal = (s: string) =>
 // kubuno-core voisin n'est nécessaire.
 export default defineConfig({
   base: './',
-  plugins: [react(), tailwindcss()],
+  plugins: [kbview(), react(), tailwindcss()],
+  // The cosmos assets (3D models + textures) are the shared source of truth in ../common/assets; let the dev server
+  // read them (the build bundles them regardless).
+  server: { fs: { allow: ['..'] } },
   build: {
     outDir: 'dist',
     emptyOutDir: true,

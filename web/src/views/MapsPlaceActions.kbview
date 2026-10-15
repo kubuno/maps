@@ -1,0 +1,30 @@
+<!-- MapsPlaceActions — converted from MapsPlaceActions.tsx (partial). The share menu uses the <MenuDropdown>
+     control; each round-action glyph is a dynamic React <ReactHost> part; the QR dialog (a converted view)
+     is embedded via <ReactHost>. -->
+<Panel x:Props="MapsPlaceActionsProps" Class="contents">
+  <Panel Class="grid grid-cols-5 gap-1 px-2 pt-4 pb-3">
+    <Stack CrossAlign="Center" AccessibleRole="PushButton" Class="flex flex-col items-center gap-1.5 min-w-0 group outline-none" OnClick="route">
+      <Panel Class="{Binding filled_circle}"><ReactHost Component="{Binding ActionIcon}" Props="{Binding directions_icon_props}"/></Panel>
+      <Label HtmlTag="Span" Text="{Binding directions_label}" TextAlign="TopCenter" Overflow="Wrap" Class="text-xs leading-tight text-primary px-0.5 max-w-full"/>
+    </Stack>
+    <Stack CrossAlign="Center" AccessibleRole="PushButton" Class="flex flex-col items-center gap-1.5 min-w-0 group outline-none" OnClick="save">
+      <Panel Class="{Binding light_circle}"><ReactHost Component="{Binding ActionIcon}" Props="{Binding save_icon_props}"/></Panel>
+      <Label HtmlTag="Span" Text="{Binding save_label}" TextAlign="TopCenter" Overflow="Wrap" Class="text-xs leading-tight text-primary px-0.5 max-w-full"/>
+    </Stack>
+    <Stack CrossAlign="Center" AccessibleRole="PushButton" Class="flex flex-col items-center gap-1.5 min-w-0 group outline-none" OnClick="nearby">
+      <Panel Class="{Binding light_circle}"><ReactHost Component="{Binding ActionIcon}" Props="{Binding nearby_icon_props}"/></Panel>
+      <Label HtmlTag="Span" Text="{Binding nearby_label}" TextAlign="TopCenter" Overflow="Wrap" Class="text-xs leading-tight text-primary px-0.5 max-w-full"/>
+    </Stack>
+    <Stack CrossAlign="Center" AccessibleRole="PushButton" Class="flex flex-col items-center gap-1.5 min-w-0 group outline-none" OnClick="open_qr">
+      <Panel Class="{Binding light_circle}"><ReactHost Component="{Binding ActionIcon}" Props="{Binding phone_icon_props}"/></Panel>
+      <Label HtmlTag="Span" Text="{Binding phone_label}" TextAlign="TopCenter" Overflow="Wrap" Class="text-xs leading-tight text-primary px-0.5 max-w-full"/>
+    </Stack>
+    <MenuDropdown Items="{Binding share_items}" MinWidth="240" Class="cursor-pointer">
+      <Stack CrossAlign="Center" Class="flex flex-col items-center gap-1.5 min-w-0 group outline-none">
+        <Panel Class="{Binding light_circle}"><ReactHost Component="{Binding ActionIcon}" Props="{Binding share_icon_props}"/></Panel>
+        <Label HtmlTag="Span" Text="{Binding share_label}" TextAlign="TopCenter" Overflow="Wrap" Class="text-xs leading-tight text-primary px-0.5 max-w-full"/>
+      </Stack>
+    </MenuDropdown>
+  </Panel>
+  <ReactHost Component="{Binding Qr}" Props="{Binding qr_props}" Visible="{Binding qrOpen}"/>
+</Panel>

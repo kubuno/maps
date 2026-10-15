@@ -1,0 +1,29 @@
+<!-- MapsPlacePanel — converted from MapsPlacePanel.tsx. A composition container: the scroll area + the
+     collapse handle are the view; the header is embedded as a native typed `.kbview` element, while the
+     actions, the four tab bodies and the lightbox stay React <ReactHost> parts; all the orchestration (tabs,
+     photo/gallery/reviews fetching, collapse) lives in the code-behind. -->
+<Panel x:Props="MapsPlacePanelProps" Class="h-full min-h-0 flex flex-col bg-surface-0">
+  <Panel Class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
+    <MapsPlaceHeader D="{Binding d}" Media="{Binding media}" ImgFailed="{Binding imgFailed}"
+                     OnImgError="header_img_error" OnClose="place_close"
+                     ReviewCount="{Binding review_count}" ReviewAvg="{Binding avg}"
+                     OnReviewsClick="header_reviews_click" OnAddReview="header_add_review"
+                     Tab="{Binding tab}" Tabs="{Binding tabs}" OnTab="header_tab"/>
+    <ReactHost Component="{Binding Actions}" Props="{Binding actions_props}"/>
+    <ReactHost Component="{Binding Info}" Props="{Binding info_props}" Visible="{Binding is_overview}"/>
+    <ReactHost Component="{Binding Reviews}" Props="{Binding reviews_props}" Visible="{Binding is_reviews}"/>
+    <ReactHost Component="{Binding About}" Props="{Binding about_props}" Visible="{Binding is_about}"/>
+    <ReactHost Component="{Binding Tickets}" Props="{Binding tickets_props}" Visible="{Binding is_tickets}"/>
+  </Panel>
+
+  <Panel AccessibleRole="PushButton"
+         ToolTip="{Binding collapse_label}"
+         AccessibleName="{Binding collapse_label}"
+         Class="absolute -right-6 top-1/2 -translate-y-1/2 w-6 h-12 bg-surface-0 rounded-r-lg text-text-secondary flex items-center justify-center shadow-[2px_0_6px_rgba(0,0,0,.18)]"
+         OnClick="toggle_collapse">
+    <Icon Name="ChevronRight" Size="18" Visible="{Binding collapsed}"/>
+    <Icon Name="ChevronLeft" Size="18" Visible="{Binding expanded}"/>
+  </Panel>
+
+  <ReactHost Component="{Binding Lightbox}" Props="{Binding lightbox_props}" Visible="{Binding show_lightbox}"/>
+</Panel>

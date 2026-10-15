@@ -1,0 +1,37 @@
+<!-- MapsSavePlaceModal — converted from MapsSavePlaceModal.tsx (partial: the name field keeps `autoFocus`, which has no .kbview property, so it stays a React <ReactHost> part). -->
+<Stack x:Props="MapsSavePlaceModalProps"
+       Direction="LeftToRight"
+       CrossAlign="Center"
+       Justify="Center"
+       Class="fixed inset-0 z-[9999] bg-black/20">
+  <Stack Gap="16" Class="bg-surface-0 rounded-xl shadow-xl border border-border p-5 w-80">
+    <Stack Direction="LeftToRight" CrossAlign="Center" Justify="SpaceBetween">
+      <Stack Direction="LeftToRight" CrossAlign="Center" Class="gap-2 text-sm font-semibold text-text-primary">
+        <Icon Name="MapPin" Size="16" Class="text-primary"/>
+        <Label HtmlTag="H2"
+               Text="{Binding title}"
+               FontWeight="SemiBold"
+               Overflow="Wrap"
+               ForeColor="TextPrimary"
+               InheritFontSize="true"/>
+      </Stack>
+      <Panel AccessibleRole="PushButton"
+             AutoSize="true"
+             ForeColor="TextTertiary"
+             Class="p-1 rounded hover:bg-surface-2"
+             OnClick="close_click">
+        <Icon Name="X" Size="15"/>
+      </Panel>
+    </Stack>
+    <Label HtmlTag="P" Text="{Binding coords}" Overflow="Wrap" ForeColor="TextTertiary" Class="text-xs font-mono"/>
+    <!-- TODO(views-migrate): <Input> autoFocus: no .kbview property -->
+    <ReactHost Component="{Binding NameInput}" Props="{Binding name_input_props}"/>
+    <TextArea Text="{Binding note, Mode=TwoWay}"
+              Placeholder="{Binding note_placeholder}"
+              Class="h-auto min-h-0 resize-none"/>
+    <Stack Direction="LeftToRight" Justify="End" Class="gap-2">
+      <Button Variant="Secondary" Size="Sm" Text="{Binding cancel_label}" OnClick="close_click"/>
+      <Button Size="Sm" Text="{Binding save_label}" Enabled="{Binding can_save}" OnClick="save_click"/>
+    </Stack>
+  </Stack>
+</Stack>

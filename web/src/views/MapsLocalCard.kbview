@@ -1,0 +1,25 @@
+<!-- MapsLocalCard — converted from MapsLocalCard.tsx (partial: the weather glyph is a dynamic React
+     <ReactHost> part; the town/weather/traffic hooks run in useHooks). The card hides itself (root Visible)
+     when the map is too zoomed out or the town is unknown. -->
+<Stack x:Props="MapsLocalCardProps"
+       Gap="0"
+       Visible="{Binding show_root}"
+       Class="rounded-3xl bg-surface-0 overflow-hidden shadow-[0_1px_2px_rgba(60,64,67,.3),0_2px_6px_2px_rgba(60,64,67,.15)]">
+  <Stack Direction="LeftToRight" CrossAlign="Center" Class="gap-3 px-5 h-14">
+    <Label HtmlTag="P" Text="{Binding town_name}" Overflow="Ellipsis" FontWeight="Medium" ForeColor="TextPrimary" Class="flex-1 min-w-0 text-sm"/>
+    <Stack Direction="LeftToRight" CrossAlign="Center" Visible="{Binding show_weather}" Class="gap-2 text-sm text-text-primary flex-shrink-0">
+      <Label HtmlTag="Span" Text="{Binding temp}" InheritFontSize="true"/>
+      <ReactHost Component="{Binding WeatherIcon}" Props="{Binding weather_props}"/>
+    </Stack>
+  </Stack>
+  <Stack Direction="LeftToRight" CrossAlign="Center" Visible="{Binding show_traffic}" Class="gap-3 px-4 h-16 border-t border-border">
+    <Panel Class="{Binding traffic_circle_class}">
+      <Icon Name="Car" Size="20"/>
+    </Panel>
+    <Stack Gap="0" Class="flex-1 min-w-0">
+      <Label HtmlTag="P" Text="{Binding traffic_title}" Overflow="Ellipsis" FontWeight="Medium" ForeColor="TextPrimary" Class="text-sm"/>
+      <Label HtmlTag="P" Text="{Binding traffic_subtitle}" Overflow="Ellipsis" ForeColor="TextSecondary" Class="text-sm"/>
+    </Stack>
+    <Icon Name="ChevronRight" Size="20" Class="text-text-secondary flex-shrink-0"/>
+  </Stack>
+</Stack>

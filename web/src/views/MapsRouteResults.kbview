@@ -1,0 +1,56 @@
+<!-- MapsRouteResults — converted from MapsRouteResults.tsx (partial: per-card and per-step glyphs are dynamic
+     React <ReactHost> parts; the result cards and the turn-by-turn steps are Repeaters, per-row via args.row). -->
+<Panel x:Props="MapsRouteResultsProps" Class="contents">
+  <Stack Direction="LeftToRight" CrossAlign="Center" Visible="{Binding props.loading}" Class="px-6 py-5 text-sm text-text-secondary gap-2">
+    <Icon Name="RefreshCw" Size="16" Class="animate-spin"/>
+    <Label HtmlTag="Span" Text="{Binding calculating_label}" InheritFontSize="true"/>
+  </Stack>
+  <Stack Direction="LeftToRight" CrossAlign="Center" Visible="{Binding show_error}" Class="px-6 py-5 text-sm text-danger gap-2">
+    <Icon Name="AlertCircle" Size="16"/>
+    <Label HtmlTag="Span" Text="{Binding props.error}" Overflow="Wrap" InheritFontSize="true"/>
+  </Stack>
+
+  <Panel Visible="{Binding show_results}" Class="flex flex-col">
+    <Panel AccessibleRole="List" Class="flex flex-col py-1">
+      <Repeater ItemKey="key" ItemsSource="{Binding rows_cards}">
+        <Stack Direction="LeftToRight" CrossAlign="Center" AccessibleRole="ListItem" Class="{Binding card_class}" OnClick="select">
+          <Panel Class="{Binding icon_class}"><ReactHost Component="{Binding CardModeIcon}" Props="{Binding icon_props}"/></Panel>
+          <Stack Gap="0" Class="flex-1 min-w-0">
+            <Label HtmlTag="P" Text="{Binding title}" Overflow="Ellipsis" FontWeight="SemiBold" Class="{Binding title_class}"/>
+            <Label HtmlTag="P" Text="{Binding subtitle}" Overflow="Ellipsis" ForeColor="TextSecondary" Class="text-sm"/>
+          </Stack>
+          <Label HtmlTag="Span" Text="{Binding dist}" Visible="{Binding show_dist}" ForeColor="TextSecondary" Class="text-sm flex-shrink-0"/>
+        </Stack>
+      </Repeater>
+    </Panel>
+
+    <Stack Direction="LeftToRight" CrossAlign="Center" Visible="{Binding show_nav}" Class="gap-2 px-4 pb-3 no-print">
+      <Panel AccessibleRole="PushButton" Class="flex-1 flex items-center justify-center gap-2 h-10 rounded-full bg-primary text-white text-sm font-medium hover:bg-primary-hover transition-colors" OnClick="start_nav">
+        <Icon Name="Navigation" Size="16"/>
+        <Label HtmlTag="Span" Text="{Binding start_label}" InheritFontSize="true"/>
+      </Panel>
+      <Panel AccessibleRole="PushButton" ToolTip="{Binding simulate_tip}" Class="flex items-center justify-center gap-2 h-10 px-4 rounded-full border border-border text-text-secondary text-sm font-medium hover:bg-surface-2" OnClick="simulate_nav">
+        <Icon Name="Play" Size="15"/>
+        <Label HtmlTag="Span" Text="{Binding sim_label}" InheritFontSize="true"/>
+      </Panel>
+      <Panel AccessibleRole="PushButton" Visible="{Binding has_steps}" Class="flex items-center gap-1 h-10 px-3 rounded-full text-sm font-medium text-primary hover:bg-surface-2" OnClick="toggle_details">
+        <Label HtmlTag="Span" Text="{Binding details_label}" InheritFontSize="true"/>
+        <Icon Name="ChevronUp" Size="16" Visible="{Binding props.detailsOpen}"/>
+        <Icon Name="ChevronDown" Size="16" Visible="{Binding details_closed}"/>
+      </Panel>
+    </Stack>
+
+    <Panel Visible="{Binding show_steps}" Class="border-t border-border">
+      <Label HtmlTag="P" Text="{Binding steps_label}" ForeColor="TextSecondary" Class="px-6 pt-3 pb-1 text-xs font-medium uppercase tracking-wide"/>
+      <Panel Class="max-h-80 overflow-y-auto pb-2">
+        <Repeater ItemKey="key" ItemsSource="{Binding rows_steps}">
+          <Stack Direction="LeftToRight" CrossAlign="Start" Class="gap-3 px-6 py-2.5 border-t border-border first:border-t-0">
+            <Panel Class="text-text-secondary mt-0.5 flex-shrink-0"><ReactHost Component="{Binding StepIcon}" Props="{Binding icon_props}"/></Panel>
+            <Label HtmlTag="P" Text="{Binding text}" Overflow="Wrap" ForeColor="TextPrimary" Class="flex-1 min-w-0 text-sm leading-snug"/>
+            <Label HtmlTag="Span" Text="{Binding dist}" Visible="{Binding show_dist}" ForeColor="TextTertiary" Class="text-sm flex-shrink-0 mt-0.5"/>
+          </Stack>
+        </Repeater>
+      </Panel>
+    </Panel>
+  </Panel>
+</Panel>

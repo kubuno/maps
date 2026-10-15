@@ -1,0 +1,19 @@
+<!-- MapsRouteActions — converted from MapsRouteActions.tsx. The QR dialog (itself a converted view) is shown
+     through a <ReactHost>; the hover tint uses a `hover:` class in place of the imperative hoverBg helper. -->
+<Panel x:Props="MapsRouteActionsProps" Class="contents">
+  <Stack Direction="LeftToRight" CrossAlign="Center" Class="gap-1 px-3 py-1 no-print">
+    <Panel AccessibleRole="PushButton" Class="flex items-center gap-1.5 h-9 px-3 rounded-full text-sm font-medium text-primary hover:bg-surface-2" OnClick="open_qr">
+      <Icon Name="Smartphone" Size="16"/>
+      <Label HtmlTag="Span" Text="{Binding send_label}" InheritFontSize="true"/>
+    </Panel>
+    <Panel AccessibleRole="PushButton" Class="flex items-center gap-1.5 h-9 px-3 rounded-full text-sm font-medium text-primary hover:bg-surface-2" OnClick="copy">
+      <Icon Name="Link" Size="16"/>
+      <Label HtmlTag="Span" Text="{Binding copy_label}" InheritFontSize="true"/>
+    </Panel>
+    <Panel AccessibleRole="PushButton" Class="flex items-center gap-1.5 h-9 px-3 rounded-full text-sm font-medium text-primary hover:bg-surface-2" OnClick="print">
+      <Icon Name="Printer" Size="16"/>
+      <Label HtmlTag="Span" Text="{Binding print_label}" InheritFontSize="true"/>
+    </Panel>
+  </Stack>
+  <ReactHost Component="{Binding Qr}" Props="{Binding qr_props}" Visible="{Binding qrOpen}"/>
+</Panel>

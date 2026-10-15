@@ -1,0 +1,20 @@
+[package]
+name        = "kubuno-maps-desktop-common"
+description = "Kubuno Maps, the portable app: the launch options, the map view state (centre, zoom, basemap, overlays, labels), the offline sample dataset and the platform extension points (clock, launch rules, UI host, map surface) every OS entry point registers. Framework- and OS-free so it builds for any target and its logic is unit-tested without a window; the Win32 user interface and the native map surface live in desktop/windows."
+version.workspace    = true
+edition.workspace    = true
+license.workspace    = true
+repository.workspace = true
+
+# Portable on purpose: no `windows` crate, no UI framework, no map renderer. The native user interface and the
+# map surface live in the OS folders (desktop/windows). The live-server REST path (the shell's token broker)
+# borrows access tokens from the Kubuno desktop shell and never holds a password.
+[dependencies]
+kubuno-maps-core.workspace = true
+# The HTTP client to the Kubuno core through the shell's token broker (the live REST path).
+kubuno-desktop-sync.workspace = true
+serde.workspace      = true
+serde_json.workspace = true
+tracing.workspace    = true
+# The tile downloads (same client and features as kubuno-desktop-sync: blocking, rustls).
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "json", "rustls-tls"] }

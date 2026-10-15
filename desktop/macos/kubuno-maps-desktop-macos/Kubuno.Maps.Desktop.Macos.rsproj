@@ -1,0 +1,12 @@
+<Project Sdk="Kubuno.Rust.Sdk/1.1.1">
+
+  <!-- Kubuno Maps for macOS: the entry point running the app of desktop/common with the portable platform. This
+       file is yours: it is never overwritten by a later run of the solution generator - edit it freely. -->
+  <PropertyGroup>
+    <CargoPackage>kubuno-maps-desktop-macos</CargoPackage>
+    <CargoBin>kubuno-maps-desktop</CargoBin>
+    <!-- One `cargo build` of the desktop workspace for every project of it (docs/RSPROJ.md, "Cargo workspaces"). -->
+    <CargoBuildScope>Workspace</CargoBuildScope>
+  </PropertyGroup>
+
+</Project>

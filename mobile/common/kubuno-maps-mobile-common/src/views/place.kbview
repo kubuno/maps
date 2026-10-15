@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Maps · Place — a selected place (PlaceCard.kt) rising from the bottom over the map. Handle, name, a pink
+  category badge, the address, and the action row (Itinéraire primary + Enregistrer / Partager). Light theme,
+  logical px. Map is a native control (placeholder). Root is a Panel; map colour is the backdrop.
+-->
+<Panel xmlns="https://kubuno.com/views" xmlns:x="https://kubuno.com/views/x"
+       Layout="Dock" BackColor="#E6EAE3">
+
+  <Stack Dock="Top" Padding="12, 12, 12, 0">
+    <Stack Direction="LeftToRight" CrossAlign="Center" Gap="12" BackColor="#FFFFFF" CornerRadius="9999"
+           Elevation="Lg" Padding="14, 12, 14, 12">
+      <Icon Name="ArrowLeft" Size="22" ForeColor="#5F6368"/>
+      <Label Stack.Fill="true" Text="Musée d'Art Moderne" Role="Body" ForeColor="#202124" Overflow="Ellipsis"/>
+    </Stack>
+  </Stack>
+
+  <Stack Dock="Bottom" BackColor="#FFFFFF" CornerRadius="16" Elevation="Lg" Padding="20, 10, 12, 16" CrossAlign="Stretch" Gap="0">
+    <Stack CrossAlign="Center">
+      <Stack Width="32" Height="4" BackColor="#DADCE0" CornerRadius="9999"/>
+    </Stack>
+
+    <Stack Direction="LeftToRight" CrossAlign="Start" Padding="0, 6, 0, 0">
+      <Stack Stack.Fill="true" Gap="6">
+        <Label Text="Musée d'Art Moderne" Role="Title" FontWeight="SemiBold" ForeColor="#202124" Overflow="Wrap"/>
+        <Stack Direction="LeftToRight">
+          <Label Text="Musée" Role="Caption" FontWeight="SemiBold" ForeColor="#FF375F" BackColor="#FDE7EC" CornerRadius="9999" Padding="10, 4, 10, 4"/>
+        </Stack>
+      </Stack>
+      <IconButton Icon="X" Diameter="40" IconSize="20" IconColor="#5F6368"/>
+    </Stack>
+
+    <Stack Direction="LeftToRight" CrossAlign="Center" Gap="8" Padding="0, 8, 8, 0">
+      <Icon Name="MapPin" Size="18" ForeColor="#5F6368"/>
+      <Label Stack.Fill="true" Text="5 avenue des Arts, 75012 Paris" Role="Body" ForeColor="#5F6368" Overflow="Wrap"/>
+    </Stack>
+
+    <Stack Direction="LeftToRight" CrossAlign="Center" Gap="8" Padding="0, 16, 8, 0">
+      <Stack Stack.Fill="true" Direction="LeftToRight" CrossAlign="Center" Justify="Center" Gap="8" BackColor="#2B7FFF" CornerRadius="8" Height="50">
+        <Icon Name="Navigation" Size="20" ForeColor="#FFFFFF"/>
+        <Label Text="Itinéraire" Role="Body" FontWeight="SemiBold" ForeColor="#FFFFFF"/>
+      </Stack>
+      <Stack CrossAlign="Center" Gap="2" Width="64">
+        <IconButton Icon="Bookmark" Diameter="40" IconSize="22" IconColor="#1A73E8"/>
+        <Label Text="Enregistrer" Role="Caption" ForeColor="#5F6368"/>
+      </Stack>
+      <Stack CrossAlign="Center" Gap="2" Width="64">
+        <IconButton Icon="Share" Diameter="40" IconSize="22" IconColor="#1A73E8"/>
+        <Label Text="Partager" Role="Caption" ForeColor="#5F6368"/>
+      </Stack>
+    </Stack>
+  </Stack>
+
+  <MapView Dock="Fill"/>
+
+</Panel>
