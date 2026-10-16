@@ -13,7 +13,7 @@ use std::cell::Cell;
 
 use std::time::Duration;
 
-use kubuno_mobile_render::{post_ui, register_host_control, set_data, App, Scope, TapEvent};
+use kubuno_mobile_render::{input_focus, post_ui, register_host_control, set_data, App, Scope, TapEvent};
 
 /// The home screen: the full-screen map under the search bar and the explore sheet.
 pub const HOME: &str = include_str!("views/home.kbview");
@@ -61,14 +61,18 @@ fn view_index() -> usize {
     }
 }
 
-/// Handle a tap: a screen-opening button moves to that screen (opening search also starts a search); a back / close
-/// or picking a result returns home.
+/// Handle a tap or a field submit: a screen-opening button moves to that screen (opening search focuses the field and
+/// opens the keyboard); submitting the search field runs the search with what was typed; a back / close or picking a
+/// result returns home.
 fn on_event(ev: &TapEvent) {
     match ev.handler.as_str() {
         "open_search" => {
             SCREEN.with(|s| s.set(Screen::Search));
-            start_search();
+            // Focus the search field (the shell opens the soft keyboard); nothing is searched until it is submitted.
+            input_focus("query", "", Some("run_search"));
+            set_data(search_prompt_data());
         }
+        "run_search" => start_search(ev.text.as_deref().unwrap_or_default()),
         "open_library" => SCREEN.with(|s| s.set(Screen::Library)),
         "open_layers" => SCREEN.with(|s| s.set(Screen::Layers)),
         "close" | "pick_result" => SCREEN.with(|s| s.set(Screen::Home)),
@@ -76,25 +80,36 @@ fn on_event(ev: &TapEvent) {
     }
 }
 
-/// Start a search. The loading state shows now; a worker thread then returns the results — as the Maps server call
-/// will — and posts them back to the UI thread, which re-renders. [M4] replaces the sleep with the real
-/// `GET /geocode/search` through the account's Maps server.
-fn start_search() {
-    set_data(loading_data());
-    std::thread::spawn(|| {
-        std::thread::sleep(Duration::from_millis(1500));
-        post_ui(|| set_data(results_data()));
+/// Start a search for `query` (the text submitted from the search field). The loading state shows now; a worker thread
+/// then returns the results — as the Maps server call will — and posts them back to the UI thread, which re-renders.
+/// [M4] replaces the sleep with the real `GET /geocode/search` through the account's Maps server.
+fn start_search(query: &str) {
+    let query = query.trim();
+    if query.is_empty() {
+        set_data(search_prompt_data());
+        return;
+    }
+    set_data(loading_data(query));
+    let query = query.to_string();
+    std::thread::spawn(move || {
+        std::thread::sleep(Duration::from_millis(1200));
+        post_ui(move || set_data(results_data(&query)));
     });
 }
 
-/// The data context while a search is running: the loading line and no results yet.
-fn loading_data() -> Scope {
-    Scope::new().set("status", "Recherche en cours…").list("results", Vec::new())
+/// The data context for an open search field with nothing searched yet: a prompt and no results.
+fn search_prompt_data() -> Scope {
+    Scope::new().set("status", "Saisissez un lieu ou une adresse, puis validez").list("results", Vec::new())
 }
 
-/// The data context once the (here simulated) search has returned: the results the `Repeater` lists.
-fn results_data() -> Scope {
-    Scope::new().set("status", "").list(
+/// The data context while the search for `query` is running: the loading line (echoing the query) and no results yet.
+fn loading_data(query: &str) -> Scope {
+    Scope::new().set("status", format!("Recherche de « {query} »…")).list("results", Vec::new())
+}
+
+/// The data context once the (here simulated) search for `query` has returned: the results the `Repeater` lists.
+fn results_data(query: &str) -> Scope {
+    Scope::new().set("status", format!("Résultats pour « {query} »")).list(
         "results",
         vec![
             place_scope("Tour Eiffel", "Champ de Mars, 75007 Paris"),
@@ -116,7 +131,7 @@ fn place_scope(name: &str, detail: &str) -> Scope {
 pub fn setup() {
     register_host_control("MapView", MapView::default());
     SCREEN.with(|s| s.set(Screen::Home));
-    set_data(results_data());
+    set_data(search_prompt_data());
 }
 
 /// The Maps app, as the shells run it: its screens, the host-control setup, and the navigation wiring (the shell asks

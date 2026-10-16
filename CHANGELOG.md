@@ -44,10 +44,12 @@ number at release time, and CI publishes that section as the GitHub Release note
   advances on a tap: tapping the search pill opens the search screen and starts a search, the menu and the map buttons
   open the library and the layers screens, and a back or close returns to the map. The search screen shows « Recherche
   en cours… » at once, then — when the (for now simulated) Maps server call returns on a worker thread — fills with the
-  result rows without any further touch, each row a tappable place that returns to the map. This is the first slice of
-  the app's real behaviour, on the core's new mobile interaction engine (hit-testing, screen navigation, data-bound
-  text and lists, and the background-work → UI-thread queue). The full `MapsViewModel` logic (account, live geocoding,
-  routing, navigation, library) builds on this.
+  result rows without any further touch, each row a tappable place that returns to the map. Opening the search focuses
+  the field and brings up the keyboard: what you type shows in the field (with a caret), and pressing Enter runs the
+  search for exactly that text — the loading line and the results echo the query (« Résultats pour « Louvre » »). This
+  is the first slice of the app's real behaviour, on the core's new mobile interaction engine (hit-testing, screen
+  navigation, data-bound text and lists, typed text fields, and the background-work → UI-thread queue). The full
+  `MapsViewModel` logic (account, live geocoding, routing, navigation, library) builds on this.
 - **Mobile app**: the Kubuno Maps Android app now lives in this repository under `mobile/` (moved from the `kubuno/mobile` repository with its history). It builds on its own against the shared Kubuno mobile libraries published from the core (`com.kubuno.mobile:*`), and a `mobile-v<version>` tag releases its APK (workflow `mobile.yml`).
 
 ### Changed
