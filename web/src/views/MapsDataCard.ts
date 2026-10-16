@@ -3,7 +3,7 @@
  *
  * Rich card rendering maps envelopes (`maps.place` / `maps.route` / `maps.view`) inside CONSUMER modules
  * (chat, notes…). Registered on the `core.data-card` extension point from `entry.ts`, so consumers resolve
- * it dynamically and never import maps' code — when maps is not installed they fall back to a generic card.
+ * it dynamically and never import maps' code - when maps is not installed they fall back to a generic card.
  */
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'

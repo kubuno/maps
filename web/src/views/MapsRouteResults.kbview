@@ -1,4 +1,4 @@
-<!-- MapsRouteResults — converted from MapsRouteResults.tsx (partial: per-card and per-step glyphs are dynamic
+<!-- MapsRouteResults - converted from MapsRouteResults.tsx (partial: per-card and per-step glyphs are dynamic
      React <ReactHost> parts; the result cards and the turn-by-turn steps are Repeaters, per-row via args.row). -->
 <Panel x:Props="MapsRouteResultsProps" Class="contents">
   <Stack Direction="LeftToRight" CrossAlign="Center" Visible="{Binding props.loading}" Class="px-6 py-5 text-sm text-text-secondary gap-2">

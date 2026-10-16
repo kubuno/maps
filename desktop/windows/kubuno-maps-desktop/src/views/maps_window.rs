@@ -1,12 +1,12 @@
-//! Code-behind of Kubuno Maps' window (`maps_window.kbview`) — Windows Forms' `Form1.cs`.
+//! Code-behind of Kubuno Maps' window (`maps_window.kbview`) - Windows Forms' `Form1.cs`.
 //!
 //! The window owns the shared map view state (the camera and the layer selection, `controls::model::Shared`,
-//! which is the portable `MapView`) and turns the toolbar and the layers panel into moves of that state — the
+//! which is the portable `MapView`) and turns the toolbar and the layers panel into moves of that state - the
 //! web app's `MapsLayersButton` / `MapsLayersPanel` (`MapsPage.tsx`). Switching a basemap, toggling an overlay or
 //! the labels updates the `MapView`; the map surface (`MapCanvas`) reads the same state and repaints.
 //!
 //! The search field and the places panel are the web's `MapsSearchBar` and saved places: typing searches (after a
-//! short pause, on a worker thread, through the [`PlacesBackend`] — the Maps server of the account, or the offline
+//! short pause, on a worker thread, through the [`PlacesBackend`] - the Maps server of the account, or the offline
 //! sample), the panel lists the results, a click flies the map there and drops a pin, « Save » keeps the picked
 //! result among the saved places, which the panel lists when the field is empty and the map marks with dots.
 
@@ -269,7 +269,7 @@ impl MapsWindow {
             drop(dispatcher.begin_invoke(move |w: &mut MapsWindow| {
                 match answer {
                     Ok(place) => {
-                        w.notice = Some(format!("{} — {}", place.name, Resources::saved_ok()));
+                        w.notice = Some(format!("{} - {}", place.name, Resources::saved_ok()));
                         w.saved.push(place);
                         w.update_markers();
                     }

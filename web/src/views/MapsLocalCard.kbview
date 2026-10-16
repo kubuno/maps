@@ -1,4 +1,4 @@
-<!-- MapsLocalCard — converted from MapsLocalCard.tsx (partial: the weather glyph is a dynamic React
+<!-- MapsLocalCard - converted from MapsLocalCard.tsx (partial: the weather glyph is a dynamic React
      <ReactHost> part; the town/weather/traffic hooks run in useHooks). The card hides itself (root Visible)
      when the map is too zoomed out or the town is unknown. -->
 <Stack x:Props="MapsLocalCardProps"

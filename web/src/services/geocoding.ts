@@ -1,4 +1,4 @@
-// Nominatim (OpenStreetMap) geocoding utilities — called directly from the browser,
+// Nominatim (OpenStreetMap) geocoding utilities - called directly from the browser,
 // no backend proxy needed. All endpoints are free and require no API key.
 
 export interface SearchResult {
@@ -12,7 +12,7 @@ export interface SearchResult {
   type:         string | null
   addresstype:  string | null          // ex. "city", "tourism" (classe Nominatim)
   address:      Record<string, string> | null
-  // Tags OSM bruts (horaires, téléphone, site web, accessibilité…) — pour le
+  // Tags OSM bruts (horaires, téléphone, site web, accessibilité…) - pour le
   // panneau d'informations détaillées du lieu.
   extratags:    Record<string, string> | null
   namedetails:  Record<string, string> | null
@@ -44,11 +44,11 @@ export function mapNominatimResult(r: Record<string, unknown>): SearchResult {
  * of them: Paris is a boundary relation AND a place node, each with its own id
  * and the very same `display_name`. `dedupe=1` on the request only collapses
  * duplicates of the *same* object, so a search for "paris" comes back with two
- * lines a reader cannot tell apart — and choosing between them means nothing.
+ * lines a reader cannot tell apart - and choosing between them means nothing.
  *
  * The key is therefore what is actually READ, and the first of each label wins:
  * the geocoder returns them by relevance. Two genuinely distinct places never
- * collide, because a display name carries the whole administrative hierarchy —
+ * collide, because a display name carries the whole administrative hierarchy -
  * "Paris, Île-de-France…" and "Paris, Texas…" are different strings.
  */
 export function dedupeByLabel(rows: SearchResult[]): SearchResult[] {

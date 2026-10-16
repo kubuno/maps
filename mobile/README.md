@@ -1,4 +1,4 @@
-# Kubuno Maps — mobile app
+# Kubuno Maps - mobile app
 
 The Android and iOS app of Kubuno Maps, written in Rust and laid out like the desktop app (`../desktop`): one Cargo
 workspace (`Cargo.toml`), one folder per role.
@@ -16,7 +16,7 @@ mobile/
 └── ios/kubuno-maps-mobile-ios/                  the iOS app's entry point
 ```
 
-The screens are rendered by the **shared Kubuno mobile renderer** and run by the **shared Android / iOS shells** —
+The screens are rendered by the **shared Kubuno mobile renderer** and run by the **shared Android / iOS shells** -
 both in the core repository (`core/mobile`), common to every module's mobile app. This repository holds the Maps
 app only: its screens, its `MapView` control and its data. The map maths (Web Mercator projection) come from the
 module's shared engine, `../common/core` (`kubuno-maps-core`), like the desktop app and the web.

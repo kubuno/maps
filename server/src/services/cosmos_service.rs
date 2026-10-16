@@ -5,7 +5,7 @@
 //! cache, so the WebGL client can stream just the resolution each body needs at
 //! its current apparent size. The star/constellation catalogs are served as-is.
 //!
-//! Resizing uses the pure-Rust `image` crate — no native subprocess — so it
+//! Resizing uses the pure-Rust `image` crate - no native subprocess - so it
 //! stays within the module's seccomp no-execve policy.
 
 use std::collections::HashMap;
@@ -40,14 +40,14 @@ pub enum TexError {
 
 impl CosmosAssets {
     /// Locate the assets and prepare the cache. Returns `None` (with a warning)
-    /// when the texture directory can't be found — the cosmos view then falls
+    /// when the texture directory can't be found - the cosmos view then falls
     /// back to whatever lower-resolution maps the client already has.
     pub fn load(settings: &CosmosSettings) -> Option<Self> {
         let assets = resolve_assets_dir(settings.assets_dir.as_deref())?;
         let textures_dir = assets.join("textures");
         let data_dir = assets.join("data");
         if !textures_dir.is_dir() {
-            tracing::warn!(?textures_dir, "Cosmos textures directory missing — 3D textures disabled");
+            tracing::warn!(?textures_dir, "Cosmos textures directory missing - 3D textures disabled");
             return None;
         }
 
@@ -77,7 +77,7 @@ impl CosmosAssets {
             textures = manifest.len(),
             ?textures_dir,
             ?cache_dir,
-            "Cosmos assets loaded — /cosmos texture service enabled",
+            "Cosmos assets loaded - /cosmos texture service enabled",
         );
         Some(Self { textures_dir, data_dir, cache_dir, manifest })
     }
@@ -186,7 +186,7 @@ fn resolve_assets_dir(configured: Option<&str>) -> Option<PathBuf> {
             return Some(c);
         }
     }
-    tracing::warn!("Cosmos assets directory not found — 3D textures disabled");
+    tracing::warn!("Cosmos assets directory not found - 3D textures disabled");
     None
 }
 

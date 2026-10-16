@@ -1,5 +1,5 @@
 /**
- * React parts of `MapsPlacesPanel.kbview`: the per-row saved-place editor (`PlaceRow` — collapsible, with a
+ * React parts of `MapsPlacesPanel.kbview`: the per-row saved-place editor (`PlaceRow` - collapsible, with a
  * `<select>`, tag `<input>` and note `<textarea>`), the "new list" form (name input + colour swatches), the
  * coloured chip dot (dynamic inline background) and the GeoJSON file picker. Each renders in a `<ReactHost>`.
  */

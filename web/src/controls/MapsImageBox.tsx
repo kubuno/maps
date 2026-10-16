@@ -1,4 +1,4 @@
-// MapsImageBox — the native element behind the `.kbview` <Image> project control
+// MapsImageBox - the native element behind the `.kbview` <Image> project control
 // (src/kbview-controls.json, dom_root:"ref"). The registry has no image element, so an <img> stays a
 // small React host control: the renderer sizes/positions the forwarded ref, the component draws the image
 // and handles the error→fallback swap (same idea as PaintBox for a <canvas>).

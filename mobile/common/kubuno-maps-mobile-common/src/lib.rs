@@ -1,4 +1,4 @@
-//! Kubuno Maps for mobile — the complete app, portable (no OS, no window system).
+//! Kubuno Maps for mobile - the complete app, portable (no OS, no window system).
 //!
 //! The app is a set of `.kbview` screens (`views/`, edited in Visual Studio like every Kubuno view) rendered by the
 //! shared Kubuno mobile renderer (`kubuno-mobile-render`, core repository), plus the one control the renderer does

@@ -1,4 +1,4 @@
-// POI exploration — calls the module's Overpass proxy (`/maps/overpass/*`) to
+// POI exploration - calls the module's Overpass proxy (`/maps/overpass/*`) to
 // answer « what's around here » (restaurants, museums, cinemas, pharmacies…).
 // The backend deduces a stable category id + emoji per result; here we only
 // normalize a POI into the SearchResult shape so the existing place panel

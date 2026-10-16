@@ -36,7 +36,7 @@ export function useSketch(mapRef: RefObject<maplibregl.Map | null>, mapReady: bo
   const [shareUrl, setShareUrl] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
-  // Refs read by the (once-bound) map handlers — avoid rebinding on each click.
+  // Refs read by the (once-bound) map handlers - avoid rebinding on each click.
   const toolRef     = useRef(tool);     toolRef.current = tool
   const colorRef    = useRef(color);    colorRef.current = color
   const featuresRef = useRef(features); featuresRef.current = features
@@ -62,7 +62,7 @@ export function useSketch(mapRef: RefObject<maplibregl.Map | null>, mapReady: bo
     setFeatures(prev => [...prev, { ...f, id: nextId() }])
   }, [])
 
-  // Dépose un élément (épingle/texte) à un point précis — utilisé par le menu
+  // Dépose un élément (épingle/texte) à un point précis - utilisé par le menu
   // contextuel de la carte.
   const addFeatureAt = useCallback((kind: SketchKind, lat: number, lng: number, label?: string) => {
     addFeature({ kind, coords: [[lng, lat]], color: colorRef.current, label })

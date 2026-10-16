@@ -1,6 +1,6 @@
 /**
  * React part of `MapsPublicSketch.kbview`: the full-screen MapLibre map that renders a shared sketch
- * (GeoJSON → `renderSketch`), not markers, so the `<MapView>` control does not cover it — it stays a host
+ * (GeoJSON → `renderSketch`), not markers, so the `<MapView>` control does not cover it - it stays a host
  * map in a `<ReactHost>`. It reports the sketch name and the load status back to the code-behind.
  */
 import { useEffect, useRef } from 'react'

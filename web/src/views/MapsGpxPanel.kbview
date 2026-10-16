@@ -1,4 +1,4 @@
-<!-- MapsGpxPanel — converted from MapsGpxPanel.tsx (partial: the .gpx file picker is a React <ReactHost>
+<!-- MapsGpxPanel - converted from MapsGpxPanel.tsx (partial: the .gpx file picker is a React <ReactHost>
      part; the saved-traces list is a Repeater, per-row show/delete read args.row). -->
 <Stack x:Props="MapsGpxPanelProps" Gap="8" Class="flex flex-col gap-2">
   <!-- Live GPS recording -->

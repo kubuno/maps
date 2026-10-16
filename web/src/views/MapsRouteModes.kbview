@@ -1,4 +1,4 @@
-<!-- MapsRouteModes — converted from MapsRouteModes.tsx (partial). Notes:
+<!-- MapsRouteModes - converted from MapsRouteModes.tsx (partial). Notes:
      - the per-mode glyph is dynamic (one is a custom SVG), so it stays a React <ReactHost> part;
      - there is no `Tooltip` element in the registry, so the hover tip uses the plain `ToolTip` property
        (a small fidelity change vs the @ui styled Tooltip; see WEB-KBVIEW-CONVERSION.md). -->

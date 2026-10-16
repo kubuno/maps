@@ -4,7 +4,7 @@
 //! look (near-white land, soft green vegetation, teal-blue water, white streets on a light-grey urban mask,
 //! grey-blue motorways, colour-coded road shields and category-tinted POI labels). The web applies this by
 //! patching the upstream Liberty style JSON layer by layer; a native renderer applies the same tokens to its own
-//! style. Only the colour palette (the renderer-agnostic part) is ported here — the layer-id-specific patch
+//! style. Only the colour palette (the renderer-agnostic part) is ported here - the layer-id-specific patch
 //! logic stays with each renderer, because the layer ids are a MapLibre style detail.
 
 /// The custom-protocol URL the web asks MapLibre for the themed default style with (`kbstyle://default`). Kept so

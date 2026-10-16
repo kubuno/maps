@@ -1,4 +1,4 @@
-<!-- MapsPlaceHeader — converted from MapsPlaceHeader.tsx (partial). The hero photo uses the <Image> control
+<!-- MapsPlaceHeader - converted from MapsPlaceHeader.tsx (partial). The hero photo uses the <Image> control
      (OnError → the parent's imgFailed). The star row (Stars) and the prop-driven Tabs strip stay React
      <ReactHost> parts; the category stars are a small Repeater. -->
 <Stack x:Props="MapsPlaceHeaderProps" Gap="0">

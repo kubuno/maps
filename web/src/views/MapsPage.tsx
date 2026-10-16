@@ -100,7 +100,7 @@ export default function MapsPage() {
   const lineIdsRef = useRef<Set<string>>(new Set())
   const [mapReady, setMapReady] = useState(false)
 
-  // Croquis (mesure / dessin / annotations) — moteur de dessin sur la carte.
+  // Croquis (mesure / dessin / annotations) - moteur de dessin sur la carte.
   const sketch = useSketch(mapRef, mapReady)
 
   // Onglet actif partagé avec la nav de la sidebar du core (MapsSidebarBody).
@@ -215,7 +215,7 @@ export default function MapsPage() {
       setCtxMenu({ x: e.originalEvent.clientX, y: e.originalEvent.clientY, lat: e.lngLat.lat, lng: e.lngLat.lng })
     })
 
-    // Click on map — remplit le point d'itinéraire en cours de sélection.
+    // Click on map - remplit le point d'itinéraire en cours de sélection.
     map.on('click', (e) => {
       setRoutePickMode(idx => {
         if (idx === null) return idx
@@ -236,7 +236,7 @@ export default function MapsPage() {
     // Coalesce resizes to at most one per animation frame. A window drag fires
     // ResizeObserver dozens of times per second; resizing the GL drawing buffer
     // on every tick reallocates it, and the browser resets the freed canvas to
-    // transparent — so the dark `.maps-space` background behind the globe shows
+    // transparent - so the dark `.maps-space` background behind the globe shows
     // through for a frame (the black flicker the user saw). `redraw()` renders
     // synchronously into the just-resized buffer in the SAME frame, so no empty
     // frame is ever composited; coalescing keeps it to one such pass per frame.
@@ -545,7 +545,7 @@ export default function MapsPage() {
     flyTo(parseFloat(r.lat), parseFloat(r.lon))
   }, [flyTo])
 
-  // « Qu'y a-t-il ici ? » — géocodage inverse du point cliqué → panneau d'infos.
+  // « Qu'y a-t-il ici ? » - géocodage inverse du point cliqué → panneau d'infos.
   const whatIsHere = useCallback(async (lat: number, lng: number) => {
     setCtxMenu(null)
     flyTo(lat, lng, Math.max(15, mapRef.current?.getZoom() ?? 15))
@@ -577,7 +577,7 @@ export default function MapsPage() {
     }
   }, [mapReady, whatIsHere])
 
-  // Deep link `?dest=<adresse>`: another module — a meeting invitation, say —
+  // Deep link `?dest=<adresse>`: another module - a meeting invitation, say -
   // asks for the way to a place it only knows by name. Geocode that text, make
   // it the destination and open the route tab, exactly as "Itinéraire" does
   // from a place panel. The tab opens either way: an address nobody can resolve
@@ -1073,7 +1073,7 @@ export default function MapsPage() {
     const b = map.getBounds()
     const bbox: [number, number, number, number] = [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()]
     const z = Math.round(map.getZoom())
-    // De (zoom−1) à (zoom+2), borné [3 ; 17] — compromis couverture / quantité.
+    // De (zoom−1) à (zoom+2), borné [3 ; 17] - compromis couverture / quantité.
     const minZ = Math.max(3, z - 1), maxZ = Math.min(17, z + 2)
     setDlProgress({ done: 0, total: 1 })
     await downloadArea(bbox, minZ, maxZ, (done, total) => setDlProgress({ done, total }))
@@ -1231,7 +1231,7 @@ export default function MapsPage() {
   return (
     <div className={`relative h-full overflow-hidden ${globe ? 'maps-space' : ''}`}
       style={globe ? undefined : { background: '#e8eaed' }}>
-      {/* Carte plein écran (moteur MapLibre GL — tuiles vectorielles OpenFreeMap, projection globe).
+      {/* Carte plein écran (moteur MapLibre GL - tuiles vectorielles OpenFreeMap, projection globe).
           NB : on utilise w-full/h-full et NON `absolute inset-0` car maplibre-gl.css force
           `.maplibregl-map { position: relative }`, ce qui écraserait le positionnement absolu
           et ferait retomber le canvas à sa hauteur par défaut (300px → carte invisible). */}
@@ -1330,7 +1330,7 @@ export default function MapsPage() {
         <HeaderActions compact />
       </div>
 
-      {/* ── Category chips (top) — hidden on mobile (no room) and absent when
+      {/* ── Category chips (top) - hidden on mobile (no room) and absent when
              the administrator disabled POI search. ── */}
       {poiEnabled && (
       <div className={`absolute top-4 right-[320px] z-[1090] hidden sm:flex transition-[left] duration-200 ${railOpen ? 'left-[416px]' : 'left-[400px]'} flex-col items-start gap-1 overflow-hidden no-print`}>
@@ -1409,7 +1409,7 @@ export default function MapsPage() {
       {/* Bandeau hors-ligne */}
       {!online && (
         <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[1180] flex items-center gap-1.5 bg-amber-500 text-white rounded-full px-3 py-1 text-xs font-medium shadow-lg no-print">
-          <WifiOff size={13} /> {t('maps_offline_banner', { defaultValue: 'Hors-ligne — tuiles en cache uniquement' })}
+          <WifiOff size={13} /> {t('maps_offline_banner', { defaultValue: 'Hors-ligne - tuiles en cache uniquement' })}
         </div>
       )}
 

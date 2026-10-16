@@ -1,4 +1,4 @@
-# Kubuno Maps — the native desktop app. ONE Cargo workspace for every operating system, independent of the
+# Kubuno Maps - the native desktop app. ONE Cargo workspace for every operating system, independent of the
 # module server's (../server/Cargo.toml):
 #
 #   common/   the complete app, portable: the launch options, the map view state (centre / zoom / basemap /

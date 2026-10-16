@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Maps · Navigation — the turn-by-turn HUD (NavOverlay.kt): a blue maneuver banner at the top (maneuver icon +
+  Maps · Navigation - the turn-by-turn HUD (NavOverlay.kt): a blue maneuver banner at the top (maneuver icon +
   distance + instruction) and a bottom bar with the remaining time/distance and the Quitter button. Light
   theme, logical px. Map is a native control (placeholder).
 -->

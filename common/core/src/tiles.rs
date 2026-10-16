@@ -1,8 +1,8 @@
 //! Web Mercator (slippy-map) tile math, ported from the web's `mapOffline.ts`.
 //!
 //! The web's offline basemap pre-fills a tile cache for the visible bounding box; the same enumeration is what
-//! any raster cache (desktop offline mode included) needs. These are pure integer-grid conversions — no network,
-//! no cache — so they belong in the shared core and stay identical across web, desktop and mobile.
+//! any raster cache (desktop offline mode included) needs. These are pure integer-grid conversions - no network,
+//! no cache - so they belong in the shared core and stay identical across web, desktop and mobile.
 
 use serde::{Deserialize, Serialize};
 
@@ -22,7 +22,7 @@ pub struct Tile {
 pub const MERCATOR_MAX_LAT: f64 = 85.051_128_779_806_59;
 
 /// A longitude projected to normalised Web Mercator `x` (0 at the antimeridian west, 1 at its east). Multiplying
-/// by `2^z` gives the fractional tile column at zoom `z` — a renderer's continuous counterpart of
+/// by `2^z` gives the fractional tile column at zoom `z` - a renderer's continuous counterpart of
 /// [`lon_to_tile_x`].
 pub fn mercator_x(lon: f64) -> f64 {
     (lon + 180.0) / 360.0

@@ -1,4 +1,4 @@
-# ─── Kubuno Maps — Configuration ─────────────────────────────────────────────
+# ─── Kubuno Maps - Configuration ─────────────────────────────────────────────
 # Copiez ce fichier en config.toml et adaptez les valeurs.
 # Les variables d'environnement préfixées KM__ surchargent ce fichier.
 
@@ -33,7 +33,7 @@ rate_limit_rps  = 1
 
 [osrm]
 # Par défaut, le routage utilise les instances OSRM publiques FOSSGIS
-# (gratuites, sans clé, en streaming) — voiture / vélo / pieds fonctionnent
+# (gratuites, sans clé, en streaming) - voiture / vélo / pieds fonctionnent
 # d'emblée. Pour un usage intensif, hébergez votre propre OSRM et renseignez
 # `url` (instance mono-profil, profil dans le path) ou les `url_*` ci-dessous.
 url      = "http://localhost:5000"

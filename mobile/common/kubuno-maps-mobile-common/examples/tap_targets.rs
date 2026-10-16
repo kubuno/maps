@@ -1,4 +1,4 @@
-//! Print the tap targets of every screen — name, handler, editable field, centre in physical px — for a device size,
+//! Print the tap targets of every screen - name, handler, editable field, centre in physical px - for a device size,
 //! to script taps on a device or emulator (`adb shell input tap X Y`) from the real layout instead of guessed
 //! coordinates:
 //! `cargo run -p kubuno-maps-mobile-common --example tap_targets -- [width height [font.ttf]]` (default 1080×2340).

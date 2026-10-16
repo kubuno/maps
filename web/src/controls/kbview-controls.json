@@ -9272,8 +9272,8 @@
   },
   {
    "name": "Slot",
-   "doc": "A host extension slot (@kubuno/sdk Slot) rendered by name — modules fill it.",
-   "doc_fr": "A host extension slot (@kubuno/sdk Slot) rendered by name — modules fill it.",
+   "doc": "A host extension slot (@kubuno/sdk Slot) rendered by name - modules fill it.",
+   "doc_fr": "A host extension slot (@kubuno/sdk Slot) rendered by name - modules fill it.",
    "family": "display",
    "icon": "slot",
    "children": "None",

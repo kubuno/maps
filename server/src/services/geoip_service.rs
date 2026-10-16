@@ -25,11 +25,11 @@ impl GeoResolver {
     pub fn open(path: &str) -> Option<Self> {
         match Reader::open_readfile(path) {
             Ok(reader) => {
-                tracing::info!(path, "GeoIP database loaded — /geoip service enabled");
+                tracing::info!(path, "GeoIP database loaded - /geoip service enabled");
                 Some(GeoResolver { reader })
             }
             Err(e) => {
-                tracing::warn!(path, error = %e, "GeoIP database load failed — geo service disabled");
+                tracing::warn!(path, error = %e, "GeoIP database load failed - geo service disabled");
                 None
             }
         }

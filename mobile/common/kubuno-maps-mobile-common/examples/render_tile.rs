@@ -1,4 +1,4 @@
-//! Render one vector tile with the native Kubuno basemap style (`kubuno_maps_core::style`) to a PNG — the same
+//! Render one vector tile with the native Kubuno basemap style (`kubuno_maps_core::style`) to a PNG - the same
 //! style the desktop map draws, here rasterised with tiny-skia (geometry only; labels are drawn as anchor dots).
 //!
 //! `cargo run -p kubuno-maps-mobile-common --example render_tile -- <tile.pbf> <zoom> <out.png> [size]`

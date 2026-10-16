@@ -2,7 +2,7 @@
 // level M, versions 1 to 10 (up to 213 bytes of payload). Used to show a share
 // link that a phone can scan from the place panel. Follows ISO/IEC 18004.
 
-export type QrMatrix = boolean[][]   // matrix[y][x] — true = dark module
+export type QrMatrix = boolean[][]   // matrix[y][x] - true = dark module
 
 // Per-version tables (index = version - 1), level M.
 const TOTAL_CODEWORDS = [26, 44, 70, 100, 134, 172, 196, 242, 292, 346]
@@ -150,7 +150,7 @@ function drawFormat(m: QrMatrix, mask: number) {
   m[size - 8][8] = true
 }
 
-// Penalty score (ISO 18004 §7.8.3) — lower is better.
+// Penalty score (ISO 18004 §7.8.3) - lower is better.
 function penalty(m: QrMatrix): number {
   const size = m.length
   let score = 0

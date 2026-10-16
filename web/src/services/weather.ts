@@ -1,4 +1,4 @@
-// Current weather at a coordinate — Open-Meteo (free, no API key), fetched from
+// Current weather at a coordinate - Open-Meteo (free, no API key), fetched from
 // the browser. The core exposes no weather endpoint usable by modules, so the
 // module talks to the provider directly (the host CSP allows https: connects).
 // Results are cached per rounded coordinate (~1 km) for 10 minutes.

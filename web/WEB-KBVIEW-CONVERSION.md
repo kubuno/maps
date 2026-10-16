@@ -8,27 +8,27 @@
 Converting the Maps **web** UI (`maps/web/src`) to the shared `.kbview` view language (XML view +
 TypeScript code-behind, editable in the Visual Studio / web design surface), following the method already
 applied to `core` and `drive`. This document is the plan and the running log. Scope is **`maps/web` only**
-— `maps/desktop`, `maps/mobile`, `maps/server` and the `core` repo are out of scope.
+- `maps/desktop`, `maps/mobile`, `maps/server` and the `core` repo are out of scope.
 
 ## 1. How the conversion works (recap of the core/drive method)
 
 A screen written in React/TSX becomes:
 
-- `X.kbview` — the declarative view (XML): host elements (`@ui`, `@kubuno/sdk`, `@kubuno/views`:
+- `X.kbview` - the declarative view (XML): host elements (`@ui`, `@kubuno/sdk`, `@kubuno/views`:
   `Panel`, `Stack`, `Label`, `Button`, `Icon`, `TextField`, `TextArea`, `FloatingWindow`, `Repeater`,
   `ReactHost`…), with `{Binding}` / `{Res}` and `On*` handler attributes.
-- `X.ts` — the code-behind class `extends ViewBase` (generated from the view). `@bind accessor` fields hold
+- `X.ts` - the code-behind class `extends ViewBase` (generated from the view). `@bind accessor` fields hold
   state; `useStores()` / `useHooks()` hold React hooks (published as fields in `use()`); getters compute
   derived values (`this.memo(...)` for objects/lists); methods are handlers. `export default X.component()`
   is the React component consumers import (as a **default** import).
-- `X.parts.tsx` — the bits that cannot be expressed as view elements, each rendered by a `<ReactHost>`
+- `X.parts.tsx` - the bits that cannot be expressed as view elements, each rendered by a `<ReactHost>`
   (raw `<svg>`, inputs needing `autoFocus`, a dynamic/local component, a WebGL canvas…).
 
 Build-time tooling: `@kubuno/views-compiler` (Vite plugin `kbview()` + `kbview-tsc`, a WebAssembly build of
 the shared grammar). Runtime: `@kubuno/views`, provided by the host import map (external, never bundled).
 `kbview-tsc -b` compiles every view, generates `.kubuno/views/**/*.kbview.d.ts` + `*.check.ts`, then runs
 TypeScript and reports binding/handler errors at the `.kbview` attribute. `@kubuno/views-migrate` is the
-codemod (not installed here yet — see §5), but views can also be hand-authored against the control registry.
+codemod (not installed here yet - see §5), but views can also be hand-authored against the control registry.
 
 ## 2. Infrastructure set up in this repo (milestone M0, DONE)
 
@@ -42,7 +42,7 @@ packages, unlike `core` which builds them from source):
 - `vite.config.ts`: `kbview()` added as the first plugin; `@kubuno/views` added to the `SHARED` externals.
 - `kubuno.views.json`: new (target web, host registry at `node_modules/@kubuno/ui/kbview-registry.web.json`,
   sources `src`, design setup `src/index.css` + `src/i18n.ts`).
-- `.gitignore`: new — ignores `dist/`, `.kubuno/views/`, `.kubuno/design-server.json`.
+- `.gitignore`: new - ignores `dist/`, `.kubuno/views/`, `.kubuno/design-server.json`.
 - `node_modules`: the three `@kubuno/*` view packages were installed at the versions the ranges resolve to
   (views 0.1.4, views-compiler 0.1.2, host-runtime 0.1.1), plus the `.bin/kbview-tsc` shim.
 
@@ -52,11 +52,11 @@ packages, unlike `core` which builds them from source):
 
 `kbview-tsc -b` runs clean on the project (`EXIT=0`), before and after the two conversions below.
 
-## 2.b The `MapView` host control (DONE — the framework verrou, M0.5)
+## 2.b The `MapView` host control (DONE - the framework verrou, M0.5)
 
 MapLibre WebGL cannot be expressed in view primitives (same as `PaintBox`/`ReactHost`). It is now a
 **project-level host control** so a `.kbview` can place `<MapView/>` with the map rendered natively and the
-overlays around it as views. Nothing in the `core` repo was touched — the control lives entirely in
+overlays around it as views. Nothing in the `core` repo was touched - the control lives entirely in
 `maps/web`:
 
 - `src/kbview-controls.json` (new): a project control registry (schema `{schema:1,target:"web",version,"components":[…]}`,
@@ -69,8 +69,8 @@ overlays around it as views. Nothing in the `core` repo was touched — the cont
   to a project-root specifier.
 - `src/MapsMapView.tsx` (new): a `forwardRef<HTMLDivElement>` React component (dom_root `ref`: the renderer
   applies layout/visibility to the container, MapLibre mounts its canvas inside). It **wraps the existing
-  building blocks** — `styleFor`/`BaseMap` from `mapsLayers.ts`, `registerThemeProtocol`/`installThemeImages`
-  from `mapsTheme.ts`, the GeoJSON+circle marker layer and `fitBounds` framing from `MiniMap` — rather than a
+  building blocks** - `styleFor`/`BaseMap` from `mapsLayers.ts`, `registerThemeProtocol`/`installThemeImages`
+  from `mapsTheme.ts`, the GeoJSON+circle marker layer and `fitBounds` framing from `MiniMap` - rather than a
   new engine. Mirrors the mobile `MapView` in name and intent.
 
 Verified end to end: the registry is accepted by the WASM compiler and `<MapView>` type-checks (a throwaway
@@ -81,7 +81,7 @@ messages are terse, so noted for whoever adds more project controls): every prop
 compiler re-serializes the registry compact, so a reported `line 1 column N` is an offset into the compact
 JSON, not the pretty file.
 
-## 2.c The `Image` and `Tooltip` project controls (DONE — fourth tour)
+## 2.c The `Image` and `Tooltip` project controls (DONE - fourth tour)
 
 Two more project controls in `src/kbview-controls.json` (same method: clone a near host entry, string
 defaults, `origin:"builtin"`), each with a minimal wrapper component:
@@ -93,20 +93,20 @@ defaults, `origin:"builtin"`), each with a minimal wrapper component:
 - **`Tooltip`** (`src/MapsTooltipBox.tsx`, cloned from `Popover`, `content:"children"`, `dom_root:"wrapper"`):
   wraps the `@ui` Tooltip so a styled tip is authored as `<Tooltip Label="…"><child/></Tooltip>` instead of
   the plain `ToolTip` attribute. Type-checks; its runtime render was **not** exercised this session (no
-  browser test) — if the `wrapper` dom_root misbehaves, fall back to the `ToolTip` attribute.
+  browser test) - if the `wrapper` dom_root misbehaves, fall back to the `ToolTip` attribute.
 
 Both resolve and type-check (`kbview-tsc -b`, verified with a throwaway probe view then real usage of
 `Image`). `Image`'s `OnError` was added by appending the event to the registry entry + the wrapper's
 `onError` prop.
 
-## 2.d The `MenuDropdown`, `SidebarNavItem` and `Slot` project controls (DONE — fifth tour)
+## 2.d The `MenuDropdown`, `SidebarNavItem` and `Slot` project controls (DONE - fifth tour)
 
 Three more project controls (same method; wrappers over host pieces, probe-verified then used for real):
 
 - **`MenuDropdown`** (`src/MapsMenuDropdown.tsx`, cloned from `Popover`, `content:"children"`,
   `dom_root:"wrapper"`): wraps `@ui` `useMenuDropdown` + `MenuDropdown`. The single child is the trigger;
   `Items` is a **plain data array** built in the code-behind (`{label, iconName?, checked?, danger?, onClick}`
-  or `{separator:true}` — icons by Lucide name, no JSX needed in the `.ts`), `MinWidth` sets the popup width.
+  or `{separator:true}` - icons by Lucide name, no JSX needed in the `.ts`), `MinWidth` sets the popup width.
   Used by `MapsRouteOptions`. Unblocks `MapsPlaceActions`, `MapsSearchDropdown`.
 - **`SidebarNavItem`** (`src/MapsSidebarNavItem.tsx`, cloned from `CheckBox`): wraps the host
   `SidebarNavItem` (`@kubuno/sdk`). Props `Label`, `IconName` (Lucide), `Active`, `To`, `Href`, `Badge`,
@@ -121,21 +121,21 @@ to be the exact element, keep the `@ui` menu in a `ReactHost` instead.
 ## 3. First conversions (DONE, verified by `kbview-tsc -b`)
 
 Two simple overlays, chosen to exercise the two distinct patterns, each fully type-checked (full forced
-rebuild, `EXIT=0`), both **partial** (one `ReactHost` part each, which is the norm — core/drive conversions
+rebuild, `EXIT=0`), both **partial** (one `ReactHost` part each, which is the norm - core/drive conversions
 are mostly partial):
 
 | Screen | New files | Stays React (`ReactHost`) | Consumers updated |
 |---|---|---|---|
 | `MapsSavePlaceModal` | `.kbview` + `.ts` + `.parts.tsx` (old `.tsx` removed) | the name `<Input autoFocus>` (no `autoFocus` property on `TextField`) | `MapsPage.tsx` (named → default import) |
 | `MapsQrDialog` | `.kbview` + `.ts` + `.parts.tsx` (old `.tsx` removed) | the inline `<svg>` QR code + its fallback (no SVG element) | `MapsPlaceActions.tsx`, `MapsRouteActions.tsx` (named → default) |
-| `MapsDataCard` | `.kbview` + `.ts` (old `.tsx` removed) — **fully converted, no `ReactHost`** | — (the preview map is `<MapView>`; the dynamic icon is two `Icon`s toggled by `Visible`) | none (`entry.ts` already imported it as default) |
+| `MapsDataCard` | `.kbview` + `.ts` (old `.tsx` removed) - **fully converted, no `ReactHost`** | - (the preview map is `<MapView>`; the dynamic icon is two `Icon`s toggled by `Visible`) | none (`entry.ts` already imported it as default) |
 | `MapsNavOverlay` | `.kbview` + `.ts` + `.parts.tsx` | the maneuver glyph (chosen dynamically from `iconKey`) | `MapsPage.tsx` |
 | `MapsRouteModes` | `.kbview` + `.ts` + `.parts.tsx` | per-mode glyph (one is a custom SVG); **Repeater** + per-row handler via `args.row`; `ToolTip` property instead of the missing `Tooltip` element | `MapsRoutePanel.tsx` (helpers `modeIcon`/`useModeLabel` re-exported for `MapsRouteResults`) |
-| `MapsPoiResultsPanel` | `.kbview` + `.ts` — **fully converted** | — (the POI list is a **Repeater**, per-row select via `args.row`) | `MapsPage.tsx` |
-| `MapsMiniPanel` | `.kbview` + `.ts` — **fully converted** | — (the saved-places query runs in `useHooks`; **Repeater** with two per-row handlers) | none (`entry.ts` default) |
+| `MapsPoiResultsPanel` | `.kbview` + `.ts` - **fully converted** | - (the POI list is a **Repeater**, per-row select via `args.row`) | `MapsPage.tsx` |
+| `MapsMiniPanel` | `.kbview` + `.ts` - **fully converted** | - (the saved-places query runs in `useHooks`; **Repeater** with two per-row handlers) | none (`entry.ts` default) |
 | `MapsPlaceReviews` | `.kbview` + `.ts` + `.parts.tsx` | the star rows (dynamic fill/click); **Repeater** for reviews + add form | `MapsPlacePanel.tsx` (`Stars` re-exported for `MapsPlaceHeader`, `Review` type kept) |
 | `MapsGpxPanel` | `.kbview` + `.ts` + `.parts.tsx` | the `.gpx` file picker (hidden `<input type=file>`); **Repeater** for traces | `MapsPage.tsx` (`GpxTrace` type kept) |
-| `MapsRouteActions` | `.kbview` + `.ts` — **fully converted** | — (the converted `MapsQrDialog` is embedded via `ReactHost`; hover via `hover:` class) | `MapsRoutePanel.tsx` |
+| `MapsRouteActions` | `.kbview` + `.ts` - **fully converted** | - (the converted `MapsQrDialog` is embedded via `ReactHost`; hover via `hover:` class) | `MapsRoutePanel.tsx` |
 
 Second tour added seven rows (M1 `MapsNavOverlay`/`MapsRouteModes`, M2 panels). Patterns now proven in maps:
 **`Repeater`** lists with per-row handlers reading `args.row` (typed `View['rows_x'][number]`), the
@@ -153,7 +153,7 @@ GeoJSON/KML file picker), `MapsRouteResults` (result-cards + turn-by-turn Repeat
 `MiniMap` preview became `<MapView Markers="{Binding markers}" Interactive="false" Class="w-full h-[140px]"/>`
 (the map stays native), the `useMemo` became a `this.memo` rows getter, `useNavigate` is held in the
 code-behind, and the `MapPin`/`Navigation` choice is two `Icon` elements with `Visible` bindings. It needs
-no `ReactHost` at all — a fully-converted screen.
+no `ReactHost` at all - a fully-converted screen.
 
 `MapsSavePlaceModal` demonstrates: overlay/card `Stack`+`Panel`, `@ui` `Button`/`TextArea` elements, `Icon`,
 `Label`, `@bind` state (with a one-shot seed from a prop, the equivalent of `useState(defaultName)`), a
@@ -161,21 +161,21 @@ no `ReactHost` at all — a fully-converted screen.
 `FloatingWindow` host element (`Title`/`ConfirmText`/`CancelText` + `OnConfirm`/`OnCancel`/`OnClose`) with
 a `ReactHost` for non-convertible SVG, and `this.memo` getters.
 
-### i18n note (INVESTIGATED — framework limitation, use `tr`)
+### i18n note (INVESTIGATED - framework limitation, use `tr`)
 
 The open question is answered: **`{Res}` cannot target a module namespace, so module screens must translate
 through the code-behind.** Evidence from the installed packages:
 
 - `@kubuno/views` `setResourceResolver(resolve: (key, set?, args?) => string)` / `PlanRes { key, set?, args? }`
-  — a `{Res}` carries a key, an optional `set`, and args. There is **no namespace field**.
+  - a `{Res}` carries a key, an optional `set`, and args. There is **no namespace field**.
 - The resolver is documented as *"the host's i18next `t` (**default namespace**)"* (`Translator` in
   `resolve.d.ts`).
 - `@kubuno/sdk` `registerModuleTranslations(ns, bundles)` registers each module's strings under **its own
   namespace** (`'maps'`), and components read them with `useTranslation('maps')`. So `maps_*` keys do **not**
   exist in the host default namespace and `{Res maps_save_place}` would not resolve at runtime.
 
-**Convention adopted (all maps conversions):** keep translation in the code-behind — `useTranslation('maps')`
-in `useStores`, exposed as `tr` — and bind text through getters (`Text="{Binding title}"`,
+**Convention adopted (all maps conversions):** keep translation in the code-behind - `useTranslation('maps')`
+in `useStores`, exposed as `tr` - and bind text through getters (`Text="{Binding title}"`,
 `get title() { return this.tr('maps_save_place') }`), never `{Res}`. This is not maps-specific: it applies to
 **every** module whose strings live in its own namespace. **Framework gap to raise (owner: core/views):**
 let a project set a default `{Res}` namespace (e.g. `kubuno.views.json` `resNamespace: "maps"`, wiring
@@ -193,30 +193,30 @@ Straightforward (no map, no chart, mostly `@ui` + layout + lists): `MapsImageLig
 `MapsSidebarBody`, `MapsSettingsPage` (route page, a settings form).
 
 Moderate (hooks, `Repeater` lists, a `ReactHost` part or two): `MapsLayersButton` (the map-tile `<img>`
-thumbnail stays React — no image element), `MapsLocalCard` (dynamic weather icon + the `TrafficRow`
+thumbnail stays React - no image element), `MapsLocalCard` (dynamic weather icon + the `TrafficRow`
 sub-component), `MapsLayersPanel`, `MapsSearchDropdown`, `MapsPlaceHeader`, `MapsPlaceInfo`,
 `MapsPlaceActions`, `MapsPlaceReviews`, `MapsPlacePanel`, `MapsPlacesPanel`, `MapsPoiResultsPanel`,
 `MapsRouteFields`, `MapsRouteOptions`, `MapsRouteResults`, `MapsRouteSuggestions`, `MapsRouteActions`,
 `MapsRoutePanel`, `MapsGpxPanel`, `MapsSketchPanel`.
 
-Map-bearing (need the `MapView` host control first — see §5): `MiniMap` (wraps a MapLibre map; the panel
+Map-bearing (need the `MapView` host control first - see §5): `MiniMap` (wraps a MapLibre map; the panel
 chrome converts, the map becomes a host element), `MapsLocationPicker` (the "pick a point on Earth" slot
 override: overlays convert, the map is a host element), `MapsSearchBar` (floats over the map; the pill +
 dropdown + local card convert).
 
-Shell (last, hardest): `MapsPage` — the page that owns the MapLibre map and composes every overlay. The
+Shell (last, hardest): `MapsPage` - the page that owns the MapLibre map and composes every overlay. The
 overlays become `.kbview`; the map becomes a `MapView` host element; the imperative map glue stays in
 `useHooks()`/`ReactHost`. `MapsPublicSketch` (anonymous shared-sketch route, also map-bearing).
 
 ### 4.b Stay React / host controls (not convertible to view primitives)
 
-- `MapsCosmos3D.tsx` (~100 KB, three.js/WebGL 3D globe) — a WebGL canvas, like desktop `PaintBox`. Host
+- `MapsCosmos3D.tsx` (~100 KB, three.js/WebGL 3D globe) - a WebGL canvas, like desktop `PaintBox`. Host
   React control, never converted.
-- `MapsElevationChart.tsx` — an SVG/canvas chart → `ReactHost` inside whichever route panel embeds it.
-- `MapsLogo.tsx`, `DirectionsIcon.tsx` — pure inline-SVG glyphs → stay React (or vendored as icons).
-- The raw MapLibre map and the three.js canvas themselves — wrapped by the `MapView` host control.
+- `MapsElevationChart.tsx` - an SVG/canvas chart → `ReactHost` inside whichever route panel embeds it.
+- `MapsLogo.tsx`, `DirectionsIcon.tsx` - pure inline-SVG glyphs → stay React (or vendored as icons).
+- The raw MapLibre map and the three.js canvas themselves - wrapped by the `MapView` host control.
 
-### 4.c Logic / hooks / utils (not views — imported unchanged by the code-behinds)
+### 4.c Logic / hooks / utils (not views - imported unchanged by the code-behinds)
 
 `useNavigation.ts`, `useSketch.ts`, `useRouteModes.ts`, `useSavedPlaces.ts`, `mapsLayers.ts`,
 `mapsTheme.ts`, `mapOffline.ts`, `mapSketch.ts`, `searchRows.ts`, `worlds.ts`, `geocoding.ts`, `routing.ts`,
@@ -226,27 +226,27 @@ overlays become `.kbview`; the map becomes a `MapView` host element; the imperat
 
 ## 5. Required host controls and framework blockers (documented, not hidden)
 
-- **`MapView` host control — RESOLVED (see §2.b).** Registered as a project-local control in
+- **`MapView` host control - RESOLVED (see §2.b).** Registered as a project-local control in
   `src/kbview-controls.json`; `<MapView/>` type-checks and is used in `MapsDataCard`. Map-bearing screens no
   longer need the whole map region in a `ReactHost`. Remaining map screens (`MapsLocationPicker`,
   `MapsSearchBar`, `MapsPage`) can now convert their overlays and place the map as `<MapView/>`. As
   `MapView` grows (it currently wraps `MiniMap`'s behaviour) it may need more props/events (two-way
-  centre/zoom, a click event carrying `lng/lat`, an imperative handle for `flyTo`) — add them to the
+  centre/zoom, a click event carrying `lng/lat`, an imperative handle for `flyTo`) - add them to the
   registry entry + `MapsMapView.tsx` as each screen demands.
-- **`Tooltip` — ADDED as a project control** (§2.c, `src/MapsTooltipBox.tsx`). Type-checks; runtime not yet
+- **`Tooltip` - ADDED as a project control** (§2.c, `src/MapsTooltipBox.tsx`). Type-checks; runtime not yet
   browser-verified. Elsewhere the plain `ToolTip` attribute remains a valid fallback.
-- **`Image`/`<img>` — ADDED as a project control** (§2.c, `src/MapsImageBox.tsx`, with `Src`/`FallbackSrc`/
+- **`Image`/`<img>` - ADDED as a project control** (§2.c, `src/MapsImageBox.tsx`, with `Src`/`FallbackSrc`/
   `Fit`/`OnError`). Used by `MapsLayersButton`; ready for the lightbox and place-header hero.
 - **No inline-SVG element.** Charts (`MapsElevationChart`), the QR code, custom glyphs stay in `ReactHost`.
   Expected and consistent with core/drive; not a maps-specific blocker.
 - **No three.js/WebGL element.** `MapsCosmos3D` stays a host React control.
 - **`autoFocus` has no `.kbview` property** (`TextField`/`TextArea`). Inputs needing it stay in a
-  `ReactHost` part — same limitation core/drive hit (`TODO(views-migrate)` in `ResetPasswordDialog`).
-- **i18n module namespace — RESOLVED** (see §3): `{Res}` can only hit the host default namespace, so module
+  `ReactHost` part - same limitation core/drive hit (`TODO(views-migrate)` in `ResetPasswordDialog`).
+- **i18n module namespace - RESOLVED** (see §3): `{Res}` can only hit the host default namespace, so module
   screens translate via the code-behind `tr`. Framework gap raised there.
-- **`MenuDropdown` — ADDED as a project control** (§2.d, `src/MapsMenuDropdown.tsx`): trigger child + a
+- **`MenuDropdown` - ADDED as a project control** (§2.d, `src/MapsMenuDropdown.tsx`): trigger child + a
   data-driven `Items` array. Used by `MapsRouteOptions`. Runtime not browser-verified.
-- **`SidebarNavItem` + `Slot` — ADDED as project controls** (§2.d, `src/MapsSidebarNavItem.tsx`,
+- **`SidebarNavItem` + `Slot` - ADDED as project controls** (§2.d, `src/MapsSidebarNavItem.tsx`,
   `src/MapsSlot.tsx`). Used by `MapsSidebarBody`. Runtime not browser-verified.
 - **File picker has no element** (`MapsGpxPanel`): a hidden `<input type="file">` + `ref().click()` stays a
   `ReactHost` part.
@@ -265,24 +265,24 @@ overlays become `.kbview`; the map becomes a `MapView` host element; the imperat
 
 ## 6. Milestones
 
-- **M0 — Infrastructure + pilot (DONE).** Toolchain wired; `MapsSavePlaceModal` + `MapsQrDialog` converted
+- **M0 - Infrastructure + pilot (DONE).** Toolchain wired; `MapsSavePlaceModal` + `MapsQrDialog` converted
   and type-checked.
-- **M0.5 — `MapView` host control (DONE).** Project control registered + real component; proven by
+- **M0.5 - `MapView` host control (DONE).** Project control registered + real component; proven by
   `MapsDataCard`. See §2.b.
-- **M1 — Simple dialogs/forms.** Done: `MapsDataCard`. Remaining: `MapsImageLightbox`, `MapsNavOverlay`,
+- **M1 - Simple dialogs/forms.** Done: `MapsDataCard`. Remaining: `MapsImageLightbox`, `MapsNavOverlay`,
   `MapsRouteModes`, `MapsCategoryChips`, `MapsAddressInput`, `MapsSettingsPage`.
-- **M2 — Panels & cards.** The "moderate" group in §4.a (place/route/layers/search-dropdown/sketch/gpx
+- **M2 - Panels & cards.** The "moderate" group in §4.a (place/route/layers/search-dropdown/sketch/gpx
   panels, local card, layers button, mini panel, sidebar body). Introduces `Repeater` lists and the
   `ReactHost`-for-charts pattern (`MapsElevationChart` embedded in route panels).
-- **M3 — remaining map overlays.** With `MapView` available: `MapsLocationPicker`, `MapsSearchBar` (map as a
-  host element, overlays as views). `MiniMap` itself stays React — it *is* a map control and is consumed via
+- **M3 - remaining map overlays.** With `MapView` available: `MapsLocationPicker`, `MapsSearchBar` (map as a
+  host element, overlays as views). `MiniMap` itself stays React - it *is* a map control and is consumed via
   `ModuleServiceRegistry`, not an overlay; `MapView` already supersedes its behaviour for views.
-- **M4 — Shell.** `MapsPage` (map host element + composed overlay views) and `MapsPublicSketch`.
+- **M4 - Shell.** `MapsPage` (map host element + composed overlay views) and `MapsPublicSketch`.
 - **Never converted.** `MapsCosmos3D`, `MapsElevationChart` (chart body), the raw canvases inside
   `MapsMapView`, `MapsLogo`, `DirectionsIcon`.
 
 Run `kbview-tsc -b` after every screen; check visual + accessibility parity in the VS/web design surface
-(the design server was not exercised — see §7).
+(the design server was not exercised - see §7).
 
 ## 7. Verification status
 
@@ -319,23 +319,23 @@ full-screen sketch map stays a host map in a `ReactHost` part (it renders a sket
 `<MapView>` does not fit), and the title banner + loading/error states are the view. `MapsPlacePanel` and
 `MapsRoutePanel` are converted composition containers. Still to do:
 
-- **Deferred — stays React for now** (documented blocker, left as `.tsx`): `MapsCategoryChips` (ResizeObserver
+- **Deferred - stays React for now** (documented blocker, left as `.tsx`): `MapsCategoryChips` (ResizeObserver
   width measurement), `MapsAddressInput` (imperative debounced `<input>` + ReactNode props), `MapsRouteFields`
   (HTML5 drag-and-drop + the imperative `MapsAddressInput`), `MapsImageLightbox` (`createPortal` + keyboard nav +
-  thumbnail strip), `MapsPlaceInfo` (4 exported components — a `.kbview` is one view), `MapsSearchDropdown`
+  thumbnail strip), `MapsPlaceInfo` (4 exported components - a `.kbview` is one view), `MapsSearchDropdown`
   (heterogeneous rows + `highlight` ReactNode + embedded imperative editor), `MapsSketchPanel` (dynamic
   inline-colour swatches + inputs).
-- **M3 map screens — DEFERRED (framework gaps, documented):**
-  - `MapsLocationPicker`: an *interactive* picker — a **draggable** DOM `maplibregl.Marker`, click-to-set, and a
-    scroll-zoom grant tied to the control's focus — which the read-only marker-layer `<MapView>` does not cover;
+- **M3 map screens - DEFERRED (framework gaps, documented):**
+  - `MapsLocationPicker`: an *interactive* picker - a **draggable** DOM `maplibregl.Marker`, click-to-set, and a
+    scroll-zoom grant tied to the control's focus - which the read-only marker-layer `<MapView>` does not cover;
     plus an imperative address search (`Input` + `AnchoredPopover`). Unblocking it needs an extended `MapView`
-    (a draggable marker, a click event carrying `lng/lat`, two-way centre/zoom) — a larger control investment.
+    (a draggable marker, a click event carrying `lng/lat`, two-way centre/zoom) - a larger control investment.
   - `MapsSearchBar`: the floating pill's **bare transparent `<input>`** has no borderless `.kbview` field
-    element (`TextField` always carries field chrome — Variant is only Standard/Outlined), and it needs
+    element (`TextField` always carries field chrome - Variant is only Standard/Outlined), and it needs
     imperative `ref.focus()/blur()` + custom keyboard navigation over the dropdown rows; with the embedded
     (deferred) `MapsSearchDropdown` it is mostly `ReactHost`. A chromeless `TextField` variant (and `blur()` on
     the element handle) would unblock it.
-- **M4 (shell) — `MapsPage` DEFERRED (documented).** The page owns the **imperative MapLibre engine** (not
+- **M4 (shell) - `MapsPage` DEFERRED (documented).** The page owns the **imperative MapLibre engine** (not
   `<MapView>`-able: bespoke click / context-menu / route-pick / sketch / marker / layer wiring, a `mapRef` used
   throughout), composes **~20 child components** (many already converted, embeddable only via `ReactHost` until
   views can be placed as native `.kbview` elements), a context menu with submenus + JSX icons, and the 3D
@@ -352,13 +352,13 @@ full-screen sketch map stays a host map in a `ReactHost` part (it renders a sket
 `MapsPoiResultsPanel`, `MapsMiniPanel`, `MapsPlaceReviews`, `MapsGpxPanel`, `MapsRouteActions`,
 `MapsLocalCard`, `MapsLayersButton`, `MapsRouteSuggestions`, `MapsLayersPanel`, `MapsRouteResults`,
 `MapsPlaceActions`, `MapsPlacePanel`, `MapsPlacesPanel`, `MapsSettingsPage`, `MapsRoutePanel`,
-`MapsPlaceHeader`, `MapsSidebarBody`, `MapsPublicSketch` — plus 6 project controls (`MapView`, `Image`,
+`MapsPlaceHeader`, `MapsSidebarBody`, `MapsPublicSketch` - plus 6 project controls (`MapView`, `Image`,
 `Tooltip`, `MenuDropdown`, `SidebarNavItem`, `Slot`).
 
-**Deferred — one reason each (left as `.tsx`, documented):**
+**Deferred - one reason each (left as `.tsx`, documented):**
 | Screen | Reason |
 |---|---|
-| `MapsPage` | Imperative MapLibre shell: 1577 lines / 122 hooks, ~20 `ReactHost` children, bespoke map wiring — critical page, untestable transcription (framework gap: richer `MapView` + views-as-elements). |
+| `MapsPage` | Imperative MapLibre shell: 1577 lines / 122 hooks, ~20 `ReactHost` children, bespoke map wiring - critical page, untestable transcription (framework gap: richer `MapView` + views-as-elements). |
 | `MapsSearchBar` | The pill's **bare transparent `<input>`** has no chromeless `.kbview` field (`TextField` always has chrome) + imperative `focus()/blur()` + keyboard nav. |
 | `MapsLocationPicker` | Interactive map picker: **draggable** DOM marker + click-to-set + focus-tied scroll-zoom, not covered by the read-only `<MapView>` (framework gap). |
 | `MapsSearchDropdown` | Heterogeneous row kinds + `highlight` ReactNode + embedded imperative `MapsAddressInput` editor → mostly `ReactHost`. |
@@ -369,7 +369,7 @@ full-screen sketch map stays a host map in a `ReactHost` part (it renders a sket
 | `MapsSketchPanel` | Many dynamic inline-colour swatches + inline text inputs → mostly `ReactHost`. |
 | `MapsPlaceInfo` | Four exported components in one file; a `.kbview` is a single view. |
 
-**React by nature — never converted (host controls / canvases / pure SVG):** `MapsCosmos3D` (three.js/WebGL),
+**React by nature - never converted (host controls / canvases / pure SVG):** `MapsCosmos3D` (three.js/WebGL),
 `MapsElevationChart` (SVG/canvas chart body), `MiniMap` (MapLibre map, a control), the control wrapper
 components (`MapsMapView`, `MapsImageBox`, `MapsTooltipBox`, `MapsMenuDropdown`, `MapsSidebarNavItem`,
 `MapsSlot`), `MapsLogo`, `DirectionsIcon` (pure inline-SVG glyphs).
@@ -382,7 +382,7 @@ components (`MapsMapView`, `MapsImageBox`, `MapsTooltipBox`, `MapsMenuDropdown`,
   if other modules want it. Also: install `@kubuno/views-migrate` to speed up the bulk, and run `npm install`
   once to sync `package-lock.json` (see §2).
 
-## 11. Native typed elements (views-as-elements) — DONE for the two containers (2026-10-15)
+## 11. Native typed elements (views-as-elements) - DONE for the two containers (2026-10-15)
 
 The compiler of `maps/web` was bumped to the recent **`0.2.3`** (WASM included, as `drive/web`), which exposes a
 `.kbview` declaring `x:Props` as a **native, typed element**: non-function fields are bound properties
@@ -401,13 +401,13 @@ natively instead of through `<ReactHost>`.
   wrapped in a transparent `<Panel Class="contents" Visible="…">` (the Panel keeps the runtime gate; `contents`
   keeps the layout, since both children have a `display: contents` root of their own).
 
-**`MapsRoutePanel`** — native now: `MapsRouteModes` (`OnSetMode`, `OnClose`), `MapsRouteActions` (`OnPrint`),
+**`MapsRoutePanel`** - native now: `MapsRouteModes` (`OnSetMode`, `OnClose`), `MapsRouteActions` (`OnPrint`),
 `MapsRouteResults` (`OnSetSelected`, `OnSetDetailsOpen`, `OnStartNav`, `OnSimulateNav`; wrapped for `Visible`).
-`MapsRouteActions` is also `Visible`-wrapped. Still `ReactHost`: `MapsRouteFields` (not converted — imperative DnD
+`MapsRouteActions` is also `Visible`-wrapped. Still `ReactHost`: `MapsRouteFields` (not converted - imperative DnD
 + `MapsAddressInput`), `MapsRouteOptions` (kept per the lot's scope), **`MapsRouteSuggestions`** (its `onPick(lat,
-lng, label)` is 3-arg → a single-`value` event would drop `lng`/`label`, so it stays a host — documented).
+lng, label)` is 3-arg → a single-`value` event would drop `lng`/`label`, so it stays a host - documented).
 
-**`MapsPlacePanel`** — native now: `MapsPlaceHeader` (`OnImgError`, `OnClose`, `OnReviewsClick`, `OnAddReview`,
+**`MapsPlacePanel`** - native now: `MapsPlaceHeader` (`OnImgError`, `OnClose`, `OnReviewsClick`, `OnAddReview`,
 `OnTab`; always rendered, no wrapper needed). Still `ReactHost`: `MapsPlaceActions`, `MapsPlaceInfo`,
 `MapsPlaceReviews`, `MapsPlaceAbout`, `MapsPlaceTickets` and `MapsImageLightbox` (out of this lot's scope;
 `MapsPlaceActions`/`MapsPlaceReviews` are convertible next, the Info/About/Tickets group is one multi-export file,

@@ -1,4 +1,4 @@
-<!-- MapsSidebarBody — converted from MapsSidebarBody.tsx. Expanded rows use the <SidebarNavItem> control and
+<!-- MapsSidebarBody - converted from MapsSidebarBody.tsx. Expanded rows use the <SidebarNavItem> control and
      the host slots use the <Slot> control; the collapsed "rail" keeps its custom vertical layout (icon above
      label) with the glyph in a <ReactHost> part. -->
 <Stack x:Props="MapsSidebarBodyProps" Gap="0" Class="flex flex-col flex-1 overflow-hidden">

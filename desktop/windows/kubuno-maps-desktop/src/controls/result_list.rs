@@ -1,4 +1,4 @@
-//! `ResultList` — the list of the places panel (the web's `MapsSearchBar` suggestions and saved places list): a
+//! `ResultList` - the list of the places panel (the web's `MapsSearchBar` suggestions and saved places list): a
 //! header line, then one row per place with its icon, its name and the rest of its address. Hovering highlights a
 //! row, a click picks it (`ItemPicked`, the window flies there), the wheel scrolls. With no row, the empty-state text
 //! is shown under the header.

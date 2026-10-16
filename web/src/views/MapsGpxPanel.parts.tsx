@@ -1,6 +1,6 @@
 /**
  * React part of `MapsGpxPanel.kbview`: the "import .gpx" button wired to a hidden file `<input>` through a
- * ref — a file picker has no .kbview element, so it stays React. Rendered by a `<ReactHost>`.
+ * ref - a file picker has no .kbview element, so it stays React. Rendered by a `<ReactHost>`.
  */
 import { useRef } from 'react'
 import { Upload } from 'lucide-react'

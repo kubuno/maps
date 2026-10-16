@@ -1,9 +1,9 @@
-//! Search and saved places — the web's search bar (`MapsSearchBar` / `geocoding.ts`) and saved places
+//! Search and saved places - the web's search bar (`MapsSearchBar` / `geocoding.ts`) and saved places
 //! (`useSavedPlaces`), for the native app.
 //!
 //! A [`PlacesBackend`] answers the window: [`LiveBackend`] talks to the Maps server of the signed-in account through
 //! the Kubuno desktop shell's token broker (`kubuno_desktop_sync`; the app never holds a password), with the very
-//! endpoints the web uses — `GET /api/v1/maps/geocode/search` (the server's Nominatim proxy, which also records the
+//! endpoints the web uses - `GET /api/v1/maps/geocode/search` (the server's Nominatim proxy, which also records the
 //! search history), `GET`/`POST`/`DELETE /api/v1/maps/places`. [`SampleBackend`] serves the offline sample
 //! (`--sample`) without any server. Calls block: the window runs them on a worker thread.
 
@@ -160,7 +160,7 @@ impl LiveBackend {
     fn request(method: &str, path: &str, body: Option<Vec<u8>>) -> Result<(u16, Vec<u8>), String> {
         let account = kubuno_desktop_sync::current_account()
             .map_err(|e| format!("{e:?}"))?
-            .ok_or_else(|| "no account — is the Kubuno desktop shell running and signed in?".to_string())?;
+            .ok_or_else(|| "no account - is the Kubuno desktop shell running and signed in?".to_string())?;
         let mut api = kubuno_desktop_sync::account_api(&account);
         let resp = api.request(method, &format!("{MAPS_PREFIX}{path}"), &[], body).map_err(|e| format!("{e:?}"))?;
         Ok((resp.status, resp.body))

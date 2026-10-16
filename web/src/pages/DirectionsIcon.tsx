@@ -1,7 +1,7 @@
 import type { SVGProps } from 'react'
 
 /**
- * "Directions" glyph: a rounded diamond enclosing an arrow that turns right —
+ * "Directions" glyph: a rounded diamond enclosing an arrow that turns right -
  * the conventional route symbol of map apps (lucide has no equivalent). Drawn
  * on the same 24×24 grid, stroke 2, as lucide icons so it sits next to them.
  */

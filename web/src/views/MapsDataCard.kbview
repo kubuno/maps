@@ -1,4 +1,4 @@
-<!-- MapsDataCard — converted from MapsDataCard.tsx. The map preview uses the project <MapView> host control
+<!-- MapsDataCard - converted from MapsDataCard.tsx. The map preview uses the project <MapView> host control
      (src/kbview-controls.json): the map stays native WebGL, the card around it is this view. Fully converted. -->
 <Panel x:Props="MapsDataCardProps"
        AccessibleRole="PushButton"

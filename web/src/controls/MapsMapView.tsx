@@ -1,10 +1,10 @@
-// MapsMapView — the native MapLibre map behind the `.kbview` <MapView> host control
+// MapsMapView - the native MapLibre map behind the `.kbview` <MapView> host control
 // (registered in src/kbview-controls.json, dom_root:"ref"). The map itself is WebGL and
 // cannot be expressed in view primitives, so, like PaintBox, it stays a React control; the
 // overlays around it (search bar, panels, cards) are the parts that become .kbview.
 //
 // This wraps the EXISTING map building blocks (styleFor from mapsLayers, the theme protocol
-// and images from mapsTheme) rather than introducing a new engine — the same approach as
+// and images from mapsTheme) rather than introducing a new engine - the same approach as
 // MiniMap. Mirrors the mobile `MapView` control in name and intent.
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import maplibregl from 'maplibre-gl'

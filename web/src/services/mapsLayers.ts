@@ -83,7 +83,7 @@ function beforeRoute(map: maplibregl.Map): string | undefined {
   return map.getLayer('route-line') ? 'route-line' : undefined
 }
 
-// id de la première couche de libellés (symbol) — pour glisser le relief dessous.
+// id de la première couche de libellés (symbol) - pour glisser le relief dessous.
 function firstSymbolId(map: maplibregl.Map): string | undefined {
   const layers = map.getStyle()?.layers ?? []
   return layers.find(l => l.type === 'symbol')?.id
@@ -111,7 +111,7 @@ export function applyLabels(map: maplibregl.Map, base: BaseMap, show: boolean) {
 export function applyCycle(map: maplibregl.Map, on: boolean) {
   if (on) {
     if (!map.getSource(CYCLE)) {
-      // CyclOSM (OSM-France). Hébergement communautaire — pour un usage intensif,
+      // CyclOSM (OSM-France). Hébergement communautaire - pour un usage intensif,
       // self-host une couche cyclable (cohérent avec OpenFreeMap pour le fond).
       map.addSource(CYCLE, {
         type: 'raster', tileSize: 256,
@@ -195,7 +195,7 @@ export async function applyPrecip(map: maplibregl.Map, on: boolean) {
     const frames = j.radar?.past ?? []
     const last = frames[frames.length - 1]
     if (!j.host || !last) return
-    // {host}{path}/{size}/{z}/{x}/{y}/{couleur}/{options}.png — couleur 2, lissé+neige.
+    // {host}{path}/{size}/{z}/{x}/{y}/{couleur}/{options}.png - couleur 2, lissé+neige.
     const tiles = [`${j.host}${last.path}/256/{z}/{x}/{y}/2/1_1.png`]
     if (map.getSource(PRECIP)) { if (map.getLayer(PRECIP)) map.removeLayer(PRECIP); map.removeSource(PRECIP) }
     map.addSource(PRECIP, { type: 'raster', tileSize: 256, tiles, attribution: '© RainViewer' })

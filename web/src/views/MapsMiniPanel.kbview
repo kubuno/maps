@@ -1,4 +1,4 @@
-<!-- MapsMiniPanel — converted from MapsMiniPanel.tsx. Fully converted (the saved-places query runs in
+<!-- MapsMiniPanel - converted from MapsMiniPanel.tsx. Fully converted (the saved-places query runs in
      useHooks; the list is a Repeater, with per-row navigation reading args.row). -->
 <Stack x:Props="MapsMiniPanelProps" Gap="0" Class="flex min-h-0 flex-1 flex-col">
   <Label Text="{Binding title_label}" ForeColor="TextTertiary" Class="px-4 pt-3 pb-1 uppercase tracking-wide [font-size:var(--kb-text-meta)]"/>

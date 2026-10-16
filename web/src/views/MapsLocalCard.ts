@@ -45,7 +45,7 @@ export function useMapCenter(mapRef: RefObject<maplibregl.Map | null>, mapReady:
   return center
 }
 
-/** Distance in metres (haversine) — used to skip reverse-geocoding tiny moves. */
+/** Distance in metres (haversine) - used to skip reverse-geocoding tiny moves. */
 function distanceM(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
   const R = 6371000, toRad = (d: number) => d * Math.PI / 180
   const dLat = toRad(b.lat - a.lat), dLng = toRad(b.lng - a.lng)

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Maps · Place — a selected place (PlaceCard.kt) rising from the bottom over the map. Handle, name, a pink
+  Maps · Place - a selected place (PlaceCard.kt) rising from the bottom over the map. Handle, name, a pink
   category badge, the address, and the action row (Itinéraire primary + Enregistrer / Partager). Light theme,
   logical px. Map is a native control (placeholder). Root is a Panel; map colour is the backdrop.
 -->

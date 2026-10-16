@@ -152,7 +152,7 @@ impl Settings {
             .set_default("nominatim.rate_limit_rps", 1u64)?
             .set_default("osrm.url", "http://localhost:5000")?
             .set_default("osrm.profiles", vec!["driving", "cycling", "foot"])?
-            // Défauts publics FOSSGIS (gratuits, sans clé, streaming) — routage
+            // Défauts publics FOSSGIS (gratuits, sans clé, streaming) - routage
             // opérationnel d'emblée pour voiture / vélo / pieds.
             .set_default("osrm.url_driving", "https://routing.openstreetmap.de/routed-car")?
             .set_default("osrm.url_cycling", "https://routing.openstreetmap.de/routed-bike")?

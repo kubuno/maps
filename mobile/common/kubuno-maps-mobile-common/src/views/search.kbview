@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Maps · Search — the full-screen search overlay (SearchOverlay.kt): back + field, recent searches (clock) and
+  Maps · Search - the full-screen search overlay (SearchOverlay.kt): back + field, recent searches (clock) and
   place results (map pin). Light theme, logical px. Screen root is a Panel.
 -->
 <Panel xmlns="https://kubuno.com/views" xmlns:x="https://kubuno.com/views/x"

@@ -1,4 +1,4 @@
-//! Croquis (« sketches ») — calques dessinés par l'utilisateur : résultats de
+//! Croquis (« sketches ») - calques dessinés par l'utilisateur : résultats de
 //! mesure, épingles, lignes, polygones, cercles, annotations. Stockés sous forme
 //! de FeatureCollection GeoJSON. Partage en lecture seule via un jeton opaque.
 
@@ -151,7 +151,7 @@ pub async fn update(
     // NOW() is bound from Rust.
     let name = dto.name.as_ref().map(|s| s.trim().to_string()).filter(|s| !s.is_empty());
     // A missing row (wrong id or owner) is NotFound. `rows_affected` is not used
-    // to decide that — a no-op COALESCE update reports 0 on MySQL — so the row is
+    // to decide that - a no-op COALESCE update reports 0 on MySQL - so the row is
     // read back instead (below).
     state
         .db
@@ -235,7 +235,7 @@ pub async fn get_public(
     Path(token): Path<String>,
 ) -> Result<Json<Value>> {
     // The one unauthenticated read surface of this module. When the policy
-    // revokes existing links, answer exactly as if the token were unknown —
+    // revokes existing links, answer exactly as if the token were unknown -
     // telling an anonymous caller that the sketch exists but is withheld would
     // leak the existence of the resource.
     if !state.instance().sketch_sharing.allows_existing_link() {

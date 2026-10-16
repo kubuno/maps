@@ -1,4 +1,4 @@
-//! Service Overpass — recherche de POI (« qu'y a-t-il autour de moi ») par
+//! Service Overpass - recherche de POI (« qu'y a-t-il autour de moi ») par
 //! catégorie autour d'un point ou dans une emprise. Utilise l'API Overpass
 //! (déjà configurée dans `settings.overpass`) via une requête Overpass QL.
 

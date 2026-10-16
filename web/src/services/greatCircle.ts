@@ -1,5 +1,5 @@
 // Great-circle ("as the crow flies") geometry for the plane mode of the route
-// panel. Nothing here is a flight plan: no airports, no schedules — only the
+// panel. Nothing here is a flight plan: no airports, no schedules - only the
 // shortest line over the sphere and an indicative time at cruise speed.
 import type { LatLng, RouteResult } from './routing'
 

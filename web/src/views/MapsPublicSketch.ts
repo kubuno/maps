@@ -1,7 +1,7 @@
 /**
  * Code-behind of `MapsPublicSketch.kbview` (converted from `MapsPublicSketch.tsx`).
  *
- * Public, read-only view of a shared sketch — an out-of-shell route (`maps/s/:token`) reachable by an
+ * Public, read-only view of a shared sketch - an out-of-shell route (`maps/s/:token`) reachable by an
  * anonymous visitor. The map + sketch loading live in the `SketchMap` React part; this holds the title and
  * the load status.
  */

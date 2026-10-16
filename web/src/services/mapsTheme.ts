@@ -11,7 +11,7 @@
 // the result to MapLibre. Callers keep using a plain style URL, so the theme
 // applies to every map (main page, mini map, public sketch viewer) and to
 // every `setStyle` back to the default basemap. Only the default basemap goes
-// through this path — Positron, satellite, topo and offline are untouched.
+// through this path - Positron, satellite, topo and offline are untouched.
 
 import type maplibregl from 'maplibre-gl'
 import type {
@@ -28,7 +28,7 @@ const PROTOCOL = 'kbstyle'
 export const THEME = {
   land:        '#f5f5f5',
   urban:       '#ececec',   // residential mask (blended over land)
-  commercial:  '#f4efe5',   // industrial / commercial / retail — warm beige
+  commercial:  '#f4efe5',   // industrial / commercial / retail - warm beige
   park:        '#c9e7c4',
   wood:        '#d0e8ca',
   grass:       '#dcefd8',

@@ -35,7 +35,7 @@ pub struct TextureParams {
     pub size: Option<u32>,
 }
 
-/// `/cosmos/texture?file=<name>&size=<256|512|1024|2048|4096|8192>` — serves the
+/// `/cosmos/texture?file=<name>&size=<256|512|1024|2048|4096|8192>` - serves the
 /// texture at the requested width, downscaling into the disk cache on demand.
 pub async fn texture(
     State(state): State<AppState>,
@@ -84,7 +84,7 @@ pub async fn texture(
         }
     };
 
-    // Weak validator from size+mtime — cheap and stable across restarts.
+    // Weak validator from size+mtime - cheap and stable across restarts.
     let etag = match std::fs::metadata(&path) {
         Ok(meta) => {
             let len = meta.len();
@@ -130,7 +130,7 @@ pub async fn texture(
         .into_response()
 }
 
-/// `/cosmos/data/:file` — the star and constellation catalogs (JSON).
+/// `/cosmos/data/:file` - the star and constellation catalogs (JSON).
 pub async fn data(State(state): State<AppState>, Path(file): Path<String>) -> Response {
     let Some(cosmos) = state.cosmos.as_ref() else {
         return (StatusCode::NOT_FOUND, "Cosmos assets unavailable").into_response();

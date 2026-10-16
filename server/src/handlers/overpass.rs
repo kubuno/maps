@@ -1,4 +1,4 @@
-//! Recherche de POI par catégorie (Overpass) — « qu'y a-t-il autour de moi ».
+//! Recherche de POI par catégorie (Overpass) - « qu'y a-t-il autour de moi ».
 
 use axum::{
     extract::{Extension, Query, State},

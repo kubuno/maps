@@ -94,7 +94,7 @@ impl MapView {
         self.set_center_px(cx - dx, cy - dy);
     }
 
-    /// Zoom by `delta` levels keeping the point `(fx, fy)` of a `w`×`h` view (pixels from its top-left) fixed — a
+    /// Zoom by `delta` levels keeping the point `(fx, fy)` of a `w`×`h` view (pixels from its top-left) fixed - a
     /// wheel notch over a street keeps that street under the pointer. Zoom stays within `[1, 20]`.
     pub fn zoom_about(&mut self, delta: f64, fx: f64, fy: f64, w: f64, h: f64) {
         let (cx, cy) = self.center_px();

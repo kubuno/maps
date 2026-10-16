@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Maps · Track — an opened GPX track (TrackCard.kt): a bottom card with the track name, the stats row and the
+  Maps · Track - an opened GPX track (TrackCard.kt): a bottom card with the track name, the stats row and the
   elevation profile. The ElevationChart is a native canvas (placeholder here). Light theme, logical px.
 -->
 <Panel xmlns="https://kubuno.com/views" xmlns:x="https://kubuno.com/views/x"

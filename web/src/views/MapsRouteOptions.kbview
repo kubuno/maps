@@ -1,4 +1,4 @@
-<!-- MapsRouteOptions — converted from MapsRouteOptions.tsx (partial). The schedule menu uses the project
+<!-- MapsRouteOptions - converted from MapsRouteOptions.tsx (partial). The schedule menu uses the project
      <MenuDropdown> control; the datetime-local field stays a React <ReactHost> part. -->
 <Panel x:Props="MapsRouteOptionsProps" Class="px-4 pt-2 no-print">
   <Stack Direction="LeftToRight" CrossAlign="Center" Class="gap-2">

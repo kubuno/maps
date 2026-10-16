@@ -1,4 +1,4 @@
-//! `MapView` — the interactive themed map of the Maps mobile app, a host control of the shared renderer
+//! `MapView` - the interactive themed map of the Maps mobile app, a host control of the shared renderer
 //! (`kubuno_mobile_render::HostControl`).
 //!
 //! A small "slippy map" over pre-rendered snapshots of the Kubuno web basemap (OpenFreeMap "Liberty" + the Kubuno
@@ -51,7 +51,7 @@ const PIN: Rgba = Rgba::rgb(0xff, 0x37, 0x5f);
 /// The land tone shown before a level is decoded (and around the captured region).
 const LAND: Rgba = Rgba::rgb(0xe6, 0xea, 0xe3);
 
-// ── Level geometry (normalised Web Mercator, y down — `kubuno_maps_core::tiles`) ─────────────────────────────────
+// ── Level geometry (normalised Web Mercator, y down - `kubuno_maps_core::tiles`) ─────────────────────────────────
 
 fn mx0(i: usize) -> f64 {
     mercator_x(LEVELS[i].w)
@@ -78,7 +78,7 @@ fn min_world_px() -> f64 {
     native_world_px(0) * 0.5
 }
 /// Zoom-in stops at the finest level's native resolution (a tiny 1.2× headroom keeps the end of a pinch
-/// responsive): the raster is then never upscaled — always drawn at ≤ 1:1 — so it never pixelates.
+/// responsive): the raster is then never upscaled - always drawn at ≤ 1:1 - so it never pixelates.
 fn max_world_px() -> f64 {
     native_world_px(LEVELS.len() - 1) * 1.2
 }
@@ -94,7 +94,7 @@ struct Viewport {
 
 impl Viewport {
     /// The initial framing: the captured centre, at roughly street level. (The levels are retina, so the default
-    /// shows a level downscaled — crisp.)
+    /// shows a level downscaled - crisp.)
     fn initial() -> Self {
         Viewport { cx: mercator_x(2.3610), cy: mercator_y(48.8590), world_px: native_world_px(3) * 0.53 }
     }
@@ -241,7 +241,7 @@ impl HostControl for MapView {
         }
     }
 
-    /// The ODbL credit chip at the bottom-left, above the gesture inset — drawn after the overlays so it is always
+    /// The ODbL credit chip at the bottom-left, above the gesture inset - drawn after the overlays so it is always
     /// visible (the basemap is OpenStreetMap data, served by OpenFreeMap).
     fn paint_overlay(&self, canvas: &mut HostCanvas<'_, '_>) {
         if !canvas.has_font() || canvas.width() <= 0.0 || canvas.height() <= 0.0 {

@@ -1,4 +1,4 @@
-<!-- MapsSavePlaceModal — converted from MapsSavePlaceModal.tsx (partial: the name field keeps `autoFocus`, which has no .kbview property, so it stays a React <ReactHost> part). -->
+<!-- MapsSavePlaceModal - converted from MapsSavePlaceModal.tsx (partial: the name field keeps `autoFocus`, which has no .kbview property, so it stays a React <ReactHost> part). -->
 <Stack x:Props="MapsSavePlaceModalProps"
        Direction="LeftToRight"
        CrossAlign="Center"

@@ -1,4 +1,4 @@
-<!-- MapsPlaceActions — converted from MapsPlaceActions.tsx (partial). The share menu uses the <MenuDropdown>
+<!-- MapsPlaceActions - converted from MapsPlaceActions.tsx (partial). The share menu uses the <MenuDropdown>
      control; each round-action glyph is a dynamic React <ReactHost> part; the QR dialog (a converted view)
      is embedded via <ReactHost>. -->
 <Panel x:Props="MapsPlaceActionsProps" Class="contents">

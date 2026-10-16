@@ -1,4 +1,4 @@
-<!-- MapsQrDialog — converted from MapsQrDialog.tsx (partial: the inline <svg> QR code is not a .kbview element, so it stays a React <ReactHost> part). -->
+<!-- MapsQrDialog - converted from MapsQrDialog.tsx (partial: the inline <svg> QR code is not a .kbview element, so it stays a React <ReactHost> part). -->
 <FloatingWindow x:Props="MapsQrDialogProps"
                 Title="{Binding window_title}"
                 Icon="Smartphone"

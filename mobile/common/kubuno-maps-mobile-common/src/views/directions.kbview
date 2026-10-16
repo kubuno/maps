@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Maps · Directions — the route planning flow (DirectionsPanel.kt): a blue top card (origin/destination with a
+  Maps · Directions - the route planning flow (DirectionsPanel.kt): a blue top card (origin/destination with a
   swap button and the travel-mode buttons) and a bottom sheet (route alternatives, the Démarrer button and the
   turn-by-turn step list). Light theme, logical px. Map is a native control (placeholder).
 -->

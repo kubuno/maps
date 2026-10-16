@@ -63,7 +63,7 @@ export class MapsNavOverlay extends ViewBase {
   }
 
   get rerouting_label() {
-    return this.tr('maps_nav_rerouting', { defaultValue: 'Hors itinéraire — recalcul…' })
+    return this.tr('maps_nav_rerouting', { defaultValue: 'Hors itinéraire - recalcul…' })
   }
 
   get sim_label() {

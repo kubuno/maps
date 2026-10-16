@@ -1,5 +1,5 @@
-<!-- MapsSettingsPage — converted from MapsSettingsPage.tsx (partial: the traffic switch is a React
-     <ReactHost> part — no Toggle element). Radio groups use <RadioButton> (Repeaters); the two tabs are
+<!-- MapsSettingsPage - converted from MapsSettingsPage.tsx (partial: the traffic switch is a React
+     <ReactHost> part - no Toggle element). Radio groups use <RadioButton> (Repeaters); the two tabs are
      toggled by Visible. -->
 <Stack x:Props="MapsSettingsPageProps" Gap="0" Class="flex flex-col h-full bg-white overflow-hidden">
   <!-- Breadcrumb header -->

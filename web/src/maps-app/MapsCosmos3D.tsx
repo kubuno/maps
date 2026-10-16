@@ -3,7 +3,7 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js'
 // The shared celestial-body model: the unit sphere every astre is, from the cosmos asset catalogue
-// (maps/common/assets/cosmos) — the same geometry file the native desktop renderer uses.
+// (maps/common/assets/cosmos) - the same geometry file the native desktop renderer uses.
 import sphereObjUrl from '../../../common/assets/cosmos/models/sphere.obj?url'
 import { X, Telescope, MapPin } from 'lucide-react'
 import { api, signedUrl } from '@kubuno/sdk'
@@ -26,7 +26,7 @@ const API_BASE = (((api as unknown as { defaults?: { baseURL?: string } }).defau
 const COSMOS = `${API_BASE}/maps/cosmos`
 
 // The shared unit sphere geometry (maps/common/assets/cosmos/models/sphere.obj): the one model file the Sun, the
-// planets and the moons are built from, loaded and parsed once (cached) and reused — scaled — for every body, so the
+// planets and the moons are built from, loaded and parsed once (cached) and reused - scaled - for every body, so the
 // web draws the same geometry the native renderer loads. Falls back to a procedural sphere if the file cannot load.
 let sphereGeometryPromise: Promise<THREE.BufferGeometry> | null = null
 function loadSphereGeometry(): Promise<THREE.BufferGeometry> {
@@ -79,7 +79,7 @@ const PLANETS: Planet[] = [
     map: '8k_mars.jpg',
     moons: [
       { name: 'Phobos', km: 11, dist: 1.9, period: 0.32, tint: 0x9a8d80,
-        info: 'Minuscule (22 km), il orbite en 7 h 39 — plus vite que Mars ne tourne. Il finira par s\'y écraser.' },
+        info: 'Minuscule (22 km), il orbite en 7 h 39 - plus vite que Mars ne tourne. Il finira par s\'y écraser.' },
       { name: 'Déimos', km: 6, dist: 2.5, period: 1.26, tint: 0xa89a8a,
         info: 'Le plus petit (12 km) et le plus lointain des deux satellites martiens.' },
     ],
@@ -92,7 +92,7 @@ const PLANETS: Planet[] = [
       { name: 'Io', km: 1822, dist: 2.0, period: 1.77, tex: 'jup_io_diff.jpg', bump: 'jup_io_bump.jpg', normal: 'jup_io_norm.jpg',
         info: 'Le corps le plus volcanique du système solaire, pétri par les marées de Jupiter.' },
       { name: 'Europe', km: 1561, dist: 2.5, period: 3.55, tex: 'jup_europa_diff.jpg', bump: 'jup_europa_bump.jpg', normal: 'jup_europa_norm.jpg',
-        info: 'Un océan d\'eau liquide sous la banquise — l\'un des meilleurs candidats à la vie.' },
+        info: 'Un océan d\'eau liquide sous la banquise - l\'un des meilleurs candidats à la vie.' },
       { name: 'Ganymède', km: 2634, dist: 3.1, period: 7.15, tex: 'jup_ganymede_diff.jpg', bump: 'jup_ganymede_bump.jpg', normal: 'jup_ganymede_norm.jpg',
         info: 'La plus grosse lune du système solaire, plus grande que Mercure.' },
       { name: 'Callisto', km: 2410, dist: 3.8, period: 16.7, tex: 'jup_callisto_diff.jpg',
@@ -106,7 +106,7 @@ const PLANETS: Planet[] = [
     moons: [
       { name: 'Encelade', km: 252, dist: 2.55, period: 1.37, tint: 0xf0f0f5, info: 'Geysers de glace au pôle sud alimentés par un océan interne.' },
       { name: 'Rhéa', km: 764, dist: 2.85, period: 4.5, tint: 0xcfc8c0, info: 'Boule de glace criblée de cratères, deuxième lune de Saturne.' },
-      { name: 'Titan', km: 2575, dist: 3.4, period: 15.9, tint: 0xd8a050, info: 'Épaisse atmosphère d\'azote et lacs de méthane liquide — unique dans le système solaire.' },
+      { name: 'Titan', km: 2575, dist: 3.4, period: 15.9, tint: 0xd8a050, info: 'Épaisse atmosphère d\'azote et lacs de méthane liquide - unique dans le système solaire.' },
     ],
     info: 'Célèbre pour ses anneaux de glace et de roche. Densité inférieure à celle de l\'eau.' },
   { name: 'Uranus', radius: 4.01, au: 19.2, period: 30687, day: 0.72, tilt: 97.8, sizeMul: 4, orbIncl: 0.77, gapBefore: 30,
@@ -1425,7 +1425,7 @@ uniform vec3 uSunObj; uniform float uPlanetR; varying vec3 vObjPos;`)
       {/* Control panel (top-left) */}
       <div style={{ ...panel, position: 'absolute', top: 16, left: 16, zIndex: 10, padding: '16px 18px', width: 250, userSelect: 'none' }}>
         <div style={{ fontSize: 16, fontWeight: 600, letterSpacing: 1, color: '#fff' }}>SYSTÈME SOLAIRE</div>
-        <div style={{ fontSize: 11, color: '#7f8db0', marginBottom: 12 }}>Simulation 3D — échelles compressées</div>
+        <div style={{ fontSize: 11, color: '#7f8db0', marginBottom: 12 }}>Simulation 3D - échelles compressées</div>
 
         <label style={{ fontSize: 12, color: '#9fb0d8', display: 'block' }}>Vitesse : {formatSpeed(speedFrom01(speed01))} / seconde</label>
         <input type="range" min={0} max={100} step={1} value={speed01 * 100} onChange={e => onSpeed(+e.target.value / 100)} style={{ width: '100%', accentColor: '#6d9eff', marginTop: 4 }} />

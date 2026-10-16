@@ -1,6 +1,6 @@
 // Turn-by-turn navigation helpers: project a live position onto a route, derive
 // the active maneuver, remaining distance/time, off-route detection, and a
-// simulation cursor. Pure functions — the React glue lives in useNavigation.ts.
+// simulation cursor. Pure functions - the React glue lives in useNavigation.ts.
 
 import { haversine } from './mapSketch'
 import type { RouteResult, RouteStep } from './routing'
@@ -92,7 +92,7 @@ export function navigate(nav: NavRoute, pos: [number, number]): NavState {
   }
 }
 
-/** Position (and bearing) at a given distance along the route — for simulation. */
+/** Position (and bearing) at a given distance along the route - for simulation. */
 export function positionAtDistance(nav: NavRoute, d: number): { pos: [number, number]; bearing: number } {
   const { coords, cum, total } = nav
   if (d <= 0) return { pos: coords[0], bearing: bearing(coords[0], coords[1] ?? coords[0]) }

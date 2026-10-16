@@ -1,4 +1,4 @@
-# Kubuno Maps — the mobile app. ONE Cargo workspace for every mobile OS, laid out like the desktop app
+# Kubuno Maps - the mobile app. ONE Cargo workspace for every mobile OS, laid out like the desktop app
 # (../desktop) and independent of the module server's (../server/Cargo.toml):
 #
 #   common/   the complete app, portable: the .kbview screens (edited in Visual Studio) and the interactive themed

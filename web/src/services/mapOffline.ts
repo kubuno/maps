@@ -2,7 +2,7 @@
 // basemap ("Hors-ligne") loads its tiles through a custom `kbtile://` MapLibre
 // protocol that is cache-first (Cache API), falling back to network and storing
 // the result. "Download this area" pre-fills the cache for the visible bbox.
-// Only the offline basemap uses the protocol — the other styles are untouched.
+// Only the offline basemap uses the protocol - the other styles are untouched.
 
 import type maplibregl from 'maplibre-gl'
 import type { StyleSpecification } from 'maplibre-gl'

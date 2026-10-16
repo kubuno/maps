@@ -1,5 +1,5 @@
 //! Runs maps' own migrations and its real place/collection/review service code
-//! against a live server of **each** engine, from a single compiled binary — the
+//! against a live server of **each** engine, from a single compiled binary - the
 //! proof that the engine is a run-time choice, not a build-time one.
 //!
 //! * SQLite always runs (a temp file, no server).
@@ -83,7 +83,7 @@ fn place_dto(name: &str, tags: Vec<String>) -> CreatePlaceDto {
 const PLACE_COLS: &str = "id, owner_id, collection_id, osm_type, osm_id, place_id, name, \
     category, address, lat, lng, nominatim_data, user_note, user_tags, icon, created_at, updated_at";
 
-/// The whole place/collection/review path — the JSON-array columns, the upsert,
+/// The whole place/collection/review path - the JSON-array columns, the upsert,
 /// the computed collection count, and the `json_array_contains` filter that
 /// replaces the PostgreSQL GIN array index.
 async fn full_suite(pool: &kubuno_db::DbPool) {

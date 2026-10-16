@@ -1,6 +1,6 @@
-// MapsMenuDropdown — the native element behind the `.kbview` <MenuDropdown> project control
+// MapsMenuDropdown - the native element behind the `.kbview` <MenuDropdown> project control
 // (src/kbview-controls.json). Wraps @ui `useMenuDropdown` + `MenuDropdown`: the single child is the trigger,
-// `Items` is a plain data array built in the code-behind (no JSX needed there — icons are passed by Lucide
+// `Items` is a plain data array built in the code-behind (no JSX needed there - icons are passed by Lucide
 // name). Clicking the trigger opens the positioned popup; picking an item runs its onClick and closes.
 import type { ComponentType, ReactNode } from 'react'
 import * as Lucide from 'lucide-react'

@@ -1,4 +1,4 @@
-<!-- MapsNavOverlay — converted from MapsNavOverlay.tsx (partial: the maneuver glyph is chosen dynamically
+<!-- MapsNavOverlay - converted from MapsNavOverlay.tsx (partial: the maneuver glyph is chosen dynamically
      from iconKey, so it stays a React <ReactHost> part). -->
 <Panel x:Props="MapsNavOverlayProps" Class="contents">
   <!-- Maneuver banner (top) -->

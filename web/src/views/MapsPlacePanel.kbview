@@ -1,4 +1,4 @@
-<!-- MapsPlacePanel — converted from MapsPlacePanel.tsx. A composition container: the scroll area + the
+<!-- MapsPlacePanel - converted from MapsPlacePanel.tsx. A composition container: the scroll area + the
      collapse handle are the view; the header is embedded as a native typed `.kbview` element, while the
      actions, the four tab bodies and the lightbox stay React <ReactHost> parts; all the orchestration (tabs,
      photo/gallery/reviews fetching, collapse) lives in the code-behind. -->

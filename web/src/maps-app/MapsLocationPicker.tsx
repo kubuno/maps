@@ -8,7 +8,7 @@
  *
  * ## What it is not
  *
- * Not the Maps page in miniature. No search history, no layers, no route — a
+ * Not the Maps page in miniature. No search history, no layers, no route - a
  * field is not an application, and every control here answers the single
  * question the form asked. Nothing about buildings is hard-coded either: the
  * contract is a coordinate, so the same component will serve the next form that
@@ -17,7 +17,7 @@
  * ## Why a DOM marker rather than a GL layer
  *
  * `MiniMap` draws its points into the WebGL canvas, which is right for plotting
- * many read-only points. Here there is exactly one and it must be draggable —
+ * many read-only points. Here there is exactly one and it must be draggable -
  * something MapLibre gives a `Marker` for free and that would have to be
  * written by hand against a canvas layer (grab, move, hit-test, cursor).
  */
@@ -51,8 +51,8 @@ function parse(lat: string, lon: string): { lat: number; lng: number } | null {
 /**
  * Type an address, get a place.
  *
- * Built on the shared primitives — `Input` for the field, `AnchoredPopover` for
- * the results — rather than on this module's own `MapsAddressInput`. Two
+ * Built on the shared primitives - `Input` for the field, `AnchoredPopover` for
+ * the results - rather than on this module's own `MapsAddressInput`. Two
  * reasons, and the first is the rule: that component is a hand-rolled frame
  * around a bare `<input>`, which the project forbids. The second is that this
  * field lives in a CONSOLE form, beside fields drawn by the host: a control with
@@ -139,7 +139,7 @@ function AddressSearch({ onPick, disabled }: {
 export interface MapsLocationPickerProps {
   latitude:  string
   longitude: string
-  /** The postal address already typed in the form, if any — a starting hint. */
+  /** The postal address already typed in the form, if any - a starting hint. */
   address?:  string
   disabled?: boolean
   /** Always both values, or both empty. */
@@ -149,14 +149,14 @@ export interface MapsLocationPickerProps {
 export default function MapsLocationPicker({
   latitude, longitude, address, disabled, onChange,
 }: MapsLocationPickerProps) {
-  // The module's own namespace — its keys live under it, and a bare
+  // The module's own namespace - its keys live under it, and a bare
   // `useTranslation()` would render them as their own names.
   const { t } = useTranslation('maps')
   const divRef    = useRef<HTMLDivElement>(null)
   const mapRef    = useRef<maplibregl.Map | null>(null)
   const markerRef = useRef<maplibregl.Marker | null>(null)
   // The handlers close over `onChange`/`disabled`, and MapLibre keeps whichever
-  // function it was given at `on()` time — a ref keeps them current without
+  // function it was given at `on()` time - a ref keeps them current without
   // tearing the map down on every render of the form above.
   const emit = useRef(onChange); emit.current = onChange
   const off  = useRef(disabled); off.current  = disabled
@@ -175,7 +175,7 @@ export default function MapsLocationPicker({
   /**
    * Set the point AND take the map there.
    *
-   * For a click or a drag, moving the map would be wrong — the operator is
+   * For a click or a drag, moving the map would be wrong - the operator is
    * already looking at the spot they pointed at. Answering a SEARCH is the
    * opposite: they named a place they cannot see, and leaving the view on the
    * whole world drops the pin somewhere off at the edge, which reads as nothing
@@ -213,7 +213,7 @@ export default function MapsLocationPicker({
     map.getCanvas().style.cursor = 'crosshair'
 
     // Starts disabled. Who may turn the wheel is decided by the focus of the
-    // whole control — see `grantWheel` below.
+    // whole control - see `grantWheel` below.
 
     map.scrollZoom.disable()
 
@@ -273,7 +273,7 @@ export default function MapsLocationPicker({
    * it: the reader scrolls towards the fields below, the pointer crosses the
    * map, and instead of moving on they find themselves in orbit over the
    * Atlantic. Scroll-zoom is therefore granted only while the control holds
-   * focus — and "the control" is the SEARCH FIELD AND THE MAP together, because
+   * focus - and "the control" is the SEARCH FIELD AND THE MAP together, because
    * that is the unit a person uses: name a place, then zoom in on it, without a
    * click in between.
    *

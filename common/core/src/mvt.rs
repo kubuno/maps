@@ -1,8 +1,8 @@
-//! Mapbox Vector Tile (MVT v2) decoding — the format of the OpenFreeMap / OpenMapTiles tiles the web basemap draws.
+//! Mapbox Vector Tile (MVT v2) decoding - the format of the OpenFreeMap / OpenMapTiles tiles the web basemap draws.
 //!
 //! A minimal, dependency-free protobuf reader for the four messages of the spec (`Tile`, `Layer`, `Feature`,
 //! `Value`) and the geometry command stream (`MoveTo` / `LineTo` / `ClosePath`, zig-zag deltas). Sans-IO: bytes in,
-//! decoded layers out — the network fetch and the cache belong to each client. Geometry is returned in
+//! decoded layers out - the network fetch and the cache belong to each client. Geometry is returned in
 //! tile-normalised coordinates (`0.0..=1.0` across the tile, y growing southwards; features may slightly overflow
 //! the tile through its buffer), ready for any renderer.
 

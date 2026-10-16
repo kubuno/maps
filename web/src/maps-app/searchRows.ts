@@ -74,7 +74,7 @@ export async function fetchResults(url: string): Promise<SearchResult[]> {
 /**
  * Nearby results first: one request restricted to the (widened) current view
  * and one worldwide, merged in that order and deduplicated by OSM identity.
- * The bounded request is optional — its failure never hides worldwide results.
+ * The bounded request is optional - its failure never hides worldwide results.
  */
 export async function searchNearbyFirst(query: string, map: maplibregl.Map | null, limit: number): Promise<SearchResult[]> {
   const wide = mapViewbox(map, 4), view = mapViewbox(map)
@@ -92,7 +92,7 @@ export async function searchNearbyFirst(query: string, map: maplibregl.Map | nul
   }
   // Les deux listes sont déjà dédoublonnées chacune de son côté ; leur FUSION
   // ne l'est que par identité OSM, et le même lieu revient volontiers sous deux
-  // objets différents — d'où un dernier passage sur le libellé.
+  // objets différents - d'où un dernier passage sur le libellé.
   return dedupeByLabel(merged)
 }
 

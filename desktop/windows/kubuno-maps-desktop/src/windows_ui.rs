@@ -4,7 +4,7 @@
 //! bar, the layers panel and the native map surface. This increment (DESKTOP-CONVERSION.md M1) opens that window
 //! with the shell chrome and the toolbar / search / layers wired to the shared core and `MapView`; the live map
 //! surface (M2) is still a themed placeholder (`MapCanvas`). An earlier fallback printed the opening view as
-//! text — the window replaces it now that the shell lands.
+//! text - the window replaces it now that the shell lands.
 
 use kubuno_maps_desktop_common::app::Options;
 use kubuno_maps_desktop_common::platform::UiHost;

@@ -10,7 +10,7 @@ pub const EARTH_RADIUS_M: f64 = 6_371_000.0;
 /// Indicative cruise speed used for the plane-mode flight-time estimate, km/h (the web's `CRUISE_SPEED_KMH`).
 pub const CRUISE_SPEED_KMH: f64 = 800.0;
 
-/// A geographic point as `[lng, lat]` in degrees — the `[number, number]` order the web uses everywhere
+/// A geographic point as `[lng, lat]` in degrees - the `[number, number]` order the web uses everywhere
 /// (MapLibre / GeoJSON order), kept so ports read one-to-one against the TypeScript.
 pub type LngLat = [f64; 2];
 
@@ -55,7 +55,7 @@ pub fn bearing(a: LngLat, b: LngLat) -> f64 {
     (y.atan2(x).to_degrees() + 360.0) % 360.0
 }
 
-/// Destination point from `[lng, lat]` given a bearing (degrees) and distance (metres) — the web's private
+/// Destination point from `[lng, lat]` given a bearing (degrees) and distance (metres) - the web's private
 /// `destination` helper behind `circleRing`.
 fn destination(lng: f64, lat: f64, bearing_deg: f64, dist_m: f64) -> LngLat {
     let d = dist_m / EARTH_RADIUS_M;

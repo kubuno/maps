@@ -2,7 +2,7 @@
 //!
 //! The web builds MapLibre `StyleSpecification` objects; a native desktop/mobile renderer needs the same facts
 //! in a renderer-agnostic form: which basemaps and overlays exist, their tile URL templates, their attribution
-//! and their zoom limits. This module carries only those descriptors — turning a descriptor into whatever the
+//! and their zoom limits. This module carries only those descriptors - turning a descriptor into whatever the
 //! client draws (a MapLibre style, a native raster layer) is the renderer's job, not the core's.
 
 use serde::{Deserialize, Serialize};
@@ -12,11 +12,11 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "lowercase")]
 pub enum BaseMap {
     /// OpenFreeMap Liberty vector style restyled with the Kubuno theme (the web's `kbstyle://default`). This one
-    /// is vector and themed — see [`crate::theme`] for the palette the restyle applies.
+    /// is vector and themed - see [`crate::theme`] for the palette the restyle applies.
     Default,
-    /// OpenFreeMap Positron — a light / minimal vector style.
+    /// OpenFreeMap Positron - a light / minimal vector style.
     Light,
-    /// OpenTopoMap raster — contour lines and engraved relief.
+    /// OpenTopoMap raster - contour lines and engraved relief.
     Terrain,
     /// ESRI World Imagery raster, with an optional reference (labels) overlay.
     Satellite,
@@ -66,7 +66,7 @@ impl BaseMap {
 
 /// A raster tile source: one or more URL templates (`{z}/{x}/{y}`, round-robin subdomains like the web), its
 /// attribution and an optional max zoom. A static descriptor (`&'static str` fields), so it is not a serde
-/// wire type — the client reads it, it never crosses the network.
+/// wire type - the client reads it, it never crosses the network.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct TileSource {
     /// A short stable key for the source (the web's source id, e.g. `"sat-img"`).

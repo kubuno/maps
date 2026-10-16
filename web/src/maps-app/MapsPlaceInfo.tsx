@@ -65,7 +65,7 @@ export function MapsPlaceInfo({
         <Row icon={<MapPin size={20} className="opacity-0" />} muted>{lat.toFixed(5)}, {lng.toFixed(5)}</Row>
       </div>
 
-      {/* Photo strip — click opens the full-screen viewer. */}
+      {/* Photo strip - click opens the full-screen viewer. */}
       {strip.length > 0 && (
         <div className="flex gap-2 overflow-x-auto px-4 pt-2" style={{ scrollbarWidth: 'none' }}>
           {strip.map((g, i) => (
@@ -115,8 +115,8 @@ export function MapsPlaceTickets({ d, booking }: { d: PlaceInfo; booking: string
   const pretty = (u: string) => u.replace(/^https?:\/\//, '').replace(/\/$/, '')
   return (
     <div className="py-2 pb-4">
-      {booking && <Row icon={<Ticket size={20} />} href={booking}>{t('maps_place_book_online', { defaultValue: 'Réserver en ligne' })} — {pretty(booking)}</Row>}
-      {d.website && d.website !== booking && <Row icon={<Globe size={20} />} href={d.website}>{t('maps_place_official_site', { defaultValue: 'Site officiel' })} — {pretty(d.website)}</Row>}
+      {booking && <Row icon={<Ticket size={20} />} href={booking}>{t('maps_place_book_online', { defaultValue: 'Réserver en ligne' })} - {pretty(booking)}</Row>}
+      {d.website && d.website !== booking && <Row icon={<Globe size={20} />} href={d.website}>{t('maps_place_official_site', { defaultValue: 'Site officiel' })} - {pretty(d.website)}</Row>}
       <p className="px-4 pt-3 text-sm text-text-tertiary">{t('maps_place_tickets_hint', { defaultValue: "Les billets s'achètent sur le site de l'établissement." })}</p>
     </div>
   )

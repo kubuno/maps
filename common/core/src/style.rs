@@ -1,6 +1,6 @@
 //! The Kubuno basemap style for native renderers: which features of an OpenMapTiles vector tile are drawn, in which
 //! order, with which colour of the Kubuno map theme ([`crate::theme`], the web's `mapsTheme.ts`) and which width at
-//! which zoom — the native counterpart of the web's themed OpenFreeMap "Liberty" style.
+//! which zoom - the native counterpart of the web's themed OpenFreeMap "Liberty" style.
 //!
 //! Renderer-agnostic and sans-IO: [`paint_tile`] walks a decoded [`Tile`] and issues drawing calls on a
 //! [`TileCanvas`] the client implements (Direct2D on the desktop, tiny-skia on mobile). Geometry is handed over in
@@ -328,7 +328,7 @@ pub fn paint_tile(tile: &Tile, zoom: f32, palette: &Palette, canvas: &mut impl T
             }
         }
     }
-    // 5. Administrative boundaries (countries, regions) — no maritime lines.
+    // 5. Administrative boundaries (countries, regions) - no maritime lines.
     if let Some(layer) = tile.layer("boundary") {
         for f in &layer.features {
             if layer.number(f, "maritime") == Some(1.0) {
@@ -385,7 +385,7 @@ fn label_name<'a>(layer: &'a crate::mvt::Layer, f: &crate::mvt::Feature, lang: &
 }
 
 /// The labels of one tile at display zoom `zoom`: place names (country → hamlet) and water names, most important first, in
-/// the UI language `lang` (`"fr"`, `"en"`…) where the data has it — else the Latin-script name, else the local name.
+/// the UI language `lang` (`"fr"`, `"en"`…) where the data has it - else the Latin-script name, else the local name.
 pub fn tile_labels(tile: &Tile, zoom: f32, palette: &Palette, lang: &str) -> Vec<Label> {
     let pal = palette;
     let halo = Rgba::hex(pal.halo);

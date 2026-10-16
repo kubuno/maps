@@ -70,7 +70,7 @@ struct SettingDefRaw {
     unit:        Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     placeholder: Option<String>,
-    /// "info" | "warning" | "danger" — how loudly the console warns before a change.
+    /// "info" | "warning" | "danger" - how loudly the console warns before a change.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     risk:        Option<String>,
     /// Folds the setting behind the section's "Avancé" disclosure.
@@ -177,12 +177,12 @@ async fn main() -> Result<()> {
     let http = Client::builder()
         .timeout(Duration::from_secs(30))
         // User-Agent requis/recommandé par les services publics OSM utilisés par
-        // défaut (Nominatim, Overpass, OSRM FOSSGIS) — sinon risque de blocage.
+        // défaut (Nominatim, Overpass, OSRM FOSSGIS) - sinon risque de blocage.
         .user_agent(concat!("Kubuno-Maps/", env!("CARGO_PKG_VERSION"), " (self-hosted)"))
         .build()
         .context("Création du client HTTP")?;
 
-    // Optional offline GeoIP (admin-supplied .mmdb) — maps owns this service.
+    // Optional offline GeoIP (admin-supplied .mmdb) - maps owns this service.
     let geoip = Arc::new(
         settings.geoip.db_path.as_deref().and_then(kubuno_maps::services::geoip_service::GeoResolver::open),
     );
@@ -257,7 +257,7 @@ async fn main() -> Result<()> {
                 match http2.post(&url).header("X-Internal-Secret", secret.as_str()).send().await {
                     Ok(r) if r.status().is_success() => {}
                     Ok(r) if r.status() == reqwest::StatusCode::NOT_FOUND => {
-                        tracing::info!("Heartbeat 404 — re-enregistrement…");
+                        tracing::info!("Heartbeat 404 - re-enregistrement…");
                         register_with_core(&http2, &settings2).await;
                     }
                     Ok(r) if r.status() == reqwest::StatusCode::FORBIDDEN => {

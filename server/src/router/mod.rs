@@ -133,7 +133,7 @@ async fn config_handler(
         "style_url":    style_url,
         // Feature flags the client needs in order to hide a control rather than
         // offer one that the server will refuse. The POI catalogue is built into
-        // the frontend, so the flag — not an empty catalogue — is what tells it
+        // the frontend, so the flag - not an empty catalogue - is what tells it
         // to drop the category chips.
         "enable_overpass":       cfg.enable_overpass,
         // Whether the "share this sketch" control may offer to publish a link.

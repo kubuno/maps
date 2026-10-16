@@ -1,4 +1,4 @@
-// MapsTooltipBox — the native element behind the `.kbview` <Tooltip> project control
+// MapsTooltipBox - the native element behind the `.kbview` <Tooltip> project control
 // (src/kbview-controls.json). Wraps the @ui Tooltip so a styled hover tip can be authored declaratively
 // instead of the plain `ToolTip` attribute. SingleWidget: its one child element is the hover target
 // (the @ui Tooltip clones that single element to attach pointer handlers).

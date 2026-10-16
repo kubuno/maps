@@ -1,5 +1,5 @@
-<!-- MapsRouteSuggestions — converted from MapsRouteSuggestions.tsx (partial: the per-row glyph is a dynamic
-     React <ReactHost> part; the rows — your position, Home/Work shortcuts, recents — are one Repeater). -->
+<!-- MapsRouteSuggestions - converted from MapsRouteSuggestions.tsx (partial: the per-row glyph is a dynamic
+     React <ReactHost> part; the rows - your position, Home/Work shortcuts, recents - are one Repeater). -->
 <Panel x:Props="MapsRouteSuggestionsProps" Class="py-1">
   <Stack Direction="LeftToRight" CrossAlign="Center" Visible="{Binding show_error}" Class="gap-1.5 px-6 py-2 text-sm text-danger">
     <Icon Name="AlertCircle" Size="14"/>

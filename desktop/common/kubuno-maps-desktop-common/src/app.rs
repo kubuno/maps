@@ -73,7 +73,7 @@ impl UiHost for TextUi {
     fn run(&self, options: &Options) -> i32 {
         let v = &options.view;
         println!(
-            "{PROGRAM}: {} — centre [{:.4}, {:.4}] z{:.1} ({} overlay(s), labels {})",
+            "{PROGRAM}: {} - centre [{:.4}, {:.4}] z{:.1} ({} overlay(s), labels {})",
             v.basemap.id(),
             v.center[0],
             v.center[1],

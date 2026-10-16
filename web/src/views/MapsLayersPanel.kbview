@@ -1,4 +1,4 @@
-<!-- MapsLayersPanel — converted from MapsLayersPanel.tsx (partial). ReactHost parts: per-tile glyph
+<!-- MapsLayersPanel - converted from MapsLayersPanel.tsx (partial). ReactHost parts: per-tile glyph
      (dynamic icon), the offline progress bar (dynamic inline width) and the GeoJSON/KML file picker.
      The overlay/basemap tile grids and the imports list are Repeaters (per-row via args.row). -->
 <Stack x:Props="MapsLayersPanelProps" Gap="0" Class="w-[340px] bg-surface-0 rounded-2xl shadow-2xl border border-border overflow-hidden flex flex-col max-h-[calc(100vh-120px)]">

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Maps · Layers — the base-map picker expanded (LayersButton.kt): the layers button with its popup panel
+  Maps · Layers - the base-map picker expanded (LayersButton.kt): the layers button with its popup panel
   (Plan / Satellite / Relief; Plan selected). Light theme, logical px. Map is a native control (placeholder).
 -->
 <Panel xmlns="https://kubuno.com/views" xmlns:x="https://kubuno.com/views/x"

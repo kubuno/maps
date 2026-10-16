@@ -2,7 +2,7 @@
 name        = "kubuno-maps"
 version     = "0.1.9"
 edition     = "2021"
-description = "Kubuno Maps — cartographie self-hosted OpenStreetMap"
+description = "Kubuno Maps - cartographie self-hosted OpenStreetMap"
 license     = "AGPL-3.0"
 repository  = "https://github.com/kubuno/maps"
 
@@ -48,7 +48,7 @@ kubuno-storage     = { workspace = true }
 # Parsing GPX (XML)
 quick-xml = { version = "0.41" }
 
-# On-demand resizing of the 3D solar-system ("cosmos") planet textures — pure
+# On-demand resizing of the 3D solar-system ("cosmos") planet textures - pure
 # Rust (no native subprocess), so it stays within the seccomp no-execve policy.
 image = { version = "0.25", default-features = false, features = ["jpeg", "png"] }
 

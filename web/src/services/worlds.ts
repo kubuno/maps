@@ -25,7 +25,7 @@ export function marsStyle(): StyleSpecification {
 }
 
 // Surface maps of the celestial bodies, from the shared cosmos asset catalogue
-// (maps/common/assets/cosmos) — one source of truth with the 3D model files, bundled by Vite
+// (maps/common/assets/cosmos) - one source of truth with the 3D model files, bundled by Vite
 // (no runtime CDN dependency). `tex(body, map)` returns the served URL of that map.
 const COSMOS_TEX = import.meta.glob<string>('../../../common/assets/cosmos/textures/**/*.{jpg,png}', {
   query: '?url',
@@ -40,7 +40,7 @@ function tex(body: string, map: 'color' | 'bump' | 'clouds' | 'ring'): string {
 export const SATURN_RING_TEXTURE = tex('saturn', 'ring')
 export const EARTH_CLOUDS = tex('earth', 'clouds')
 
-// Halo atmosphérique (coquille de Fresnel) — couleur + épaisseur + intensité.
+// Halo atmosphérique (coquille de Fresnel) - couleur + épaisseur + intensité.
 export interface Atmo { color: number; size: number; intensity: number }
 
 // Lune décorative (non cartographiée) en orbite autour d'une planète.
@@ -66,13 +66,13 @@ export interface World {
   tilt?:      number              // inclinaison de l'axe (deg)
   rotH?:      number              // période de rotation propre (h ; négatif = rétrograde)
   periodD?:   number              // période de révolution (jours)
-  L0?:        number              // longitude moyenne à J2000 (deg) — position réelle
+  L0?:        number              // longitude moyenne à J2000 (deg) - position réelle
   incl?:      number              // inclinaison du plan orbital (deg)
   node?:      number              // longitude du nœud ascendant Ω (deg)
   parent?:    string              // si défini : orbite ce corps (ex. Lune→Terre)
-  realR:      number              // rayon réel (km) — pour l'échelle réelle
+  realR:      number              // rayon réel (km) - pour l'échelle réelle
   realAU?:    number              // demi-grand axe réel (UA) autour du Soleil
-  realKm?:    number              // distance réelle au parent (km) — lunes
+  realKm?:    number              // distance réelle au parent (km) - lunes
   atmosphere?: Atmo
   ring?:      Ring
   moons?:     Sat[]

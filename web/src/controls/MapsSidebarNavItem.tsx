@@ -1,4 +1,4 @@
-// MapsSidebarNavItem — the native element behind the `.kbview` <SidebarNavItem> project control
+// MapsSidebarNavItem - the native element behind the `.kbview` <SidebarNavItem> project control
 // (src/kbview-controls.json). Wraps the host `SidebarNavItem` (@kubuno/sdk) so a module's sidebar row can be
 // authored declaratively; the icon is passed by Lucide name.
 import type { ComponentType, ReactNode } from 'react'

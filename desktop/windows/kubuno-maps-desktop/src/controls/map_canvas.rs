@@ -1,4 +1,4 @@
-//! `MapCanvas` — the live map surface, drawn natively (Direct2D, so the GPU rasterises it — never a web view).
+//! `MapCanvas` - the live map surface, drawn natively (Direct2D, so the GPU rasterises it - never a web view).
 //!
 //! Each basemap of the layers panel draws from a tile source of the portable [`TileStore`] (background download,
 //! memory + disk cache), created when first shown:

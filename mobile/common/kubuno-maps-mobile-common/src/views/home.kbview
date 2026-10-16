@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Maps · Home — the idle map state (MapsApp.kt): the MapLibre map (a native control, shown here as a neutral
+  Maps · Home - the idle map state (MapsApp.kt): the MapLibre map (a native control, shown here as a neutral
   placeholder) with the floating SearchPill + CategoryChips on top, the Layers / locate buttons band, and the
   HomeSheet at the bottom (handle, favourite chips, the "Aller quelque part" button and a nearby list). Shared
   vocabulary, light theme, logical px (~390 wide). Screen root is a Panel; the map colour is the root backdrop

@@ -1,4 +1,4 @@
-//! Kubuno Maps for Windows (`kubuno-maps.exe`) — `Program.cs`: the app of desktop/common with the Windows
+//! Kubuno Maps for Windows (`kubuno-maps.exe`) - `Program.cs`: the app of desktop/common with the Windows
 //! platform registered and the Win32 window as its user interface.
 //!
 //! `kubuno-maps [--dark] [--culture fr|en] [--sample | --live]`

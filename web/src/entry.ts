@@ -2,7 +2,7 @@
  * Point d'entrée du bundle MODULE maps (la page /maps), chargé à l'exécution.
  *
  * Buildé séparément via `vite.module.config.ts` : tous les specifiers partagés
- * (`@kubuno/sdk`, `@ui`, react, maplibre-gl externalisé ? non — maplibre reste
+ * (`@kubuno/sdk`, `@ui`, react, maplibre-gl externalisé ? non - maplibre reste
  * bundlé localement) sont résolus au runtime par l'import map du host. Le host
  * importe ce fichier puis appelle `register()` ; `sdkVersion` permet de rejeter
  * proprement une incompatibilité de contrat.
@@ -42,7 +42,7 @@ export function register() {
     geoip: (ip: string) => geoipLookup(ip),
     /// The URL that opens Maps on the way to `destination`, given as free text
     /// (an address, a place name). Consumers build a link with it instead of
-    /// hard-coding a route into this module — and simply show nothing when Maps
+    /// hard-coding a route into this module - and simply show nothing when Maps
     /// is not installed, since the service is then absent.
     directionsUrl: (destination: string) =>
       `/maps?dest=${encodeURIComponent(destination)}`,
@@ -57,7 +57,7 @@ export function register() {
   // deux champs numériques. L'hôte ne nous nomme pas, il déclare le trou ; nous
   // le remplissons, et il retrouve ses deux champs si maps est désinstallé.
   // Importé directement, pas en `lazy` : l'hôte rend la surcharge là où il rend
-  // ses propres champs, sans `Suspense` autour — et maplibre est déjà dans ce
+  // ses propres champs, sans `Suspense` autour - et maplibre est déjà dans ce
   // bundle (MiniMap), donc le différer n'économiserait rien.
   SlotRegistry.registerOverride('geo-point-field', 'maps', MapsLocationPicker)
 
@@ -110,6 +110,6 @@ export function register() {
 
   RouteRegistry.register('maps', MapsPage)
   RouteRegistry.register('maps/settings', MapsSettingsPage)
-  // Vue publique (anonyme) d'un croquis partagé — hors shell.
+  // Vue publique (anonyme) d'un croquis partagé - hors shell.
   RouteRegistry.registerPublic('maps/s/:token', MapsPublicSketch)
 }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Maps · Library — the saved-places modal sheet (SavedPlacesSheet.kt): handle, the Lieux / Traces tabs and the
+  Maps · Library - the saved-places modal sheet (SavedPlacesSheet.kt): handle, the Lieux / Traces tabs and the
   list rows (saved places with a bookmark, GPX tracks with a route icon + delete). Shown here on the Lieux tab.
   Light theme, logical px. Root is a Panel; the dimmed map is the backdrop.
 -->

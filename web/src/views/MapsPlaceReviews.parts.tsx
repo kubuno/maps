@@ -1,6 +1,6 @@
 /**
  * React part of `MapsPlaceReviews.kbview`: the star row, whose per-star fill/colour is dynamic and (when
- * `onPick` is given) clickable — no .kbview element expresses that, so it stays React. Re-exported by the
+ * `onPick` is given) clickable - no .kbview element expresses that, so it stays React. Re-exported by the
  * code-behind for other screens (`MapsPlaceHeader`) that import `Stars`.
  */
 import { Star } from 'lucide-react'

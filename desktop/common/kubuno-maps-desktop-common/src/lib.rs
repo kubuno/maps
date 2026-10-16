@@ -1,4 +1,4 @@
-//! # Kubuno Maps — the portable app (`desktop/common`)
+//! # Kubuno Maps - the portable app (`desktop/common`)
 //!
 //! The complete Kubuno Maps desktop app that does not depend on an operating system: the launch options
 //! ([`app::Options`]), the map view state ([`state::MapView`]), the offline sample dataset ([`sample`]) and the

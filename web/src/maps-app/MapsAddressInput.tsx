@@ -12,7 +12,7 @@ const hoverBg = (color: string) => ({
 // Address autocomplete field (Nominatim geocoding). Used for the origin /
 // stops / destination of a route and for the saved-place editor.
 //   - `size="sm"` (default): compact field of the saved-place editor;
-//   - `size="lg"`: 56 px field of the route panel — 1 px grey border, 2 px
+//   - `size="lg"`: 56 px field of the route panel - 1 px grey border, 2 px
 //     primary ring when focused, search icon inside while focused and empty.
 export function MapsAddressInput({
   value, placeholder, accent, size = 'sm', leading, trailing, autoFocus,
@@ -31,7 +31,7 @@ export function MapsAddressInput({
   onClear?:    () => void
   /** Focus entered / left the text input. */
   onFocusChange?: (focused: boolean) => void
-  /** The user is typing a query (≥ 2 chars) — the caller may hide its own suggestions. */
+  /** The user is typing a query (≥ 2 chars) - the caller may hide its own suggestions. */
   onTyping?:   (typing: boolean) => void
 }) {
   const [q,       setQ]       = useState('')

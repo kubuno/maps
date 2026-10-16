@@ -1,6 +1,6 @@
 // A small, self-contained MapLibre map that plots points. Maps exposes it via
 // ModuleServiceRegistry so OTHER modules (e.g. p2pnas) can show a real world map
-// WITHOUT importing maps' code — maps renders it. Like the rest of maps, points
+// WITHOUT importing maps' code - maps renders it. Like the rest of maps, points
 // are drawn ON the WebGL canvas (a GeoJSON source + GL circle layer), not as DOM
 // markers. Uses the public OpenFreeMap style (no auth).
 import { useEffect, useRef, useState } from 'react'

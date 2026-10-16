@@ -11,7 +11,7 @@ use crate::models::place::{
 
 /// Column list shared by every `saved_places` query. It is a macro rather than a
 /// `const` so callers can splice it with `concat!`, which keeps the whole query a
-/// compile-time `&'static str` literal — nothing is built at run time, so there is
+/// compile-time `&'static str` literal - nothing is built at run time, so there is
 /// no dynamic SQL to audit.
 macro_rules! place_cols {
     () => {

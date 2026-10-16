@@ -2,7 +2,7 @@
  * Code-behind of `MapsRouteOptions.kbview` (converted from `MapsRouteOptions.tsx`).
  *
  * "Leave now ▾" schedule dropdown + the "Options" disclosure (avoid classes, units). There is no traffic
- * model in Kubuno, so the schedule never changes the routing request — the result cards only derive an
+ * model in Kubuno, so the schedule never changes the routing request - the result cards only derive an
  * "arrive/leave around HH:MM" from it.
  */
 import { bind, type MouseEventArgs, type ValueChangedEventArgs } from '@kubuno/views'

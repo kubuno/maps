@@ -3,7 +3,7 @@
 
 /** Human distance: metres under 1 km, else one-decimal kilometres. */
 export function fmtDist(m: number | null): string {
-  if (m === null) return '—'
+  if (m === null) return '-'
   return m >= 1000 ? `${(m / 1000).toFixed(1)} km` : `${Math.round(m)} m`
 }
 
@@ -42,7 +42,7 @@ export function makeWaypointEl(label: string): HTMLElement {
   return el
 }
 
-// Haversine distance (metres) — used to size the explore radius from the
+// Haversine distance (metres) - used to size the explore radius from the
 // viewport and to label how far each POI result is from the map centre.
 export function haversineM(aLat: number, aLng: number, bLat: number, bLng: number): number {
   const R = 6371000

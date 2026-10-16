@@ -1,4 +1,4 @@
-<!-- MapsRoutePanel — converted from MapsRoutePanel.tsx using the container pattern. The converted children
+<!-- MapsRoutePanel - converted from MapsRoutePanel.tsx using the container pattern. The converted children
      (the mode row, the results and their actions) are embedded as native typed `.kbview` elements; the fields,
      options and the suggestions stay React <ReactHost> parts (imperative / multi-arg callback). This view holds
      their orchestration (focus/typing/schedule/details state, units preference, print). -->

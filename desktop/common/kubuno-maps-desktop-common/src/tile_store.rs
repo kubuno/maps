@@ -3,13 +3,13 @@
 //! Two kinds of source: the **OpenFreeMap vector tiles** the web basemap draws (« Plan » and « Clair »), decoded with
 //! the module's shared engine (`kubuno_maps_core::mvt`), and the **raster** sources of the shared catalogue
 //! (`kubuno_maps_core::basemap`: OpenTopoMap « Relief », Esri imagery « Satellite »), kept as image files the native
-//! surface draws. An **offline** store reads the disk cache only and never touches the network — the « Hors ligne »
+//! surface draws. An **offline** store reads the disk cache only and never touches the network - the « Hors ligne »
 //! basemap is the vector map of the places already visited, so OpenStreetMap's own tile servers are never used (their
 //! policy forbids bulk downloading).
 //!
 //! Portable (any OS): the native map surface asks for the tiles of the current view ([`TileStore::set_wanted`],
-//! nearest first) and paints those already available ([`TileStore::tile`]); worker threads fetch the rest — the most
-//! recently wanted first, so a fast pan never waits behind tiles already off screen — and call the `notify` hook when
+//! nearest first) and paints those already available ([`TileStore::tile`]); worker threads fetch the rest - the most
+//! recently wanted first, so a fast pan never waits behind tiles already off screen - and call the `notify` hook when
 //! one arrives, so the surface repaints.
 
 use std::collections::{HashMap, HashSet, VecDeque};

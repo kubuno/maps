@@ -1,4 +1,4 @@
-<!-- MapsPlacesPanel — converted from MapsPlacesPanel.tsx (partial). The outer structure, the filter chips,
+<!-- MapsPlacesPanel - converted from MapsPlacesPanel.tsx (partial). The outer structure, the filter chips,
      the places list and the recents list are the view (Repeaters); the per-row editor (PlaceRow), the "new
      list" form, the coloured chip dot and the GeoJSON import stay React <ReactHost> parts. -->
 <Stack x:Props="MapsPlacesPanelProps" Gap="0" Class="flex flex-col gap-2.5">

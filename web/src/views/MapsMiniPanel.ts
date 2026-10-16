@@ -1,7 +1,7 @@
 /**
  * Code-behind of `MapsMiniPanel.kbview` (converted from `MapsMiniPanel.tsx`).
  *
- * Maps side panel — the user's saved places, one click from wherever they are. Lists saved places and
+ * Maps side panel - the user's saved places, one click from wherever they are. Lists saved places and
  * hands off to the module (or to directions) rather than embedding a map beside every other page.
  */
 import { type MouseEventArgs } from '@kubuno/views'

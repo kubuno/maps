@@ -1,7 +1,7 @@
-# Cosmos assets — celestial-body 3D models and surface maps
+# Cosmos assets - celestial-body 3D models and surface maps
 
 The 3D models of the celestial bodies shown in the Maps "solar system" view, and their surface maps, as separate
-files — one source of truth shared by the web app (`maps/web`, three.js) and the native desktop renderer
+files - one source of truth shared by the web app (`maps/web`, three.js) and the native desktop renderer
 (`maps/desktop`, wgpu). Before this, the geometry was built procedurally in code and the textures were loaded from a
 CDN at runtime; now each body is a real model file with its texture maps beside it.
 
@@ -19,12 +19,12 @@ textures/<id>/
     ring.jpg           Saturn's ring colour strip (mapped across the ring radially).
 ```
 
-The sphere maps longitude → U (0 → 1 eastward) and latitude → V, with the north pole at the top of the image — the
+The sphere maps longitude → U (0 → 1 eastward) and latitude → V, with the north pole at the top of the image - the
 layout every texture here uses, so a body's `color.jpg` wraps onto its sphere directly.
 
 ## Regenerating the geometry
 
-The `.obj` and `.mtl` files are generated — never hand-edit them. After changing the body table (segments, which
+The `.obj` and `.mtl` files are generated - never hand-edit them. After changing the body table (segments, which
 maps a body has, a ring's radii), rerun:
 
 ```bash

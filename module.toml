@@ -2,7 +2,7 @@
 id           = "maps"
 display_name = "Maps"
 version      = "0.1.9"
-description  = "Cartographie self-hosted — OpenStreetMap, itinéraires, lieux favoris, traces GPX"
+description  = "Cartographie self-hosted - OpenStreetMap, itinéraires, lieux favoris, traces GPX"
 author       = "Kubuno Contributors"
 license      = "AGPL-3.0"
 homepage_url = "https://github.com/kubuno/kubuno"
@@ -76,7 +76,7 @@ description = "Ce que les utilisateurs peuvent publier hors de l'instance, et co
 # Declarative source of truth for the module's instance-wide parameters. The core
 # seeds the "global" scope into core.settings and exposes it in the admin console;
 # the backend prefers the instance value over config.toml at each consumption point.
-# The core only accepts value types bool|int|string|enum — coordinates are floats,
+# The core only accepts value types bool|int|string|enum - coordinates are floats,
 # so they are declared as "string" and parsed by the backend.
 
 [[settings]]
@@ -189,7 +189,7 @@ description = "Plafond appliqué à l'import d'un fichier GPX."
 # ── Partage & quotas ────────────────────────────────────────────────────────────
 # Un croquis publié est lisible SANS session par quiconque détient le lien : c'est
 # la seule surface de ce module qui sort de l'instance. L'état intermédiaire
-# sépare « arrêter de publier » de « révoquer ce qui est publié » — durcir une
+# sépare « arrêter de publier » de « révoquer ce qui est publié » - durcir une
 # politique ne doit pas réécrire en silence ce que les utilisateurs ont déjà
 # partagé.
 [[settings]]

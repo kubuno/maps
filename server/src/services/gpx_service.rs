@@ -374,7 +374,7 @@ mod tests {
     ///
     /// quick-xml reports an entity as its own event since 0.38, so `A &amp; B`
     /// arrives as three events rather than one. A parser that only looks at
-    /// `Event::Text` silently drops the entity — and, worse here, the second
+    /// `Event::Text` silently drops the entity - and, worse here, the second
     /// text event overwrites the first, so the name loses everything before
     /// the `&`.
     #[test]

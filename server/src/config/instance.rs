@@ -2,7 +2,7 @@
 //! the console.
 //!
 //! Declared by `module.toml`'s `[[settings]]` blocks, stored in `core.settings`,
-//! and read back here through `/internal/modules/maps/settings` — a module owns
+//! and read back here through `/internal/modules/maps/settings` - a module owns
 //! its own schema and cannot read the core's tables, and a background refresher
 //! has no user token for the public config route. The module is named in the URL
 //! (not derived from the secret) so the read works whether the instance shares
@@ -61,7 +61,7 @@ pub struct InstanceConfig {
 /// How far an anonymous share link on a sketch is allowed to go.
 ///
 /// A sketch shared publicly is readable by anyone holding the token, WITHOUT a
-/// session — the one surface of this module that leaves the instance. Turning a
+/// session - the one surface of this module that leaves the instance. Turning a
 /// sharing policy off must not silently rewrite what users already published, so
 /// the middle state separates "stop publishing" from "revoke what is published":
 /// an administrator tightening the policy usually wants the first, and only
@@ -146,7 +146,7 @@ impl InstanceConfig {
                 .unwrap_or(fallback)
         };
         // An integer in a range. The console stores an `int` as a JSON number,
-        // but a value echoed from a text field can arrive as a string — accept
+        // but a value echoed from a text field can arrive as a string - accept
         // both, then range-check.
         let uint_in = |key: &str, min: u64, max: u64, fallback: u64| -> u64 {
             let v = settings.get(key);

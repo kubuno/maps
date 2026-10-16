@@ -12,7 +12,7 @@ import * as __parts from './MapsSavePlaceModal.parts.tsx'
 export interface MapsSavePlaceModalProps {
   lat:         number
   lng:         number
-  /** Prefilled name — the reverse-geocoded label of the point, usually. */
+  /** Prefilled name - the reverse-geocoded label of the point, usually. */
   defaultName: string
   onSave:      (name: string, note: string) => void
   onClose:     () => void

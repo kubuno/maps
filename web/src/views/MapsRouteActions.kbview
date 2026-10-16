@@ -1,4 +1,4 @@
-<!-- MapsRouteActions — converted from MapsRouteActions.tsx. The QR dialog (itself a converted view) is shown
+<!-- MapsRouteActions - converted from MapsRouteActions.tsx. The QR dialog (itself a converted view) is shown
      through a <ReactHost>; the hover tint uses a `hover:` class in place of the imperative hoverBg helper. -->
 <Panel x:Props="MapsRouteActionsProps" Class="contents">
   <Stack Direction="LeftToRight" CrossAlign="Center" Class="gap-1 px-3 py-1 no-print">

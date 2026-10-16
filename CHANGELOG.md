@@ -16,12 +16,12 @@ number at release time, and CI publishes that section as the GitHub Release note
   its `.mtl` material, and its texture maps (colour, relief, clouds, Saturn's ring) as separate files, with a
   manifest (`cosmos.json`) and a generator for the geometry. The web app now loads the bundled textures instead of a
   third-party CDN at runtime (no external dependency, no CORS), and the solar-system view now builds every body (the
-  Sun, the planets and the moons) from the shared sphere model file instead of a geometry rebuilt in code — so the
+  Sun, the planets and the moons) from the shared sphere model file instead of a geometry rebuilt in code - so the
   same model files are the single source of truth on the web and the native desktop renderer.
 
 ### Added
-- **Desktop app: the live map, drawn natively.** The Windows app now shows the real Kubuno basemap — the same
-  OpenFreeMap vector tiles as the web, in the Kubuno map theme — rendered by the app itself through the GPU (Direct2D),
+- **Desktop app: the live map, drawn natively.** The Windows app now shows the real Kubuno basemap - the same
+  OpenFreeMap vector tiles as the web, in the Kubuno map theme - rendered by the app itself through the GPU (Direct2D),
   with no web view: drag to move the map, use the wheel to zoom about the pointer, place names in the interface
   language (never overlapping, never cut at the edge) and the OpenStreetMap / OpenMapTiles / OpenFreeMap attribution
   always visible. Tiles download in the background and are kept in a per-user cache, so a place already visited opens
@@ -30,16 +30,16 @@ number at release time, and CI publishes that section as the GitHub Release note
   mobile app), plus the inverse Web Mercator projection.
 - **Desktop app: every basemap of the layers panel.** « Clair » (a pale palette over the same vector tiles), « Relief »
   (OpenTopoMap) and « Satellite » (Esri imagery, with Esri's place names when labels are on) are drawn natively too,
-  each with its own attribution. « Hors ligne » shows the vector map from the local cache only — the places already
-  visited — and never downloads anything (OpenStreetMap's tile servers are never used).
+  each with its own attribution. « Hors ligne » shows the vector map from the local cache only - the places already
+  visited - and never downloads anything (OpenStreetMap's tile servers are never used).
 - **Desktop app: search and saved places.** Typing in the search field searches places (after a short pause, without
-  freezing the window) through the Maps server of your account — the same geocoding service and search history as the
-  web — preferring the area on screen and naming places in the interface language. A « Mes lieux » panel lists the
+  freezing the window) through the Maps server of your account - the same geocoding service and search history as the
+  web - preferring the area on screen and naming places in the interface language. A « Mes lieux » panel lists the
   results, each with an icon for its kind; clicking one flies the map there and drops a pin, and « Enregistrer » adds
   it to your saved places (the button reads « Enregistré » for a place already saved). With an empty field the panel
   lists your saved places, which the map marks with dots under the place names. The panel follows the light and dark
   themes; `--sample` searches a small built-in list of real places without any server.
-- **Desktop app (started)**: the native Windows / Visual Studio (Rust) desktop client of Maps is bootstrapped, following the method used for Documents and Calendar. A new sans-IO shared engine `kubuno-maps-core` (`common/core`) ports the pure map algorithms from the web — Web Mercator slippy-map tile math, geodesic geometry (distance, polyline length, polygon area, bearing, circle ring, great-circle arc, flight time), the basemap/overlay catalogue, the Kubuno map theme palette and the distance/area/duration formatters — with unit tests. A new `desktop/` Cargo workspace holds the portable app (`kubuno-maps-desktop-common`: launch options, map view state, offline sample data, platform extension points) and the Windows entry point (`kubuno-maps.exe`). The conversion study and milestones, including the map-rendering decision (host MapLibre in a web surface first, converge on MapLibre Native later), are documented in `DESKTOP-CONVERSION.md`. The Windows front end now opens a real framework window (M1 — window shell): the Kubuno shell chrome, a navigation toolbar with the module name and a search field, and a layers panel (base-map choices, overlay switches and a labels switch) wired to the shared `kubuno-maps-core` basemap/overlay catalogue and the map view state — switching a base map or toggling a layer updates the state and repaints the map area, which shows a themed placeholder from the core map palette until the live map surface lands. No user-facing desktop app ships yet.
+- **Desktop app (started)**: the native Windows / Visual Studio (Rust) desktop client of Maps is bootstrapped, following the method used for Documents and Calendar. A new sans-IO shared engine `kubuno-maps-core` (`common/core`) ports the pure map algorithms from the web - Web Mercator slippy-map tile math, geodesic geometry (distance, polyline length, polygon area, bearing, circle ring, great-circle arc, flight time), the basemap/overlay catalogue, the Kubuno map theme palette and the distance/area/duration formatters - with unit tests. A new `desktop/` Cargo workspace holds the portable app (`kubuno-maps-desktop-common`: launch options, map view state, offline sample data, platform extension points) and the Windows entry point (`kubuno-maps.exe`). The conversion study and milestones, including the map-rendering decision (host MapLibre in a web surface first, converge on MapLibre Native later), are documented in `DESKTOP-CONVERSION.md`. The Windows front end now opens a real framework window (M1 - window shell): the Kubuno shell chrome, a navigation toolbar with the module name and a search field, and a layers panel (base-map choices, overlay switches and a labels switch) wired to the shared `kubuno-maps-core` basemap/overlay catalogue and the map view state - switching a base map or toggling a layer updates the state and repaints the map area, which shows a themed placeholder from the core map palette until the live map surface lands. No user-facing desktop app ships yet.
 - **Mobile app: sign in to your Kubuno server.** The first launch shows the shared Kubuno sign-in (server address,
   identifier and password, two-step code when the account has one); the session is then kept in the phone's secret
   store, so the next launch opens the map directly. The library sheet shows the signed-in account (name and server)
@@ -47,10 +47,10 @@ number at release time, and CI publishes that section as the GitHub Release note
 - **Mobile app: the screens are interactive, and search runs off the UI thread.** The Rust mobile app no longer only
   advances on a tap: tapping the search pill opens the search screen and starts a search, the menu and the map buttons
   open the library and the layers screens, and a back or close returns to the map. The search screen shows « Recherche
-  en cours… » at once, then — when the (for now simulated) Maps server call returns on a worker thread — fills with the
+  en cours… » at once, then - when the (for now simulated) Maps server call returns on a worker thread - fills with the
   result rows without any further touch, each row a tappable place that returns to the map. Opening the search focuses
   the field and brings up the keyboard: what you type shows in the field (with a caret), and pressing Enter runs the
-  search for exactly that text — the loading line and the results echo the query (« Résultats pour « Louvre » »). This
+  search for exactly that text - the loading line and the results echo the query (« Résultats pour « Louvre » »). This
   is the first slice of the app's real behaviour, on the core's new mobile interaction engine (hit-testing, screen
   navigation, data-bound text and lists, typed text fields, and the background-work → UI-thread queue). The full
   `MapsViewModel` logic (account, live geocoding, routing, navigation, library) builds on this.
@@ -60,13 +60,13 @@ number at release time, and CI publishes that section as the GitHub Release note
 
 - **The mobile app moves to Kubuno views (Rust), laid out like the desktop app.** `mobile/` is now a Cargo workspace:
   `common/kubuno-maps-mobile-common` (the app's `.kbview` screens, edited in Visual Studio, and its interactive themed
-  map — the `MapView` control with the themed basemap snapshots and the demo route), `android/kubuno-maps-mobile-android`
-  (the APK — package `com.kubuno.maps`, launcher icon = the Maps web logo) and `ios/kubuno-maps-mobile-ios`, shown in
+  map - the `MapView` control with the themed basemap snapshots and the demo route), `android/kubuno-maps-mobile-android`
+  (the APK - package `com.kubuno.maps`, launcher icon = the Maps web logo) and `ios/kubuno-maps-mobile-ios`, shown in
   the Visual Studio solution under `Mobile/Common`, `Mobile/Android` and `Mobile/iOS`. The screens and the map used to
   live inside the core's mobile renderer; they are now the module's own, rendered and run by the shared Kubuno mobile
   renderer and Android / iOS shells of the core. The map projects with the module's shared engine, `kubuno-maps-core`,
   which gains the normalised Web Mercator projection (`mercator_x` / `mercator_y`). The previous Kotlin/Jetpack Compose
-  app (MapLibre Native) is retired from `mobile/` — it stays in the git history as the functional reference for
+  app (MapLibre Native) is retired from `mobile/` - it stays in the git history as the functional reference for
   migrating the app's behaviour (search, places, routing, navigation), which is still to come. The `mobile` workflow
   builds the new APK with cargo-apk.
 - **The repository is organised by platform.** The server (its sources, migrations, tests and configuration
@@ -101,7 +101,7 @@ number at release time, and CI publishes that section as the GitHub Release note
 
 - **Choice of database engine.** Maps now runs on PostgreSQL, MySQL/MariaDB or
   SQLite, selected by the administrator at run time (`[database] engine`) from a
-  single build — there is no separate binary per engine, and all three drivers
+  single build - there is no separate binary per engine, and all three drivers
   ship in the one `.kbpkg`. SQLite makes a self-contained, server-less install
   possible.
 
@@ -110,8 +110,8 @@ number at release time, and CI publishes that section as the GitHub Release note
 - **Saved-place and review tags are stored as a portable JSON array.** They were
   held in a PostgreSQL-only array column; the same tags, tag filtering and
   behaviour now work identically on the three engines. Existing PostgreSQL
-  instances are converted automatically on upgrade — the column is migrated in
-  place and its index rebuilt — so no action is required and no data is lost.
+  instances are converted automatically on upgrade - the column is migrated in
+  place and its index rebuilt - so no action is required and no data is lost.
 
 ### Security
 
@@ -142,13 +142,13 @@ number at release time, and CI publishes that section as the GitHub Release note
   the vulnerable code no longer ships at all.
 - **Input validation library updated.** The version in use carried
   RUSTSEC-2024-0421 through its domain-name parser, which accepted Punycode
-  labels that decode to plain ASCII — a mismatch an attacker can use to make two
+  labels that decode to plain ASCII - a mismatch an attacker can use to make two
   different names look like one.
 - **Database driver updated past an unfixable advisory.** The previous line
   pulled in an RSA implementation vulnerable to a timing side-channel
   (RUSTSEC-2023-0071) for which no fix will ever exist. The new line does not
   depend on it at all, and it refuses any SQL string built at run time unless it
-  has been audited — every such query here was checked and is now assembled
+  has been audited - every such query here was checked and is now assembled
   at compile time, so none is built at run time at all.
 
 ### Fixed
@@ -181,14 +181,14 @@ number at release time, and CI publishes that section as the GitHub Release note
 - **A map embedded in a page no longer steals the scroll wheel.** Scrolling
   towards the fields below a map sent the reader into orbit instead: the map
   caught every wheel turn passing over it. The wheel now zooms only once the map
-  has been selected — its search field counts as much as the map itself, since
-  naming a place and then zooming in on it is one gesture — and otherwise the
+  has been selected - its search field counts as much as the map itself, since
+  naming a place and then zooming in on it is one gesture - and otherwise the
   page scrolls as if the map were a picture. The zoom buttons work either way.
   Applies to the location picker and to the small map this module lends to other
   parts of the product.
 - **A place is now listed once.** Searching for an address could return the same
-  line several times — "Paris, Île-de-France, France métropolitaine, France"
-  twice over — because the geocoder answers with map objects, and one place is
+  line several times - "Paris, Île-de-France, France métropolitaine, France"
+  twice over - because the geocoder answers with map objects, and one place is
   usually several of them: a boundary and a point, each with its own identity
   and the very same name. The list is now keyed on the name that is actually
   read. This applies everywhere the module searches: the route panel, the search
@@ -197,8 +197,8 @@ number at release time, and CI publishes that section as the GitHub Release note
 ### Added
 
 - **Pick a position on a map, in forms that belong to other parts of Kubuno.**
-  Wherever the instance asks for a latitude and a longitude — the address of a
-  building in the admin console, today — this module now offers a map instead of
+  Wherever the instance asks for a latitude and a longitude - the address of a
+  building in the admin console, today - this module now offers a map instead of
   two number fields: search for the address, click to drop the pin, drag it to
   adjust. The coordinates stay editable by hand for anyone who already has them,
   and the plain fields come back if this module is removed.
@@ -208,7 +208,7 @@ number at release time, and CI publishes that section as the GitHub Release note
 - **This module now installs as a Kubuno package (`.kbpkg`) only.** Its system
   packages (Debian/RPM and the Windows and macOS installers) are no longer
   built: the module is distributed as one `.kbpkg` per platform (Linux, Windows,
-  macOS) that the Kubuno server installs itself — from the admin console, or
+  macOS) that the Kubuno server installs itself - from the admin console, or
   offline with `kubuno modules:install <file>.kbpkg`.
 - **A new look for the default map.** The default basemap now uses the Kubuno
   theme: near-white land, a soft grey urban mask with white streets, warm beige
@@ -246,12 +246,12 @@ number at release time, and CI publishes that section as the GitHub Release note
 
 - **The README now opens with the module's logo.** The public README on
   GitHub now shows the module's designer logo (the same PNG shown as the
-  browser tab icon and in the applications menu) at the top of the page — the
+  browser tab icon and in the applications menu) at the top of the page - the
   repository landing now matches the icon a signed-in user sees inside the
   platform. The image ships in-repo, under `.github/logo.png`, so it renders
   even when the repo is browsed offline.
 
-- **New Maps logo** — a hexagon with a red map pin over a green landscape,
+- **New Maps logo** - a hexagon with a red map pin over a green landscape,
   used as the browser-tab icon and in the applications menu. It is now raster
   (PNG) designer artwork.
 
@@ -266,7 +266,7 @@ number at release time, and CI publishes that section as the GitHub Release note
 - **An "around here" card** under the search dropdown shows the town at the
   centre of the map and the current temperature (from Open-Meteo, cached for
   ten minutes). A traffic line is ready in the card but stays hidden until a
-  traffic data source is configured — no invented data.
+  traffic data source is configured - no invented data.
 - **"Send to your phone"** on a place shows a QR code of the place link,
   generated locally without any third-party service.
 - **A share menu** on a place offers "Copy link" (with a confirmation
@@ -324,13 +324,13 @@ number at release time, and CI publishes that section as the GitHub Release note
   release; the lockfile now takes the version that replaced it.
 - **The package could not be built where `zip` is absent.** The Windows job of
   the continuous integration has no `zip`, so the Windows package was simply lost
-  the first time it was attempted — a script failure, not a build failure. The
+  the first time it was attempted - a script failure, not a build failure. The
   builder now falls back to 7-Zip, then to PowerShell.
 ### Added
-- **Maps opens straight on the way to a place.** A link of the form `/maps?dest=<address>` opens the route panel with that address already set as the destination, so another part of Kubuno — the "Directions" button of a meeting invitation, for one — can hand over a destination without the reader retyping it.
+- **Maps opens straight on the way to a place.** A link of the form `/maps?dest=<address>` opens the route panel with that address already set as the destination, so another part of Kubuno - the "Directions" button of a meeting invitation, for one - can hand over a destination without the reader retyping it.
 - **`directionsUrl` service.** Maps now offers other modules a way to build that link. A module that wants to point at a place asks for the service and shows nothing when Maps is not installed, instead of hard-coding a route into it.
 
-- **This module now ships a `.kbpkg`** — the single package format a Kubuno
+- **This module now ships a `.kbpkg`** - the single package format a Kubuno
   server installs by itself, the same file on Linux, Windows and macOS. It
   carries the same binary, interface and manifest as the system packages,
   arranged the way the server expects to find a module on disk, plus a
@@ -344,7 +344,7 @@ number at release time, and CI publishes that section as the GitHub Release note
 
 - **A built package could be thrown away instead of published.** The job that
   attaches a package to the release waited ten minutes for another workflow to
-  create that release, then gave up with "release never appeared — build.yml
+  create that release, then gave up with "release never appeared - build.yml
   likely failed". The diagnosis was wrong: on a repository whose `.deb` takes
   longer than ten minutes to build, the release simply did not exist yet, and a
   package that had built perfectly was discarded. Four modules reached v0.1.6
@@ -363,14 +363,14 @@ number at release time, and CI publishes that section as the GitHub Release note
 
 - **Pill-shaped buttons are gone from the interface.** Filter chips, view
   segments, tab selectors and action buttons that were drawn as pills now use the
-  same 4 px corner radius as every other button — the shape set them apart for no
+  same 4 px corner radius as every other button - the shape set them apart for no
   reason other than habit. Round buttons that hold a lone icon, avatars, status
   dots and non-clickable badges keep their shape: a circle around a single glyph
   is not a pill.
 
 - Theme tokens: two colours for navigation labels (`--color-text-nav`,
   `--color-text-nav-active`). Every module carries the same token sheet, so the
-  values must match across them — whichever bundle loads last would otherwise
+  values must match across them - whichever bundle loads last would otherwise
   win. No visible change inside this module.
 
 ### Added

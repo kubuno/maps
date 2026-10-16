@@ -224,7 +224,7 @@ export function ensureSketchLayers(map: AnyMap) {
       paint: { 'text-color': '#202124', 'text-halo-color': '#fff', 'text-halo-width': 1.5 },
     })
   }
-  // Draft (in-progress) — dashed line + vertices.
+  // Draft (in-progress) - dashed line + vertices.
   if (!map.getLayer('sketch-draft-fill')) {
     map.addLayer({
       id: 'sketch-draft-fill', type: 'fill', source: DRAFT,

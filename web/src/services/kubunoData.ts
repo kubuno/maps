@@ -1,5 +1,5 @@
 /**
- * Cross-module data sharing over the clipboard (JSON envelopes) — producer side.
+ * Cross-module data sharing over the clipboard (JSON envelopes) - producer side.
  *
  * VENDORED from core `@kubuno/sdk` (`DataTransferRegistry`): replace the local
  * copy with `import { … } from '@kubuno/sdk'` once `@kubuno/sdk >= 0.1.3` is
@@ -149,7 +149,7 @@ export function pointEnvelope(lat: number, lng: number, name?: string): KubunoDa
     type: 'maps.place',
     module: 'maps',
     title: name ?? coords,
-    text: `${name ? `${name} — ` : ''}${coords}\n${location.origin}${placeHref(lat, lng, name)}`,
+    text: `${name ? `${name} - ` : ''}${coords}\n${location.origin}${placeHref(lat, lng, name)}`,
     href: placeHref(lat, lng, name),
     data,
   }

@@ -1,7 +1,7 @@
 /**
  * Code-behind of `MapsPlacePanel.kbview` (converted from `MapsPlacePanel.tsx`).
  *
- * Place details panel — the whole left rail of the map. Built from the OSM tags of the search result, a free
+ * Place details panel - the whole left rail of the map. Built from the OSM tags of the search result, a free
  * photo/extract (Wikipedia/Commons) and the module's own reviews. The children are rendered through
  * `<ReactHost>`; this class holds the tabs, the photo/gallery/reviews fetching and the collapse state.
  */

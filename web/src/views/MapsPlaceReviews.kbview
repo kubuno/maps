@@ -1,4 +1,4 @@
-<!-- MapsPlaceReviews — converted from MapsPlaceReviews.tsx (partial: the star rows are a dynamic React
+<!-- MapsPlaceReviews - converted from MapsPlaceReviews.tsx (partial: the star rows are a dynamic React
      <ReactHost> part; the review list is a Repeater). -->
 <Panel x:Props="MapsPlaceReviewsProps" Class="contents">
   <Label HtmlTag="P"
