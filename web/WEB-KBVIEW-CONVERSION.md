@@ -7,8 +7,8 @@
 
 Converting the Maps **web** UI (`maps/web/src`) to the shared `.kbview` view language (XML view +
 TypeScript code-behind, editable in the Visual Studio / web design surface), following the method already
-applied to `core` and `drive`. This document is the plan and the running log. Scope is **`maps/web` only**
-- `maps/desktop`, `maps/mobile`, `maps/server` and the `core` repo are out of scope.
+applied to `core` and `drive`. This document is the plan and the running log. Scope is **`maps/web` only** -
+`maps/desktop`, `maps/mobile`, `maps/server` and the `core` repo are out of scope.
 
 ## 1. How the conversion works (recap of the core/drive method)
 
@@ -166,8 +166,8 @@ a `ReactHost` for non-convertible SVG, and `this.memo` getters.
 The open question is answered: **`{Res}` cannot target a module namespace, so module screens must translate
 through the code-behind.** Evidence from the installed packages:
 
-- `@kubuno/views` `setResourceResolver(resolve: (key, set?, args?) => string)` / `PlanRes { key, set?, args? }`
-  - a `{Res}` carries a key, an optional `set`, and args. There is **no namespace field**.
+- `@kubuno/views` `setResourceResolver(resolve: (key, set?, args?) => string)` / `PlanRes { key, set?, args? }` -
+  a `{Res}` carries a key, an optional `set`, and args. There is **no namespace field**.
 - The resolver is documented as *"the host's i18next `t` (**default namespace**)"* (`Translator` in
   `resolve.d.ts`).
 - `@kubuno/sdk` `registerModuleTranslations(ns, bundles)` registers each module's strings under **its own
