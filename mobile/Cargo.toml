@@ -37,6 +37,9 @@ kubuno-maps-core          = { path = "../common/core" }
 # desktop framework. The shells are libraries here (`default-features = false`): this app provides its own entry
 # points instead of the shells' standalone demo.
 kubuno-mobile-render        = { path = "../../core/mobile/common/kubuno-mobile-render" }
+# The account / network base and the shared sign-in screens (core/mobile/common).
+kubuno-mobile-account       = { path = "../../core/mobile/common/kubuno-mobile-account" }
+kubuno-mobile-signin        = { path = "../../core/mobile/common/kubuno-mobile-signin" }
 kubuno-mobile-shell-android = { path = "../../core/mobile/android/kubuno-mobile-shell-android", default-features = false }
 kubuno-mobile-shell-ios     = { path = "../../core/mobile/ios/kubuno-mobile-shell-ios", default-features = false }
 

@@ -9,7 +9,7 @@
   <Stack Dock="Top">
     <Stack Direction="LeftToRight" CrossAlign="Center" Gap="4" Height="56" Padding="8, 0, 12, 0" BackColor="#FFFFFF">
       <IconButton x:Name="back" OnClick="close" Icon="ArrowLeft" Diameter="40" IconSize="22" IconColor="#5F6368"/>
-      <SearchField x:Name="query" OnSubmit="run_search" Stack.Fill="true" Placeholder="Rechercher un lieu, une adresse"/>
+      <SearchField x:Name="query" OnSearch="run_search" Stack.Fill="true" Placeholder="Rechercher un lieu, une adresse"/>
     </Stack>
     <Separator/>
   </Stack>

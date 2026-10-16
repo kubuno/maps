@@ -12,6 +12,17 @@
       <Stack Width="36" Height="4" BackColor="#DADCE0" CornerRadius="9999"/>
     </Stack>
 
+    <!-- The signed-in account (from the session) and sign-out. -->
+    <Stack Direction="LeftToRight" CrossAlign="Center" Gap="12" Padding="20, 0, 12, 10">
+      <Icon Name="User" Size="26" ForeColor="#1A73E8"/>
+      <Stack Stack.Fill="true" Gap="1">
+        <Label Text="{Bind account_label}" Role="Body" FontWeight="SemiBold" ForeColor="#202124" Overflow="Ellipsis"/>
+        <Label Text="{Bind account_server}" Role="Meta" ForeColor="#5F6368" Overflow="Ellipsis"/>
+      </Stack>
+      <Button x:Name="sign_out" Text="Se déconnecter" Variant="Text" Size="Md" OnClick="sign_out"/>
+    </Stack>
+    <Separator/>
+
     <Stack Direction="LeftToRight">
       <Stack Stack.Fill="true" CrossAlign="Center" Gap="6" Padding="0, 8, 0, 0">
         <Label Text="Lieux" Role="Body" FontWeight="SemiBold" ForeColor="#1A73E8"/>

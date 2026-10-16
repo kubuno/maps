@@ -29,6 +29,10 @@ resources = "res"
 min_sdk_version    = 26
 target_sdk_version = 35
 
+# The app talks to the account's Kubuno server (sign-in, profile, and soon the maps API).
+[[package.metadata.android.uses_permission]]
+name = "android.permission.INTERNET"
+
 [package.metadata.android.application]
 label = "Kubuno Maps"
 icon  = "@mipmap/ic_launcher"

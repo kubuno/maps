@@ -10,7 +10,11 @@ publish              = false
 [dependencies]
 # The shared mobile renderer (core repository, core/mobile): lays out and paints the .kbview screens and hosts the
 # MapView control.
-kubuno-mobile-render = { workspace = true }
+kubuno-mobile-render  = { workspace = true }
+# The signed-in session (token owner + API client) and the shared sign-in screens (core, core/mobile/common).
+kubuno-mobile-account = { workspace = true }
+kubuno-mobile-signin  = { workspace = true }
+log                   = "0.4"
 # The module's shared engine (../../../common/core): the Web Mercator projection the map draws with.
 kubuno-maps-core     = { workspace = true }
 
