@@ -11,7 +11,9 @@ pub use controls::map_view::MapView;
 
 use std::cell::Cell;
 
-use kubuno_mobile_render::{register_host_control, set_data, App, Scope, TapEvent};
+use std::time::Duration;
+
+use kubuno_mobile_render::{post_ui, register_host_control, set_data, App, Scope, TapEvent};
 
 /// The home screen: the full-screen map under the search bar and the explore sheet.
 pub const HOME: &str = include_str!("views/home.kbview");
@@ -59,25 +61,40 @@ fn view_index() -> usize {
     }
 }
 
-/// Handle a tap: a screen-opening button moves to that screen; a back / close or picking a result returns home.
+/// Handle a tap: a screen-opening button moves to that screen (opening search also starts a search); a back / close
+/// or picking a result returns home.
 fn on_event(ev: &TapEvent) {
-    let next = match ev.handler.as_str() {
-        "open_search" => Some(Screen::Search),
-        "open_library" => Some(Screen::Library),
-        "open_layers" => Some(Screen::Layers),
-        "close" | "pick_result" => Some(Screen::Home),
-        _ => None,
-    };
-    if let Some(screen) = next {
-        SCREEN.with(|s| s.set(screen));
+    match ev.handler.as_str() {
+        "open_search" => {
+            SCREEN.with(|s| s.set(Screen::Search));
+            start_search();
+        }
+        "open_library" => SCREEN.with(|s| s.set(Screen::Library)),
+        "open_layers" => SCREEN.with(|s| s.set(Screen::Layers)),
+        "close" | "pick_result" => SCREEN.with(|s| s.set(Screen::Home)),
+        _ => {}
     }
 }
 
-/// The app's data context for the views (the `{Bind …}` values and the `Repeater` lists). A first slice: the search
-/// results list. [M4] fills it from the live Maps server (geocoding, saved places, routes…). Installed with the
-/// renderer so the bound views render from it.
-fn install_data() {
-    let results = Scope::new().list(
+/// Start a search. The loading state shows now; a worker thread then returns the results — as the Maps server call
+/// will — and posts them back to the UI thread, which re-renders. [M4] replaces the sleep with the real
+/// `GET /geocode/search` through the account's Maps server.
+fn start_search() {
+    set_data(loading_data());
+    std::thread::spawn(|| {
+        std::thread::sleep(Duration::from_millis(1500));
+        post_ui(|| set_data(results_data()));
+    });
+}
+
+/// The data context while a search is running: the loading line and no results yet.
+fn loading_data() -> Scope {
+    Scope::new().set("status", "Recherche en cours…").list("results", Vec::new())
+}
+
+/// The data context once the (here simulated) search has returned: the results the `Repeater` lists.
+fn results_data() -> Scope {
+    Scope::new().set("status", "").list(
         "results",
         vec![
             place_scope("Tour Eiffel", "Champ de Mars, 75007 Paris"),
@@ -86,21 +103,20 @@ fn install_data() {
             place_scope("Notre-Dame de Paris", "6 parvis Notre-Dame, 75004 Paris"),
             place_scope("Parc des Buttes-Chaumont", "1 rue Botzaris, 75019 Paris"),
         ],
-    );
-    set_data(results);
+    )
 }
 
 fn place_scope(name: &str, detail: &str) -> Scope {
     Scope::new().set("name", name).set("detail", detail)
 }
 
-/// Register the app's host controls with the renderer, reset the navigation state and install the data context. The
-/// shell calls it once, on its UI thread, before the first frame (through [`APP`]); a tool rendering the views
-/// off-device calls it first too.
+/// Register the app's host controls with the renderer, reset the navigation state and install the initial data
+/// context. The shell calls it once, on its UI thread, before the first frame (through [`APP`]); a tool rendering
+/// the views off-device calls it first too.
 pub fn setup() {
     register_host_control("MapView", MapView::default());
     SCREEN.with(|s| s.set(Screen::Home));
-    install_data();
+    set_data(results_data());
 }
 
 /// The Maps app, as the shells run it: its screens, the host-control setup, and the navigation wiring (the shell asks

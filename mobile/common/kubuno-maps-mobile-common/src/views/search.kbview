@@ -14,17 +14,21 @@
     <Separator/>
   </Stack>
 
-  <!-- Results — one row per `results` item of the app's data context, each tappable (OnClick → pick_result). -->
+  <!-- Status line (e.g. "Recherche en cours…" while loading) then one row per `results` item of the app's data
+       context, each tappable (OnClick → pick_result). The list fills in when the async search returns. -->
   <ScrollArea Dock="Fill">
-    <Repeater Items="results" Padding="0, 4, 0, 24">
-      <Stack x:Name="result" OnClick="pick_result" Direction="LeftToRight" CrossAlign="Center" Gap="16" Padding="16, 12, 16, 12">
-        <Icon Name="MapPin" Size="22" ForeColor="#1A73E8"/>
-        <Stack Stack.Fill="true" Gap="1">
-          <Label Text="{Bind name}" Role="Body" ForeColor="#202124" Overflow="Ellipsis"/>
-          <Label Text="{Bind detail}" Role="Meta" ForeColor="#5F6368" Overflow="Ellipsis"/>
+    <Stack>
+      <Label Text="{Bind status}" Role="Meta" ForeColor="#5F6368" Padding="20, 14, 20, 6"/>
+      <Repeater Items="results" Padding="0, 4, 0, 24">
+        <Stack x:Name="result" OnClick="pick_result" Direction="LeftToRight" CrossAlign="Center" Gap="16" Padding="16, 12, 16, 12">
+          <Icon Name="MapPin" Size="22" ForeColor="#1A73E8"/>
+          <Stack Stack.Fill="true" Gap="1">
+            <Label Text="{Bind name}" Role="Body" ForeColor="#202124" Overflow="Ellipsis"/>
+            <Label Text="{Bind detail}" Role="Meta" ForeColor="#5F6368" Overflow="Ellipsis"/>
+          </Stack>
         </Stack>
-      </Stack>
-    </Repeater>
+      </Repeater>
+    </Stack>
   </ScrollArea>
 
 </Panel>
